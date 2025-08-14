@@ -1,0 +1,23 @@
+@model ShopTechnologyAccessories.Models.Order
+@{
+    ViewData["Title"] = "Cập nhật đơn hàng";
+}
+<h3>Đơn hàng @Model.OrderId</h3>
+<p>Khách: @Model.User.FullName</p>
+<p>Ngày: @Model.OrderDate</p>
+<form method="post" action="@Url.Action("UpdateStatus")" class="col-md-6">
+    <input type="hidden" name="id" value="@Model.OrderId" />
+    <div class="mb-3">
+        <label class="form-label">Trạng thái</label>
+        <select name="status" class="form-select">
+            @foreach (var s in new[]{"Pending","Processing","Shipping","Completed","Cancelled"})
+            {
+                <option selected="@(s==Model.Status)">@s</option>
+            }
+        </select>
+    </div>
+    <button class="btn btn-primary">Lưu</button>
+    <a class="btn btn-secondary" href="@Url.Action("Index")">Quay lại</a>
+</form>
+
+

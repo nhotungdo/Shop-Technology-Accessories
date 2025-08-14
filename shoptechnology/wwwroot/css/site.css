@@ -1,0 +1,165 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.site-footer {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.site-footer .footer-sub {
+  color: #9ca3af;
+}
+
+.site-footer .footer-link {
+  color: #93c5fd;
+  text-decoration: none
+}
+
+.site-footer .footer-link:hover {
+  text-decoration: underline
+}
+
+.site-footer .footer-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem
+}
+
+.site-footer .footer-social {
+  border-color: rgba(255, 255, 255, .3)
+}
+
+
+/* Modern light theme inspired by tech accessories flat-lay */
+:root {
+  --accent: #ff6a00;
+  --accent-hover: #e85d00;
+  --bg: #f5f6f8;
+  --text: #1f2937;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.navbar .brand-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  display: inline-block;
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.signup-btn {
+  background: #111827;
+  color: #fff;
+  border: 0;
+}
+
+.signup-btn:hover {
+  background: #0b1220;
+  color: #fff;
+}
+
+.text-accent {
+  color: var(--accent) !important;
+}
+
+/* Category chips */
+.chip-btn {
+  border-radius: 999px;
+  border-color: #e5e7eb;
+  color: #374151;
+  background: #ffffff;
+}
+
+.chip-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Product cards */
+.product-card {
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+  background: #ffffff;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.product-card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+  background: #f1f2f4;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.product-card .card-title {
+  font-weight: 600;
+}
+
+.price {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Hero section */
+.hero {
+  background: radial-gradient(1200px 400px at 10% -10%, rgba(255, 106, 0, 0.15), transparent 60%),
+    radial-gradient(1200px 400px at 90% 110%, rgba(255, 106, 0, 0.15), transparent 60%),
+    linear-gradient(180deg, #ffffff, #f7f7f9);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.hero .display-6 {
+  font-weight: 700;
+}

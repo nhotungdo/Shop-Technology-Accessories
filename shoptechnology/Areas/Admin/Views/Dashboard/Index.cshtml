@@ -1,0 +1,468 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="dashboard-title">Dashboard</h1>
+                <p class="dashboard-subtitle">Tổng quan nhanh về cửa hàng hôm nay</p>
+            </div>
+            <div class="header-actions">
+                <a href="@Url.Action("Index","Products", new { area = "Admin" })" class="action-btn">Quản lý sản
+                    phẩm</a>
+                <a href="@Url.Action("Index","Orders", new { area = "Admin" })" class="action-btn">Đơn hàng</a>
+                <a href="@Url.Action("Index","Users", new { area = "Admin" })" class="action-btn active">Người dùng</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon revenue">
+                <i class="bi bi-currency-exchange"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">@ViewBag.RevenueToday.ToString("N0") đ</div>
+                <div class="stat-label">Doanh thu hôm nay</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orders">
+                <i class="bi bi-receipt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">@ViewBag.TotalOrders</div>
+                <div class="stat-label">Tổng đơn</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon products">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">@ViewBag.TotalProducts</div>
+                <div class="stat-label">Sản phẩm</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+        <div class="chart-card sales-chart">
+            <div class="chart-header">
+                <h6>Sales value</h6>
+            </div>
+            <div class="chart-body">
+                <canvas id="salesChart" height="160"></canvas>
+            </div>
+        </div>
+        <div class="chart-card orders-chart">
+            <div class="chart-header">
+                <h6>Total orders</h6>
+            </div>
+            <div class="chart-body">
+                <canvas id="ordersChart" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="tables-row">
+        <div class="table-card">
+            <div class="table-header">
+                <h6>Đơn hàng gần đây</h6>
+                <a href="@Url.Action("Index","Orders", new { area = "Admin" })" class="view-all">Xem tất cả</a>
+            </div>
+            <div class="table-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in (IEnumerable<ShopTechnologyAccessories.Models.Order>)ViewBag.RecentOrders)
+                        {
+                            <tr>
+                                <td>@o.OrderId.ToString().Substring(0,8)</td>
+                                <td>@o.User.FullName</td>
+                                <td>@o.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@o.TotalAmount.ToString("N0") đ</td>
+                                <td><span class="status-badge">@o.Status</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="table-card">
+            <div class="table-header">
+                <h6>Sản phẩm bán chạy</h6>
+            </div>
+            <div class="table-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Số lượng đã bán</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in (IEnumerable<dynamic>)ViewBag.TopProducts)
+                        {
+                            <tr>
+                                <td>@p.ProductId</td>
+                                <td>@p.ProductName</td>
+                                <td>@p.Quantity</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+@section Styles {
+    <style>
+        .dashboard-container {
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #172b4d;
+            margin: 0 0 8px 0;
+        }
+
+        .dashboard-subtitle {
+            color: #8898aa;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #8898aa;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #f8f9fa;
+            color: #172b4d;
+            text-decoration: none;
+        }
+
+        .action-btn.active {
+            background: #ff6a00;
+            color: white;
+            border-color: #ff6a00;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .stat-icon.revenue {
+            background: #28a745;
+        }
+
+        .stat-icon.orders {
+            background: #17a2b8;
+        }
+
+        .stat-icon.products {
+            background: #ffc107;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #172b4d;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: #8898aa;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chart-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .chart-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #172b4d;
+            font-size: 16px;
+        }
+
+        .chart-body {
+            padding: 20px;
+        }
+
+        .tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #172b4d;
+            font-size: 16px;
+        }
+
+        .view-all {
+            color: #5e72e4;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .table-body {
+            padding: 0;
+        }
+
+        .table {
+            margin: 0;
+            width: 100%;
+        }
+
+        .table th {
+            border-top: none;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+            color: #8898aa;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px 20px;
+        }
+
+        .table td {
+            border-top: none;
+            border-bottom: 1px solid #f8f9fa;
+            vertical-align: middle;
+            color: #172b4d;
+            padding: 15px 20px;
+        }
+
+        .status-badge {
+            background: #e9ecef;
+            color: #6c757d;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+  
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+        .charts-row {
+            grid-template-columns: 1fr;
+        }
+        .tables-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart');
+            if (salesCtx) {
+                new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['March', 'April', 'May', 'June', 'July', 'August'],
+                        datasets: [
+                            {
+                                label: 'Sales',
+                                data: [0, 0, 0, 0, 0, 400],
+                                borderColor: '#635bff',
+                                backgroundColor: 'rgba(99,91,255,0.15)',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 500,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Orders Chart
+            const ordersCtx = document.getElementById('ordersChart');
+            if (ordersCtx) {
+                new Chart(ordersCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['March', 'April', 'May', 'June', 'July', 'August'],
+                        datasets: [
+                            {
+                                label: 'Orders',
+                                data: [0, 0, 0, 0, 0, 1],
+                                backgroundColor: '#ff6a00'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+}

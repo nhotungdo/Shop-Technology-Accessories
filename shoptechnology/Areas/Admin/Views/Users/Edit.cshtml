@@ -1,0 +1,31 @@
+@model ShopTechnologyAccessories.Models.User
+@{
+    ViewData["Title"] = "Sửa người dùng";
+}
+<h3>Sửa người dùng</h3>
+<form method="post" class="col-md-7">
+    <input type="hidden" name="userId" value="@Model.UserId" />
+    <div class="mb-3">
+        <label class="form-label">Họ tên</label>
+        <input name="fullName" class="form-control" value="@Model.FullName" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input name="email" type="email" value="@Model.Email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Vai trò</label>
+        <select name="roleId" class="form-select">
+            @foreach (var r in (IEnumerable<ShopTechnologyAccessories.Models.Role>)ViewBag.Roles)
+            {
+                <option value="@r.RoleId" selected="@(r.RoleId == Model.RoleId)">@r.RoleName</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Đổi mật khẩu (để trống nếu giữ nguyên)</label>
+        <input name="newPassword" type="password" class="form-control" />
+    </div>
+    <button class="btn btn-primary">Cập nhật</button>
+    <a class="btn btn-secondary" href="@Url.Action("Index")">Hủy</a>
+</form>

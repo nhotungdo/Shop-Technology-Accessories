@@ -1,0 +1,60 @@
+@model ShopTechnologyAccessories.Models.Cart
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+<h3>Giỏ hàng</h3>
+@if (!Model.CartItems.Any())
+{
+    <p>Giỏ hàng trống</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-end">Thành tiền</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.CartItems)
+                {
+                    <tr>
+                        <td>@item.Product.ProductName</td>
+                        <td class="text-center">
+                            <form method="post" action="@Url.Action("UpdateQuantity","Cart")" class="d-inline">
+                                <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                                <input type="number" min="1" name="quantity" value="@item.Quantity" style="width:80px" />
+                                <button class="btn btn-sm btn-outline-secondary">Cập nhật</button>
+                            </form>
+                        </td>
+                        <td class="text-end">@item.Product.Price.ToString("N0") đ</td>
+                        <td class="text-end">@(item.Product.Price * item.Quantity).ToString("N0") đ</td>
+                        <td class="text-end">
+                            <form method="post" action="@Url.Action("Remove","Cart")" class="d-inline">
+                                <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                                <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="3" class="text-end">Tổng:</th>
+                    <th class="text-end">@Model.CartItems.Sum(i => i.Quantity * i.Product.Price).ToString("N0") đ</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="text-end">
+        <a class="btn btn-success" href="@Url.Action("Index","Checkout")">Thanh toán</a>
+    </div>
+}
+
+

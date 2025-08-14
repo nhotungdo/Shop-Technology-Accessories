@@ -1,0 +1,72 @@
+@model ShopTechnologyAccessories.Models.ProductListVm
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+<div class="p-4 p-md-5 mb-4 hero">
+    <div class="container py-3">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <h1 class="display-6 mb-2">Phụ kiện công nghệ hiện đại</h1>
+                <p class="lead mb-3">Khám phá tai nghe, sạc nhanh, ốp lưng và hàng trăm phụ kiện với sắc cam nổi bật.
+                </p>
+                <a class="btn btn-primary btn-lg" href="@Url.Action("Index", "Products")">Mua ngay</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mt-3">Danh mục</h3>
+<div class="row row-cols-2 row-cols-md-4 g-3">
+    @foreach (var c in (IEnumerable<ShopTechnologyAccessories.Models.Category>)ViewBag.Categories)
+    {
+        <div class="col">
+            <a class="btn chip-btn w-100"
+                href="@Url.Action("Index", "Products", new { categoryId = c.CategoryId })">@c.CategoryName</a>
+        </div>
+    }
+</div>
+
+<h3 class="mt-4">Sản phẩm mới</h3>
+<div class="row row-cols-1 row-cols-md-4 g-3">
+    @foreach (var p in Model.Products)
+    {
+        var img = p.ProductImages.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? p.ProductImages.FirstOrDefault()?.ImageUrl ??
+        "/favicon.ico";
+        <div class="col">
+            <div class="card product-card h-100">
+                <img src="@img" class="card-img-top" alt="@p.ProductName" />
+                <div class="card-body">
+                    <h5 class="card-title">@p.ProductName</h5>
+                    <p class="card-text price">@p.Price.ToString("N0") đ</p>
+                    <a class="btn btn-sm btn-outline-primary"
+                        href="@Url.Action("Details", "Products", new { id = p.ProductId })">Xem</a>
+                </div>
+            </div>
+        </div>
+    }
+    }
+</div>
+
+@{
+    var canPrev = Model.Page > 1;
+    var canNext = Model.Page < Model.TotalPages;
+}
+<nav class="mt-3" aria-label="Pagination">
+    <ul class="pagination justify-content-center">
+        <li class="page-item @(canPrev ? "" : "disabled")">
+            <a class="page-link"
+                href="@Url.Action("Index", new { page = Model.Page - 1, pageSize = Model.PageSize })">Trước</a>
+        </li>
+        @for (var i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.Page ? "active" : "")"><a class="page-link"
+                    href="@Url.Action("Index", new { page = i, pageSize = Model.PageSize })">@i</a></li>
+        }
+        <li class="page-item @(canNext ? "" : "disabled")">
+            <a class="page-link"
+                href="@Url.Action("Index", new { page = Model.Page + 1, pageSize = Model.PageSize })">Sau</a>
+        </li>
+    </ul>
+    <div class="text-center text-muted small">Trang @Model.Page / @Model.TotalPages — Tổng @Model.TotalItems sản phẩm
+    </div>
+</nav>

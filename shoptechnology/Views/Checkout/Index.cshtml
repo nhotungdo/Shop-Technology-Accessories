@@ -1,0 +1,43 @@
+@model ShopTechnologyAccessories.Models.Cart
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+<h3>Thanh toán</h3>
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Địa chỉ giao hàng</h5>
+                <form method="post" action="@Url.Action("PayByPayPal","Checkout")" class="mb-3">
+                    <textarea name="shippingAddress" class="form-control" required placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"></textarea>
+                    <div class="mt-2 d-flex gap-2">
+                        <button class="btn btn-primary">Thanh toán PayPal</button>
+                        <button formaction="@Url.Action("PayByVNPay","Checkout")" class="btn btn-outline-primary">Thanh toán VNPay</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Tóm tắt đơn hàng</h5>
+                <ul class="list-group list-group-flush">
+                    @foreach (var i in Model.CartItems)
+                    {
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>@i.Product.ProductName x @i.Quantity</span>
+                            <span>@(i.Product.Price * i.Quantity).ToString("N0") đ</span>
+                        </li>
+                    }
+                    <li class="list-group-item d-flex justify-content-between fw-bold">
+                        <span>Tổng</span>
+                        <span>@Model.CartItems.Sum(i => i.Product.Price * i.Quantity).ToString("N0") đ</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,31 @@
+@model ShopTechnologyAccessories.Models.Product
+@{
+    ViewData["Title"] = Model.ProductName;
+    var img = Model.ProductImages.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? Model.ProductImages.FirstOrDefault()?.ImageUrl
+    ?? "/favicon.ico";
+}
+<div class="row g-4">
+    <div class="col-md-5">
+        <img src="@img" class="img-fluid border rounded w-100" style="background:#f1f2f4; border-radius:16px;"
+            alt="@Model.ProductName" />
+    </div>
+    <div class="col-md-7">
+        <h3>@Model.ProductName</h3>
+        <p>@Model.Description</p>
+        <p class="h4 price">@Model.Price.ToString("N0") đ</p>
+        <p>Tồn kho: @Model.StockQuantity</p>
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <form method="post" action="@Url.Action("Add", "Cart")" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="productId" value="@Model.ProductId" />
+                <input type="number" name="quantity" value="1" min="1" class="form-control" style="width:120px" />
+                <button class="btn btn-primary">Thêm vào giỏ</button>
+            </form>
+        }
+        else
+        {
+            <a class="btn btn-outline-primary"
+                href="@Url.Action("Login", "Account", new { returnUrl = Context.Request.Path })">Đăng nhập để mua</a>
+        }
+    </div>
+</div>

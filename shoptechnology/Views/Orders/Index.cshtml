@@ -1,0 +1,30 @@
+@model IEnumerable<ShopTechnologyAccessories.Models.Order>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+<h3>Đơn hàng của tôi</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Mã</th>
+            <th>Ngày</th>
+            <th>Tổng</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>@o.OrderId</td>
+                <td>@o.OrderDate</td>
+                <td>@o.TotalAmount.ToString("N0") đ</td>
+                <td>@o.Status</td>
+                <td><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details","Orders", new { id = o.OrderId })">Xem</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

@@ -1,0 +1,43 @@
+@model IEnumerable<ShopTechnologyAccessories.Models.User>
+@{
+    ViewData["Title"] = "Người dùng";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Người dùng</h3>
+    <a class="btn btn-primary" href="@Url.Action("Create")">Thêm người dùng</a>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var locked = u.UpdatedAt == DateTime.MaxValue;
+            <tr>
+                <td>@u.FullName</td>
+                <td>@u.Email</td>
+                <td>@u.Role.RoleName</td>
+                <td>@(locked ? "Bị khóa" : "Hoạt động")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Edit", new { id = u.UserId })">Sửa</a>
+                    <form method="post" action="@Url.Action("Delete")" class="d-inline"
+                        onsubmit="return confirm('Xóa người dùng?')">
+                        <input type="hidden" name="id" value="@u.UserId" />
+                        <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                    </form>
+                    <form method="post" action="@Url.Action("ToggleLock")" class="d-inline">
+                        <input type="hidden" name="id" value="@u.UserId" />
+                        <button class="btn btn-sm @(locked ? "btn-success" : "btn-warning")">@(locked ? "Mở khóa" : "Khóa")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

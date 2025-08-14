@@ -1,0 +1,74 @@
+@model IEnumerable<ShopTechnologyAccessories.Models.Product>
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Quản lý sản phẩm</h4>
+                        <a class="btn btn-primary" href="@Url.Action("Create")">
+                            <i class="bi bi-plus-circle"></i> Thêm sản phẩm
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ToastMessage"] != null)
+                    {
+                        <div class="alert alert-@(TempData["ToastType"] ?? "success") alert-dismissible fade show" role="alert">
+                            @TempData["ToastMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá (VNĐ)</th>
+                                    <th>Tồn kho</th>
+                                    <th class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@p.ProductId</strong></td>
+                                        <td>@p.ProductName</td>
+                                        <td><span class="badge bg-info">@p.Category.CategoryName</span></td>
+                                        <td><strong>@p.Price.ToString("N0") ₫</strong></td>
+                                        <td>
+                                            <span class="badge @(p.StockQuantity > 0 ? "bg-success" : "bg-danger")">
+                                                @p.StockQuantity
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", new { id = p.ProductId })" title="Sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form method="post" action="@Url.Action("Delete")" class="d-inline" 
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
+                                                    <input type="hidden" name="id" value="@p.ProductId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
