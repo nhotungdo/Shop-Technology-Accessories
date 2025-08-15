@@ -1,0 +1,47 @@
+@model ShopTechnologyAccessories.Models.Product
+
+@{
+    ViewData["Title"] = "Xác nhận xóa sản phẩm";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-danger">Xác nhận xóa sản phẩm</h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading">Bạn có chắc chắn muốn xóa sản phẩm này không?</h4>
+                <p>Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan đến sản phẩm này sẽ bị xóa vĩnh viễn.</p>
+                <hr>
+                <p class="mb-0">Vui lòng xem lại thông tin sản phẩm dưới đây trước khi xác nhận.</p>
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3">Tên sản phẩm</dt>
+                <dd class="col-sm-9">@Model.ProductName</dd>
+
+                <dt class="col-sm-3">Danh mục</dt>
+                <dd class="col-sm-9">@Model.Category.CategoryName</dd>
+
+                <dt class="col-sm-3">Giá</dt>
+                <dd class="col-sm-9">@Model.Price.ToString("N0") ₫</dd>
+
+                <dt class="col-sm-3">Số lượng tồn kho</dt>
+                <dd class="col-sm-9">@Model.StockQuantity</dd>
+            </dl>
+
+            <form asp-action="DeleteConfirmed" method="post">
+                <input type="hidden" asp-for="ProductId" />
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i> Xóa vĩnh viễn
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i> Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

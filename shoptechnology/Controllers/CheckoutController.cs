@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShopTechnologyAccessories.Models;
+using ShopTechnology.Models;
 using ShopTechnologyAccessories.Services;
 using System.Security.Claims;
 
@@ -138,6 +138,7 @@ public class CheckoutController : Controller
 
         _db.CartItems.RemoveRange(cart.CartItems);
         await _db.SaveChangesAsync();
+        TempData["success"] = "Thanh toán thành công!";
         return RedirectToAction("Details", "Orders", new { id = order.OrderId });
     }
 }

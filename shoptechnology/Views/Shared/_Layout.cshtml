@@ -37,6 +37,7 @@
             justify-content: center;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @RenderSection("Styles", required: false)
 </head>
 
@@ -103,22 +104,7 @@
         </nav>
     </header>
     <main class="container mt-4">
-        @if (TempData["ToastMessage"] != null)
-        {
-            <script>
-                (function () {
-                    var msg = '@TempData["ToastMessage"]';
-                    var type = '@TempData["ToastType"]' || 'success';
-                    if (window.AppToast) {
-                        window.AppToast.show(msg, type);
-                    } else {
-                        window.addEventListener('load', function () {
-                            if (window.AppToast) window.AppToast.show(msg, type);
-                        });
-                    }
-                })();
-            </script>
-        }
+        <partial name="_Notification" />
         @RenderBody()
     </main>
     <footer class="site-footer">

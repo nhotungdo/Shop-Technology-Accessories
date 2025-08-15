@@ -58,6 +58,7 @@ public class CartController : Controller
             item.Quantity += Math.Max(1, quantity);
         }
         await _db.SaveChangesAsync();
+        TempData["success"] = "Sản phẩm đã được thêm vào giỏ hàng";
         return RedirectToAction("Index");
     }
 

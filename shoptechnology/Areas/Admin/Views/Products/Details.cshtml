@@ -1,0 +1,49 @@
+@model ShopTechnologyAccessories.Models.Product
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Chi tiết sản phẩm</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <dl class="row">
+                        <dt class="col-sm-3">Tên sản phẩm</dt>
+                        <dd class="col-sm-9">@Model.ProductName</dd>
+
+                        <dt class="col-sm-3">Mô tả</dt>
+                        <dd class="col-sm-9">@Html.Raw(Model.Description)</dd>
+
+                        <dt class="col-sm-3">Danh mục</dt>
+                        <dd class="col-sm-9">@Model.Category.CategoryName</dd>
+
+                        <dt class="col-sm-3">Giá</dt>
+                        <dd class="col-sm-9">@Model.Price.ToString("N0") ₫</dd>
+
+                        <dt class="col-sm-3">Số lượng tồn kho</dt>
+                        <dd class="col-sm-9">@Model.StockQuantity</dd>
+
+                        <dt class="col-sm-3">Ngày tạo</dt>
+                        <dd class="col-sm-9">@Model.DateCreated.ToString("g")</dd>
+
+                        <dt class="col-sm-3">Ngày cập nhật</dt>
+                        <dd class="col-sm-9">@Model.DateModified.ToString("g")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Edit" asp-route-id="@Model.ProductId" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i> Sửa
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+</div>
