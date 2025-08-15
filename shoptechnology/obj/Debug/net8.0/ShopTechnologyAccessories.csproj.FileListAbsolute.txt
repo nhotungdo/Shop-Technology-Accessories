@@ -197,3 +197,15 @@ F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\ShopTechn
 F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\ShopTechnologyAccessories\obj\Debug\net8.0\ShopTechnologyAccessories.pdb
 F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\ShopTechnologyAccessories\obj\Debug\net8.0\ShopTechnologyAccessories.genruntimeconfig.cache
 F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\ShopTechnologyAccessories\obj\Debug\net8.0\ref\ShopTechnologyAccessories.dll
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.csproj.AssemblyReference.cache
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.GeneratedMSBuildEditorConfig.editorconfig
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.AssemblyInfoInputs.cache
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.AssemblyInfo.cs
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.csproj.CoreCompileInputs.cache
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.MvcApplicationPartsAssemblyInfo.cache
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.RazorAssemblyInfo.cache
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.RazorAssemblyInfo.cs
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.sourcelink.json
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.dll
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\refint\ShopTechnologyAccessories.dll
+F:\PRN212-REVIEW\ShopTechnologyAccessories\Shop-Technology-Accessories\shoptechnology\obj\Debug\net8.0\ShopTechnologyAccessories.pdb
