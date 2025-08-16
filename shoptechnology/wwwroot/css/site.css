@@ -61,8 +61,8 @@ body {
 
 /* Modern light theme inspired by tech accessories flat-lay */
 :root {
-  --accent: #ff6a00;
-  --accent-hover: #e85d00;
+  --accent: #0084ff;
+  --accent-hover: #0084ff;
   --bg: #f5f6f8;
   --text: #1f2937;
 }
@@ -155,7 +155,7 @@ body {
 .hero {
   background: radial-gradient(1200px 400px at 10% -10%, rgba(255, 106, 0, 0.15), transparent 60%),
     radial-gradient(1200px 400px at 90% 110%, rgba(255, 106, 0, 0.15), transparent 60%),
-    linear-gradient(180deg, #ffffff, #f7f7f9);
+    linear-gradient(180deg, #0084ff, #0084ff);
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 }

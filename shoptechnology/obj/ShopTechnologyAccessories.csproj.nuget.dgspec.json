@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\ShopTechnologyAccessories\\ShopTechnologyAccessories.csproj": {}
+    "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\ShopTechnologyAccessories.csproj": {}
   },
   "projects": {
-    "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\ShopTechnologyAccessories\\ShopTechnologyAccessories.csproj": {
+    "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\ShopTechnologyAccessories.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\ShopTechnologyAccessories\\ShopTechnologyAccessories.csproj",
+        "projectUniqueName": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\ShopTechnologyAccessories.csproj",
         "projectName": "ShopTechnologyAccessories",
-        "projectPath": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\ShopTechnologyAccessories\\ShopTechnologyAccessories.csproj",
+        "projectPath": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\ShopTechnologyAccessories.csproj",
         "packagesPath": "C:\\Users\\MY PC\\.nuget\\packages\\",
-        "outputPath": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\ShopTechnologyAccessories\\obj\\",
+        "outputPath": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
