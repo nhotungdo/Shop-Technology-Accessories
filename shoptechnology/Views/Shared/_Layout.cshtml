@@ -23,12 +23,14 @@
         .navbar-brand {
             font-weight: 700;
         }
+
         .brand-dot {
             width: 10px;
             height: 10px;
             background-color: #007bff;
             border-radius: 50%;
         }
+
         .footer-icon {
             width: 24px;
             height: 24px;
@@ -97,6 +99,11 @@
                             </li>
                             <li class="nav-item"><a class="nav-link" href="@Url.Action("Register", "Account")">Đăng ký</a>
                             </li>
+
+                            <a class="nav-link" href="@Url.Action("Index", "Wishlist")">
+                                <i class="bi bi-heart"></i> Yêu thích
+                            </a>
+
                         }
                     </ul>
                 </div>
