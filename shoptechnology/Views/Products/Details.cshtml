@@ -29,10 +29,10 @@
         }
     </div>
 
-        <form asp-controller="Wishlist" asp-action="Add" method="post" class="d-inline"></form>
-        <input type="hidden" name="productId" value="@Model.ProductId" />
-        <button type="submit" class="btn btn-outline-danger btn-sm">
-            <i class="bi bi-heart"></i> Yêu thích
-        </button>
-    </form>
+        <form asp-controller="Wishlist" asp-action="Add" method="post" class="d-inline">
+            <input type="hidden" name="productId" value="@Model.ProductId" />
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-heart"></i> Yêu thích
+            </button>
+        </form>
 </div>

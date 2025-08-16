@@ -29,10 +29,10 @@
                         <dd class="col-sm-9">@Model.StockQuantity</dd>
 
                         <dt class="col-sm-3">Ngày tạo</dt>
-                        <dd class="col-sm-9">@Model.DateCreated.ToString("g")</dd>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
 
                         <dt class="col-sm-3">Ngày cập nhật</dt>
-                        <dd class="col-sm-9">@Model.DateModified.ToString("g")</dd>
+                        <dd class="col-sm-9">@(Model.UpdatedAt?.ToString("g"))</dd>
                     </dl>
                 </div>
             </div>

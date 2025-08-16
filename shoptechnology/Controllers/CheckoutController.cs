@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShopTechnology.Models;
+using ShopTechnologyAccessories.Models;
 using ShopTechnologyAccessories.Services;
 using System.Security.Claims;
 

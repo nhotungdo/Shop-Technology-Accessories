@@ -35,6 +35,8 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<Wishlist> Wishlists { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning Connection string should be configured via DI. This guard prevents double configuration when using AddDbContext.
     {

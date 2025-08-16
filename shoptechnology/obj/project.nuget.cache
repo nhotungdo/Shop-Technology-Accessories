@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "eThpAc05uhA=",
+  "dgSpecHash": "mcnZdASiDmY=",
   "success": true,
-  "projectFilePath": "F:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\ShopTechnologyAccessories.csproj",
+  "projectFilePath": "f:\\PRN212-REVIEW\\ShopTechnologyAccessories\\Shop-Technology-Accessories\\shoptechnology\\ShopTechnologyAccessories.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\MY PC\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\MY PC\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

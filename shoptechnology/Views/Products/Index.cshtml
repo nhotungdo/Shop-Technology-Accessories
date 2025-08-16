@@ -48,6 +48,10 @@
                                     <input type="hidden" name="productId" value="@p.ProductId" />
                                     <button class="btn btn-sm btn-primary">Thêm</button>
                                 </form>
+                                <form class="d-inline" method="post" action="@Url.Action("AddToWishlist", "Wishlist")">
+                                    <input type="hidden" name="productId" value="@p.ProductId" />
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-heart"></i></button>
+                                </form>
                             }
                         </div>
                     </div>
