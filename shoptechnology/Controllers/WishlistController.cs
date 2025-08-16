@@ -6,7 +6,6 @@ using System.Security.Claims;
 
 namespace ShopTechnologyAccessories.Controllers
 {
-    [Authorize]
     public class WishlistController : Controller
     {
         private readonly ShopTechnologyAccessoriesContext _db;
