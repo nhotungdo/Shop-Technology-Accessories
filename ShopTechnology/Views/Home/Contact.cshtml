@@ -1,0 +1,95 @@
+@{
+    ViewData["Title"] = "Liên hệ";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h1 class="text-center mb-4">
+                        <i class="fas fa-envelope text-primary"></i> Liên hệ với chúng tôi
+                    </h1>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Thông tin liên hệ</h3>
+                            <div class="mb-4">
+                                <h5><i class="fas fa-map-marker-alt text-primary"></i> Địa chỉ</h5>
+                                <p>123 Đường ABC, Quận XYZ, TP.HCM</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5><i class="fas fa-phone text-primary"></i> Điện thoại</h5>
+                                <p>0931982568</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5><i class="fas fa-envelope text-primary"></i> Email</h5>
+                                <p>donhotung2004@gmail.com</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5><i class="fas fa-clock text-primary"></i> Giờ làm việc</h5>
+                                <p>Thứ 2 - Thứ 7: 8:00 - 22:00<br>
+                                Chủ nhật: 9:00 - 21:00</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h3>Gửi tin nhắn cho chúng tôi</h3>
+                            <form>
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Họ và tên</label>
+                                    <input type="text" class="form-control" id="name" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="tel" class="form-control" id="phone">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Chủ đề</label>
+                                    <select class="form-select" id="subject" required>
+                                        <option value="">Chọn chủ đề</option>
+                                        <option value="support">Hỗ trợ khách hàng</option>
+                                        <option value="order">Đơn hàng</option>
+                                        <option value="product">Sản phẩm</option>
+                                        <option value="other">Khác</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Nội dung</label>
+                                    <textarea class="form-control" id="message" rows="5" required></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Gửi tin nhắn
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-5">
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h3 class="text-center mb-4">Bản đồ</h3>
+                            <div class="text-center">
+                                <img src="https://via.placeholder.com/800x400/6c757d/ffffff?text=Google+Maps" 
+                                     class="img-fluid rounded" alt="Bản đồ">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

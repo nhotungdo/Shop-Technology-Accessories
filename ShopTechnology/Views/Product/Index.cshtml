@@ -1,0 +1,161 @@
+@model List<ProductViewModel>
+@{
+    ViewData["Title"] = "Sản phẩm";
+}
+
+<div class="row">
+    <!-- Sidebar bộ lọc -->
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-filter"></i> Bộ lọc</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Filter" method="post">
+                    <!-- Danh mục -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Danh mục</label>
+                        <select name="categoryId" class="form-select">
+                            <option value="">Tất cả danh mục</option>
+                            @foreach (var category in ViewBag.Categories)
+                            {
+                                <option value="@category.CategoryId"
+                                    selected="@(ViewBag.SelectedCategoryId == category.CategoryId)">
+                                    @category.CategoryName
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Khoảng giá -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Khoảng giá</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="number" name="minPrice" class="form-control" placeholder="Từ"
+                                    value="@ViewBag.MinPrice" />
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="maxPrice" class="form-control" placeholder="Đến"
+                                    value="@ViewBag.MaxPrice" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Lọc
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách sản phẩm -->
+    <div class="col-md-9">
+        <!-- Thanh tìm kiếm -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form asp-action="Search" method="post" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm sản phẩm..."
+                            value="@ViewBag.SearchTerm" />
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Kết quả tìm kiếm -->
+        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-search"></i> Kết quả tìm kiếm cho: <strong>"@ViewBag.SearchTerm"</strong> (@Model.Count sản
+                phẩm)
+            </div>
+        }
+
+        <!-- Danh sách sản phẩm -->
+        @if (Model.Any())
+        {
+            <div class="row">
+                @foreach (var product in Model)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName"
+                                style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@product.ProductName</h5>
+                                <p class="card-text text-muted">@product.CategoryName</p>
+                                <p class="card-text">@product.Description</p>
+                                <p class="card-text text-primary fw-bold fs-5">@product.Price.ToString("N0") VNĐ</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
+                                    </small>
+                                </p>
+                                <div class="mt-auto">
+                                    <div class="d-grid gap-2">
+                                        <a asp-action="Details" asp-route-id="@product.ProductId"
+                                            class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                        @if (Context.Session.GetString("UserId") != null)
+                                        {
+                                            <button class="btn btn-success add-to-cart" data-product-id="@product.ProductId">
+                                                <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Không tìm thấy sản phẩm</h4>
+                <p class="text-muted">Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc</p>
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Về trang chủ
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.add-to-cart').click(function () {
+                var productId = $(this).data('product-id');
+                var button = $(this);
+
+                $.post('/Cart/AddToCart', { productId: productId, quantity: 1 })
+                    .done(function (response) {
+                        if (response.success) {
+                            button.html('<i class="fas fa-check"></i> Đã thêm');
+                            button.removeClass('btn-success').addClass('btn-secondary');
+                            setTimeout(function () {
+                                button.html('<i class="fas fa-cart-plus"></i> Thêm vào giỏ');
+                                button.removeClass('btn-secondary').addClass('btn-success');
+                            }, 2000);
+                        } else {
+                            alert('Có lỗi xảy ra: ' + response.message);
+                        }
+                    })
+                    .fail(function () {
+                        alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
+                    });
+            });
+        });
+    </script>
+}
