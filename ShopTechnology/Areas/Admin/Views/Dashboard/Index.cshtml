@@ -1,0 +1,40 @@
+@{
+	ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2 class="mb-4"><i class="fas fa-chart-line text-primary"></i> Dashboard</h2>
+
+<div class="row g-3">
+	<div class="col-md-3">
+		<div class="card text-center shadow-sm">
+			<div class="card-body">
+				<h5>Người dùng</h5>
+				<p class="display-6 text-primary">@ViewBag.TotalUsers</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-center shadow-sm">
+			<div class="card-body">
+				<h5>Đơn hàng</h5>
+				<p class="display-6 text-success">@ViewBag.TotalOrders</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-center shadow-sm">
+			<div class="card-body">
+				<h5>Doanh thu</h5>
+				<p class="display-6 text-danger">@ViewBag.TotalRevenue.ToString("N0") VNĐ</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-center shadow-sm">
+			<div class="card-body">
+				<h5>Sản phẩm</h5>
+				<p class="display-6 text-warning">@ViewBag.TotalProducts</p>
+			</div>
+		</div>
+	</div>
+</div>

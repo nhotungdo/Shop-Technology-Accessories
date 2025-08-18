@@ -1,0 +1,58 @@
+@model List<ShopTechnology.ViewModels.ProductViewModel>
+@{
+	ViewData["Title"] = "Yêu thích";
+}
+
+<h2 class="mb-4"><i class="fas fa-heart text-danger"></i> Sản phẩm yêu thích</h2>
+
+@if (Model.Any())
+{
+	<div class="row">
+		@foreach (var product in Model)
+		{
+			<div class="col-md-3 mb-4">
+				<div class="card h-100 shadow-sm">
+					<img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName" style="height: 200px; object-fit: cover;">
+					<div class="card-body d-flex flex-column">
+						<h6 class="card-title">@product.ProductName</h6>
+						<p class="text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
+						<div class="mt-auto d-flex gap-2">
+							<a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId" class="btn btn-outline-primary btn-sm">
+								<i class="fas fa-eye"></i>
+							</a>
+							<button class="btn btn-outline-danger btn-sm remove-wishlist" data-id="@product.ProductId">
+								<i class="fas fa-trash"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+else
+{
+	<div class="text-center py-5">
+		<i class="fas fa-heart-broken fa-3x text-muted mb-3"></i>
+		<h5 class="text-muted">Danh sách yêu thích trống</h5>
+		<a asp-controller="Product" asp-action="Index" class="btn btn-primary mt-2">Mua sắm ngay</a>
+	</div>
+}
+
+@section Scripts {
+	<script>
+		$(function(){
+			$('.remove-wishlist').click(function(){
+				var id = $(this).data('id');
+				var card = $(this).closest('.col-md-3');
+				$.post('/Wishlist/RemoveFromWishlist', { productId: id }).done(function(res){
+					if(res.success){
+						card.remove();
+						if ($('.col-md-3').length === 0) location.reload();
+					}
+					else alert('Có lỗi xảy ra');
+				});
+			});
+		});
+	</script>
+}

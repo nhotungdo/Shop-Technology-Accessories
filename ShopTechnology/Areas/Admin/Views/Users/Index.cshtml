@@ -1,0 +1,41 @@
+@model List<ShopTechnology.Models.User>
+@{
+	ViewData["Title"] = "Quản lý người dùng";
+}
+
+<h2 class="mb-3"><i class="fas fa-users"></i> Người dùng</h2>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Email</th>
+			<th>Họ tên</th>
+			<th>Vai trò</th>
+			<th>Ngày tạo</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var u in Model)
+		{
+			<tr>
+				<td>@u.Email</td>
+				<td>@u.FullName</td>
+				<td>
+					<form asp-action="UpdateRole" method="post" class="d-flex gap-2">
+						<input type="hidden" name="id" value="@u.UserId" />
+						<select name="roleId" class="form-select form-select-sm" style="width:180px">
+							@foreach (var r in (IEnumerable<ShopTechnology.Models.Role>)ViewBag.Roles)
+							{
+								<option value="@r.RoleId" selected="@(u.RoleId==r.RoleId)">@r.RoleName</option>
+							}
+						</select>
+						<button class="btn btn-sm btn-primary">Lưu</button>
+					</form>
+				</td>
+				<td>@u.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+				<td></td>
+			</tr>
+		}
+	</tbody>
+</table>

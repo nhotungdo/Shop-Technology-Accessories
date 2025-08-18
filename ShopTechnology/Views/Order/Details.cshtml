@@ -1,0 +1,52 @@
+@model ShopTechnology.ViewModels.OrderViewModel
+@{
+	ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+<h2 class="mb-4"><i class="fas fa-file-invoice"></i> Chi tiết đơn hàng #@Model.OrderId</h2>
+
+<div class="row">
+	<div class="col-md-8">
+		<table class="table table-bordered">
+			<thead class="table-light">
+				<tr>
+					<th>Sản phẩm</th>
+					<th>SL</th>
+					<th>Giá</th>
+					<th>Tổng</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var d in Model.OrderDetails)
+				{
+					<tr>
+						<td>
+							<div class="d-flex align-items-center gap-2">
+								<img src="@d.ProductImage" style="width:48px;height:48px;object-fit:cover" class="rounded" />
+								<span>@d.ProductName</span>
+							</div>
+						</td>
+						<td>@d.Quantity</td>
+						<td>@d.Price.ToString("N0")</td>
+						<td>@(d.Price * d.Quantity).ToString("N0")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	<div class="col-md-4">
+		<div class="card">
+			<div class="card-body">
+				<p><strong>Trạng thái:</strong> <span class="badge bg-secondary">@Model.Status</span></p>
+				<p><strong>Địa chỉ giao hàng:</strong><br/>@Model.ShippingAddress</p>
+				<p><strong>Tổng tiền:</strong> <span class="text-primary fw-bold">@Model.TotalAmount.ToString("N0") VNĐ</span></p>
+				@if (Model.Payment != null)
+				{
+					<hr/>
+					<p><strong>Thanh toán:</strong> @Model.Payment.Method</p>
+					<p><strong>Trạng thái:</strong> @Model.Payment.Status</p>
+				}
+			</div>
+		</div>
+	</div>
+</div>

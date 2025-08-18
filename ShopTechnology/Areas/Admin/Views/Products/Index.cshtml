@@ -1,0 +1,41 @@
+@model List<ShopTechnology.Models.Product>
+@{
+	ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h2><i class="fas fa-box"></i> Sản phẩm</h2>
+	<a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm sản phẩm</a>
+</div>
+
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>Tên</th>
+			<th>Danh mục</th>
+			<th>Giá</th>
+			<th>Tồn</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var p in Model)
+		{
+			<tr>
+				<td>@p.ProductId</td>
+				<td>@p.ProductName</td>
+				<td>@p.Category?.CategoryName</td>
+				<td>@p.Price.ToString("N0")</td>
+				<td>@p.StockQuantity</td>
+				<td class="text-end">
+					<a asp-action="Edit" asp-route-id="@p.ProductId" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+					<form asp-action="Delete" method="post" class="d-inline">
+						<input type="hidden" name="id" value="@p.ProductId" />
+						<button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa sản phẩm?')"><i class="fas fa-trash"></i></button>
+					</form>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

@@ -1,0 +1,61 @@
+@model List<ShopTechnology.ViewModels.OrderViewModel>
+@{
+	ViewData["Title"] = "Lịch sử đơn hàng";
+}
+
+<h2 class="mb-4"><i class="fas fa-receipt text-primary"></i> Lịch sử đơn hàng</h2>
+
+@if (Model.Any())
+{
+	<div class="accordion" id="orders">
+		@foreach (var order in Model)
+		{
+			<div class="accordion-item mb-3">
+				<h2 class="accordion-header" id="h-@order.OrderId">
+					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-@order.OrderId">
+						#@order.OrderId - @order.OrderDate.ToString("dd/MM/yyyy HH:mm") - <span class="ms-1 badge bg-secondary">@order.Status</span> - <span class="ms-1 text-primary fw-bold">@order.TotalAmount.ToString("N0") VNĐ</span>
+					</button>
+				</h2>
+				<div id="c-@order.OrderId" class="accordion-collapse collapse" data-bs-parent="#orders">
+					<div class="accordion-body">
+						<p><strong>Địa chỉ giao hàng:</strong> @order.ShippingAddress</p>
+						<table class="table table-striped">
+							<thead>
+								<tr>
+									<th>Sản phẩm</th>
+									<th>SL</th>
+									<th>Giá</th>
+									<th>Tổng</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var d in order.OrderDetails)
+								{
+									<tr>
+										<td>
+											<div class="d-flex align-items-center gap-2">
+												<img src="@d.ProductImage" style="width:48px;height:48px;object-fit:cover" class="rounded" />
+												<span>@d.ProductName</span>
+											</div>
+										</td>
+										<td>@d.Quantity</td>
+										<td>@d.Price.ToString("N0")</td>
+										<td>@(d.Price * d.Quantity).ToString("N0")</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+else
+{
+	<div class="text-center py-5">
+		<i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+		<h5 class="text-muted">Bạn chưa có đơn hàng nào</h5>
+		<a asp-controller="Product" asp-action="Index" class="btn btn-primary mt-2">Mua sắm ngay</a>
+	</div>
+}

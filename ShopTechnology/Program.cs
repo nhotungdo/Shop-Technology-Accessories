@@ -13,14 +13,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 
-// Add Entity Framework
+// EF Core
 builder.Services.AddDbContext<ShopTechnologyAccessoriesContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add AutoMapper
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Add Session
+// Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -28,10 +28,16 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Register Services
-builder.Services.AddScoped<IProductService, ProductService>();
+// Caching & Compression
+builder.Services.AddResponseCaching();
+builder.Services.AddResponseCompression();
 
-// Add Authentication
+// App services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+// Auth (JWT for future API endpoints)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -53,7 +59,6 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -65,17 +70,20 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseResponseCompression();
+app.UseResponseCaching();
+
 app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
-    name: "admin",
-    pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}");
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
