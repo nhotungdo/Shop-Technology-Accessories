@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -36,6 +36,9 @@ builder.Services.AddResponseCompression();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // Auth (JWT for future API endpoints)
 builder.Services.AddAuthentication(options =>
@@ -85,5 +88,11 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// khi chạy chương trình sẽ tự động đến trang chủ
+app.MapControllerRoute(
+    name: "home",
+    pattern: "",
+    defaults: new { controller = "Home", action = "Index" });
 
 app.Run();

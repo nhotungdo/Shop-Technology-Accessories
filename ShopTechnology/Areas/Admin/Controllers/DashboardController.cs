@@ -1,30 +1,68 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShopTechnology.Models;
+using ShopTechnology.Services;
+using ShopTechnology.DTOs;
 
-namespace ShopTechnology.Areas.Admin.Controllers
+namespace ShopTechnology.Areas.Admin.Controllers;
+
+[Area("Admin")]
+public class DashboardController : Controller
 {
-    [Area("Admin")]
-    public class DashboardController : Controller
+    private readonly IProductService _productService;
+    private readonly IOrderService _orderService;
+    private readonly IUserService _userService;
+    private readonly ICategoryService _categoryService;
+
+    public DashboardController(
+        IProductService productService,
+        IOrderService orderService,
+        IUserService userService,
+        ICategoryService categoryService)
     {
-        private readonly ShopTechnologyAccessoriesContext _context;
-        public DashboardController(ShopTechnologyAccessoriesContext context)
+        _productService = productService;
+        _orderService = orderService;
+        _userService = userService;
+        _categoryService = categoryService;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        try
         {
-            _context = context;
+            var dashboardViewModel = new DashboardViewModel
+            {
+                TotalProducts = await _productService.GetTotalProductsCountAsync(),
+                TotalOrders = await _orderService.GetTotalOrdersCountAsync(),
+                TotalUsers = await _userService.GetTotalUsersCountAsync(),
+                TotalCategories = await _categoryService.GetTotalCategoriesCountAsync(),
+                
+                // Recent orders
+                RecentOrders = await _orderService.GetRecentOrdersAsync(5),
+                
+                // Top selling products
+                TopSellingProducts = await _productService.GetTopSellingProductsAsync(5),
+                
+                // Low stock products
+                LowStockProducts = await _productService.GetLowStockProductsAsync(5)
+            };
+
+            return View(dashboardViewModel);
         }
-
-        public async Task<IActionResult> Index()
+        catch (Exception ex)
         {
-            var totalUsers = await _context.Users.CountAsync();
-            var totalOrders = await _context.Orders.CountAsync();
-            var totalRevenue = await _context.Orders.SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
-            var totalProducts = await _context.Products.CountAsync();
-
-            ViewBag.TotalUsers = totalUsers;
-            ViewBag.TotalOrders = totalOrders;
-            ViewBag.TotalRevenue = totalRevenue;
-            ViewBag.TotalProducts = totalProducts;
-            return View();
+            // Log the exception
+            ModelState.AddModelError("", "An error occurred while loading dashboard data.");
+            return View(new DashboardViewModel());
         }
     }
+}
+
+public class DashboardViewModel
+{
+    public int TotalProducts { get; set; }
+    public int TotalOrders { get; set; }
+    public int TotalUsers { get; set; }
+    public int TotalCategories { get; set; }
+    public List<OrderDTO> RecentOrders { get; set; } = new();
+    public List<ProductDTO> TopSellingProducts { get; set; } = new();
+    public List<ProductDTO> LowStockProducts { get; set; } = new();
 }
