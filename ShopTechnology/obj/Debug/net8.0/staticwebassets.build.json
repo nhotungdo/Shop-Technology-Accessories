@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "kw5P6+/UwMK1QuBRTor21Owt/pxrWB/3MTdyV2G1OBM=",
+  "Hash": "fnYuzMZaCAm7Lr27HEbuBwg4RJkIHEpasE0AZltPj3I=",
   "Source": "ShopTechnology",
   "BasePath": "_content/ShopTechnology",
   "Mode": "Default",
@@ -55,6 +55,25 @@
       "OriginalItemSpec": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\ShopTechnology.bundle.scp.css"
     },
     {
+      "Identity": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\login.css",
+      "SourceId": "ShopTechnology",
+      "SourceType": "Discovered",
+      "ContentRoot": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\",
+      "BasePath": "_content/ShopTechnology",
+      "RelativePath": "css/login.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\login.css"
+    },
+    {
       "Identity": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\site.css",
       "SourceId": "ShopTechnology",
       "SourceType": "Discovered",
@@ -91,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\img\\best-tech-accessories.jpg",
+      "SourceId": "ShopTechnology",
+      "SourceType": "Discovered",
+      "ContentRoot": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\",
+      "BasePath": "_content/ShopTechnology",
+      "RelativePath": "img/best-tech-accessories.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\img\\best-tech-accessories.jpg"
     },
     {
       "Identity": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\js\\site.js",
