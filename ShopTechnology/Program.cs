@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AutoMapper;
 using ShopTechnology.Services;
+using ShopTechnology.DTOs;
+using ShopTechnology.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IPromotionService, PromotionService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Auth (JWT for future API endpoints)
 builder.Services.AddAuthentication(options =>
@@ -78,12 +83,21 @@ app.UseResponseCaching();
 
 app.UseSession();
 
+// Add custom middleware for Admin authentication
+app.UseAdminAuthentication();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+// Specific route for Admin area
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}",
+    defaults: new { area = "Admin" });
 
 app.MapControllerRoute(
     name: "default",
@@ -94,5 +108,7 @@ app.MapControllerRoute(
     name: "home",
     pattern: "",
     defaults: new { controller = "Home", action = "Index" });
+
+
 
 app.Run();

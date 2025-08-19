@@ -7,6 +7,7 @@
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,10 +16,11 @@
     <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
+
 <body>
     <!-- Background -->
     <div class="login-background"></div>
-    
+
     <!-- Animated Stars -->
     <div class="stars">
         <div class="star"></div>
@@ -32,7 +34,7 @@
         <div class="star"></div>
         <div class="star"></div>
     </div>
-    
+
     <!-- Shooting Stars -->
     <div class="shooting-star"></div>
     <div class="shooting-star"></div>
@@ -75,9 +77,9 @@
     <div class="login-container">
         <div class="login-modal">
             <button class="close-btn" onclick="window.history.back()">×</button>
-            
+
             <h2 class="login-title">Login</h2>
-            
+
             @if (TempData["ErrorMessage"] != null)
             {
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -85,7 +87,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             }
-            
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
             <form asp-controller="Account" asp-action="Login" method="post">
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
@@ -93,14 +103,14 @@
                     <i class="fas fa-envelope input-icon"></i>
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Password</label>
                     <input asp-for="Password" type="password" class="form-input" placeholder="Nhập mật khẩu" required />
                     <i class="fas fa-lock input-icon"></i>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
-                
+
                 <div class="form-options">
                     <label class="remember-me">
                         <input asp-for="RememberMe" type="checkbox" />
@@ -108,47 +118,70 @@
                     </label>
                     <a href="#" class="forgot-password">Forget Password?</a>
                 </div>
-                
+
                 <button type="submit" class="login-submit">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
             </form>
-            
+
+            <!-- OAuth Login Buttons -->
+            <div class="oauth-section">
+                <div class="divider">
+                    <span>Hoặc đăng nhập với</span>
+                </div>
+
+                <div class="oauth-buttons">
+                    <a asp-action="ExternalLogin" asp-route-provider="Google" class="oauth-btn google-btn">
+                        <i class="fab fa-google"></i> Google
+                    </a>
+                    <a asp-action="ExternalLogin" asp-route-provider="Facebook" class="oauth-btn facebook-btn">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </a>
+                </div>
+            </div>
+
             <div class="register-link">
                 Don't have an account? <a asp-controller="Account" asp-action="Register">Register</a>
+            </div>
+
+            <div class="forgot-password-link">
+                <a asp-action="ForgotPassword">Quên mật khẩu?</a>
             </div>
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         // Add some interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Add floating effect to login modal
             const modal = document.querySelector('.login-modal');
             let mouseX = 0, mouseY = 0;
-            
-            document.addEventListener('mousemove', function(e) {
+
+            document.addEventListener('mousemove', function (e) {
                 mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
                 mouseY = (e.clientY / window.innerHeight - 0.5) * 20;
-                
+
                 modal.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
             });
-            
+
             // Add focus effects to inputs
             const inputs = document.querySelectorAll('.form-input');
             inputs.forEach(input => {
-                input.addEventListener('focus', function() {
+                input.addEventListener('focus', function () {
                     this.parentElement.style.transform = 'scale(1.02)';
                 });
-                
-                input.addEventListener('blur', function() {
+
+                input.addEventListener('blur', function () {
                     this.parentElement.style.transform = 'scale(1)';
                 });
             });
         });
     </script>
 </body>
+
 </html>

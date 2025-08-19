@@ -36,6 +36,10 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
+    public virtual DbSet<Promotion> Promotions { get; set; } = null!;
+    public virtual DbSet<Review> Reviews { get; set; } = null!;
+    public virtual DbSet<ExternalLogin> ExternalLogins { get; set; } = null!;
+    public virtual DbSet<PasswordReset> PasswordResets { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -205,6 +209,58 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.HasOne(d => d.Product).WithMany(p => p.Wishlists).HasForeignKey(d => d.ProductId);
 
             entity.HasOne(d => d.User).WithMany(p => p.Wishlists).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<Promotion>(entity =>
+        {
+            entity.HasKey(e => e.PromotionId).HasName("PK_Promotions");
+
+            entity.HasIndex(e => e.Code, "UQ_Promotions_Code").IsUnique();
+
+            entity.Property(e => e.Code).HasMaxLength(20);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.DiscountPercentage).HasColumnType("decimal(5,2)");
+            entity.Property(e => e.MinimumOrderAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.HasKey(e => e.ReviewId).HasName("PK_Reviews");
+
+            entity.Property(e => e.Comment).HasMaxLength(1000);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.Product).WithMany().HasForeignKey(d => d.ProductId);
+        });
+
+        modelBuilder.Entity<ExternalLogin>(entity =>
+        {
+            entity.HasKey(e => e.ExternalLoginId).HasName("PK_ExternalLogins");
+
+            entity.Property(e => e.Provider).HasMaxLength(50);
+            entity.Property(e => e.ProviderKey).HasMaxLength(255);
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.PictureUrl).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
+            entity.HasIndex(e => new { e.Provider, e.ProviderKey }).IsUnique();
+        });
+
+        modelBuilder.Entity<PasswordReset>(entity =>
+        {
+            entity.HasKey(e => e.PasswordResetId).HasName("PK_PasswordResets");
+
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.Token).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasIndex(e => new { e.Email, e.Token });
         });
 
         OnModelCreatingPartial(modelBuilder);

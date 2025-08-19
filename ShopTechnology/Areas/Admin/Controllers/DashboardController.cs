@@ -54,6 +54,18 @@ public class DashboardController : Controller
             return View(new DashboardViewModel());
         }
     }
+
+    public async Task<IActionResult> Home()
+    {
+        // Redirect to Index action
+        return RedirectToAction("Index");
+    }
+
+    // Fallback action for any other routes
+    public async Task<IActionResult> Default()
+    {
+        return RedirectToAction("Index");
+    }
 }
 
 public class DashboardViewModel

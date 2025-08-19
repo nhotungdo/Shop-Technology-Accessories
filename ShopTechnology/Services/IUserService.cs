@@ -16,4 +16,15 @@ public interface IUserService
     Task<bool> IsUserAdminAsync(Guid userId);
     Task<int> GetTotalUsersCountAsync();
     Task<List<UserDTO>> GetUsersByRoleAsync(string roleName);
+    Task<bool> FixPasswordHashesAsync();
+
+    // Password reset methods
+    Task<bool> ForgotPasswordAsync(string email);
+    Task<bool> ResetPasswordAsync(string email, string token, string newPassword);
+    Task<bool> ValidateResetTokenAsync(string email, string token);
+
+    // External login methods
+    Task<UserDTO?> GetUserByExternalLoginAsync(string provider, string providerKey);
+    Task<UserDTO> CreateUserFromExternalLoginAsync(string provider, string providerKey, string email, string name, string? pictureUrl);
+    Task<bool> LinkExternalLoginAsync(Guid userId, string provider, string providerKey, string email, string name, string? pictureUrl);
 }

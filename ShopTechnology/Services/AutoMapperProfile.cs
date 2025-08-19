@@ -2,6 +2,8 @@ using AutoMapper;
 using ShopTechnology.DTOs;
 using ShopTechnology.Models;
 using ShopTechnology.ViewModels;
+using LoginViewModel = ShopTechnology.ViewModels.LoginViewModel;
+using RegisterViewModel = ShopTechnology.ViewModels.RegisterViewModel;
 
 namespace ShopTechnology.Services;
 
@@ -81,5 +83,23 @@ public class AutoMapperProfile : Profile
                  src.Product.ProductImages.Select(pi => pi.ImageUrl).FirstOrDefault() ?? string.Empty) : string.Empty))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product != null ? src.Product.Price : 0))
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Product != null && src.Product.Category != null ? src.Product.Category.CategoryName : string.Empty));
+
+        // Promotion mappings
+        CreateMap<Promotion, PromotionDTO>();
+        CreateMap<CreatePromotionDTO, Promotion>();
+        CreateMap<UpdatePromotionDTO, Promotion>();
+
+        // Review mappings
+        CreateMap<Review, ReviewDTO>()
+            .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : string.Empty))
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.ProductName : string.Empty));
+        CreateMap<CreateReviewDTO, Review>();
+        CreateMap<UpdateReviewDTO, Review>();
+
+        // Auth mappings
+        CreateMap<LoginDTO, LoginViewModel>();
+        CreateMap<RegisterDTO, RegisterViewModel>();
+        CreateMap<ForgotPasswordDTO, ForgotPasswordDTO>();
+        CreateMap<ResetPasswordDTO, ResetPasswordDTO>();
     }
 }

@@ -166,14 +166,10 @@ INSERT INTO Categories (CategoryName, Description) VALUES
 INSERT INTO Users (
     FullName, Email, PasswordHash, PhoneNumber, RoleId, CreatedAt
 ) 
-VALUES (
-    N'Admin', 
-    N'donhotung2004@gmail.com', 
-    N'123456', 
-    N'0931982568', 
-    1, 
-    GETDATE()
-);
+VALUES 
+    (N'Admin', N'donhotung2004@gmail.com', N'$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', N'0931982568', 1, GETDATE()),
+    (N'Administrator', N'admin@shoptech.com', N'$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', N'0123456789', 1, GETDATE()),
+    (N'Test User', N'user@shoptech.com', N'$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', N'0987654321', 2, GETDATE());
 
 -- Enable IDENTITY_INSERT
 SET IDENTITY_INSERT Products ON;
@@ -230,11 +226,4 @@ VALUES
 (15, N'https://t-wolf.vn/wp-content/uploads/2024/05/chuot-khong-day-twolf-g580-nhay.jpg', 0);
 
 
-
-
-
-UPDATE Products
-SET CategoryId = 2
-WHERE ProductName = 'Ổ SSD di động 1TB' 
-  AND CategoryId = 1;
 
