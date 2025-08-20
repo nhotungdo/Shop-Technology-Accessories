@@ -110,7 +110,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 14,
+          "SelectedChildIndex": 15,
           "Children": [
             {
               "$type": "Bookmark",
@@ -157,6 +157,10 @@
               "Name": "ST:34:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "UserDTO.cs",
@@ -166,8 +170,7 @@
               "RelativeToolTip": "ShopTechnology\\DTOs\\UserDTO.cs",
               "ViewState": "AgIAAEMAAAAAAAAAAAAkwE0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-19T15:27:56.9Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-19T15:27:56.9Z"
             },
             {
               "$type": "Document",
@@ -201,7 +204,7 @@
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Account\\Login.cshtml",
               "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Account\\Login.cshtml",
               "RelativeToolTip": "ShopTechnology\\Views\\Account\\Login.cshtml",
-              "ViewState": "AgIAANQAAAAAAAAAAAAAAOEAAAAoAAAAAAAAAA==",
+              "ViewState": "AgIAAIMAAAAAAAAAAAAAAOEAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-08-19T07:21:06.708Z",
               "EditorCaption": ""
@@ -240,12 +243,7 @@
               "RelativeToolTip": "ShopTechnology\\Program.cs",
               "ViewState": "AgIAAE4AAAAAAAAAAAAAAGYAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:39:14.591Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+              "WhenOpened": "2025-08-18T16:39:14.591Z"
             },
             {
               "$type": "Document",

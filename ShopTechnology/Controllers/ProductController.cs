@@ -57,22 +57,38 @@ namespace ShopTechnology.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var productDto = await _productService.GetProductByIdAsync(id);
-            if (productDto == null)
+            try
             {
+                Console.WriteLine($"Product Details requested for ID: {id}");
+
+                var productDto = await _productService.GetProductByIdAsync(id);
+                if (productDto == null)
+                {
+                    Console.WriteLine($"Product not found for ID: {id}");
+                    return NotFound();
+                }
+
+                Console.WriteLine($"Product found: {productDto.ProductName}, Category: {productDto.CategoryName}");
+
+                var product = _mapper.Map<ProductViewModel>(productDto);
+                Console.WriteLine($"Mapped to ViewModel - Category: {product.CategoryName}");
+
+                // Lấy sản phẩm liên quan (cùng danh mục)
+                var relatedProductDtos = await _productService.GetProductsByCategoryAsync(product.CategoryId);
+                var relatedProducts = _mapper.Map<List<ProductViewModel>>(relatedProductDtos)
+                    .Where(p => p.ProductId != id).Take(4).ToList();
+
+                Console.WriteLine($"Found {relatedProducts.Count} related products");
+
+                ViewBag.RelatedProducts = relatedProducts;
+
+                return View(product);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Details action: {ex.Message}");
                 return NotFound();
             }
-
-            var product = _mapper.Map<ProductViewModel>(productDto);
-
-            // Lấy sản phẩm liên quan (cùng danh mục)
-            var relatedProductDtos = await _productService.GetProductsByCategoryAsync(product.CategoryId);
-            var relatedProducts = _mapper.Map<List<ProductViewModel>>(relatedProductDtos)
-                .Where(p => p.ProductId != id).Take(4).ToList();
-
-            ViewBag.RelatedProducts = relatedProducts;
-
-            return View(product);
         }
 
         [HttpPost]
@@ -118,6 +134,107 @@ namespace ShopTechnology.Controllers
             ViewBag.MaxPrice = maxPrice;
 
             return View("Index", products);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestProduct(int id)
+        {
+            try
+            {
+                var productDto = await _productService.GetProductByIdAsync(id);
+                if (productDto != null)
+                {
+                    var productInfo = new
+                    {
+                        ProductId = productDto.ProductId,
+                        ProductName = productDto.ProductName,
+                        Description = productDto.Description,
+                        Price = productDto.Price,
+                        StockQuantity = productDto.StockQuantity,
+                        CategoryId = productDto.CategoryId,
+                        CategoryName = productDto.CategoryName,
+                        ImageUrls = productDto.ImageUrls,
+                        MainImageUrl = productDto.MainImageUrl
+                    };
+
+                    return Json(productInfo);
+                }
+                else
+                {
+                    return Json(new { error = "Product not found" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FixProductCategories()
+        {
+            try
+            {
+                // Sửa danh mục cho các sản phẩm
+                var products = await _context.Products.ToListAsync();
+                var categories = await _context.Categories.ToListAsync();
+
+                int updatedCount = 0;
+
+                foreach (var product in products)
+                {
+                    int? newCategoryId = null;
+
+                    // Xác định danh mục dựa trên tên sản phẩm
+                    if (product.ProductName.Contains("tai nghe", StringComparison.OrdinalIgnoreCase) ||
+                        product.ProductName.Contains("headphone", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Tai nghe"))?.CategoryId;
+                    }
+                    else if (product.ProductName.Contains("bàn phím", StringComparison.OrdinalIgnoreCase) ||
+                             product.ProductName.Contains("keyboard", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Bàn phím"))?.CategoryId;
+                    }
+                    else if (product.ProductName.Contains("sạc", StringComparison.OrdinalIgnoreCase) ||
+                             product.ProductName.Contains("charger", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Sạc"))?.CategoryId;
+                    }
+                    else if (product.ProductName.Contains("ốp lưng", StringComparison.OrdinalIgnoreCase) ||
+                             product.ProductName.Contains("case", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Phụ kiện"))?.CategoryId;
+                    }
+                    else if (product.ProductName.Contains("SSD", StringComparison.OrdinalIgnoreCase) ||
+                             product.ProductName.Contains("ổ cứng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Phụ kiện"))?.CategoryId;
+                    }
+
+                    if (newCategoryId.HasValue && newCategoryId.Value != product.CategoryId)
+                    {
+                        product.CategoryId = newCategoryId.Value;
+                        updatedCount++;
+                    }
+                }
+
+                if (updatedCount > 0)
+                {
+                    await _context.SaveChangesAsync();
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đã cập nhật {updatedCount} sản phẩm",
+                    updatedCount = updatedCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
+            }
         }
     }
 }
