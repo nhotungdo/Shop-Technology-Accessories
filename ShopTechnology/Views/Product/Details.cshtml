@@ -12,92 +12,115 @@
 
     .product-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
     }
 
     .product-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
 
     .main-image {
-        border-radius: 10px;
-        transition: transform 0.3s ease;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        cursor: zoom-in;
     }
 
     .main-image:hover {
-        transform: scale(1.05);
+        transform: scale(1.02);
     }
 
     .thumbnail-image {
-        border-radius: 8px;
+        border-radius: 10px;
         transition: all 0.3s ease;
-        border: 2px solid transparent;
+        border: 3px solid transparent;
+        cursor: pointer;
     }
 
     .thumbnail-image:hover {
         border-color: #007bff;
-        transform: scale(1.1);
+        transform: scale(1.05);
+    }
+
+    .thumbnail-image.active {
+        border-color: #007bff;
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
     }
 
     .price-display {
         background: linear-gradient(45deg, #007bff, #0056b3);
         color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
+        padding: 20px 25px;
+        border-radius: 15px;
         text-align: center;
-        margin: 20px 0;
+        margin: 25px 0;
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
     }
 
     .stock-badge {
         font-size: 1.1em;
-        padding: 10px 15px;
-        border-radius: 25px;
+        padding: 12px 20px;
+        border-radius: 30px;
+        font-weight: 600;
     }
 
     .quantity-control {
-        border-radius: 25px;
+        border-radius: 30px;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+        background: white;
     }
 
     .quantity-control .btn {
         border: none;
-        padding: 10px 15px;
+        padding: 12px 18px;
+        font-weight: bold;
+        transition: all 0.2s ease;
+    }
+
+    .quantity-control .btn:hover {
+        background-color: #007bff;
+        color: white;
     }
 
     .quantity-control input {
         border: none;
         text-align: center;
         font-weight: bold;
+        font-size: 1.1em;
+        background: transparent;
     }
 
     .action-buttons .btn {
-        border-radius: 25px;
-        padding: 12px 25px;
+        border-radius: 30px;
+        padding: 15px 30px;
         font-weight: 600;
         transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .action-buttons .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     }
 
     .related-products {
         background: white;
-        border-radius: 15px;
-        padding: 30px;
-        margin-top: 40px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+        padding: 35px;
+        margin-top: 50px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
     .breadcrumb {
         background: white;
-        border-radius: 10px;
-        padding: 15px 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        padding: 18px 25px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
         margin-bottom: 30px;
     }
 
@@ -105,10 +128,238 @@
         color: #007bff;
         text-decoration: none;
         transition: color 0.3s ease;
+        font-weight: 500;
     }
 
     .breadcrumb-item a:hover {
         color: #0056b3;
+    }
+
+    .product-info-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 20px 0;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .product-title {
+        font-size: 2.2em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .product-category {
+        color: #6c757d;
+        font-size: 1.1em;
+        margin-bottom: 20px;
+    }
+
+    .product-description {
+        font-size: 1.1em;
+        line-height: 1.6;
+        color: #495057;
+        margin-bottom: 25px;
+    }
+
+    .product-specs {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .spec-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .spec-item:last-child {
+        border-bottom: none;
+    }
+
+    .spec-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .spec-value {
+        color: #007bff;
+        font-weight: 500;
+    }
+
+    .image-gallery {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+    }
+
+    .gallery-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .gallery-nav:hover {
+        background: rgba(0, 0, 0, 0.7);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .gallery-nav.prev {
+        left: 10px;
+    }
+
+    .gallery-nav.next {
+        right: 10px;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .success-message {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+        display: none;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .product-title {
+            font-size: 1.8em;
+        }
+        
+        .action-buttons .btn {
+            padding: 12px 20px;
+            font-size: 0.9em;
+        }
+        
+        .price-display {
+            padding: 15px 20px;
+        }
+    }
+
+    /* Ripple effect for buttons */
+    .btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* Zoom effect for main image */
+    .main-image {
+        transition: transform 0.3s ease;
+    }
+
+    .main-image:hover {
+        transform: scale(1.05);
+    }
+
+    /* Pulse animation for stock badge */
+    .stock-badge {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+
+    /* Fade in animation for cards */
+    .product-card, .product-info-section {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Hover effects for related products */
+    .related-products .card {
+        transition: all 0.3s ease;
+    }
+
+    .related-products .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #007bff;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #0056b3;
     }
 </style>
 
@@ -140,18 +391,30 @@
             <div class="col-md-6">
                 <div class="card product-card">
                     <div class="card-body">
-                        <img src="@Model.MainImageUrl" class="img-fluid rounded main-image" alt="@Model.ProductName"
-                            id="mainImage">
+                        <div class="image-gallery">
+                            <img src="@Model.MainImageUrl" class="img-fluid rounded main-image" alt="@Model.ProductName" id="mainImage">
+                            
+                            @if (Model.ImageUrls.Count > 1)
+                            {
+                                <button class="gallery-nav prev" onclick="previousImage()">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="gallery-nav next" onclick="nextImage()">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            }
+                        </div>
 
                         @if (Model.ImageUrls.Count > 1)
                         {
                             <div class="row mt-3">
-                                @foreach (var imageUrl in Model.ImageUrls.Take(4))
+                                @for (int i = 0; i < Model.ImageUrls.Count && i < 4; i++)
                                 {
                                     <div class="col-3">
-                                        <img src="@imageUrl" class="img-thumbnail thumbnail-image" alt="@Model.ProductName"
-                                            style="cursor: pointer; height: 80px; object-fit: cover;"
-                                            onclick="changeMainImage('@imageUrl')">
+                                        <img src="@Model.ImageUrls[i]" class="img-thumbnail thumbnail-image @(i == 0 ? "active" : "")" 
+                                             alt="@Model.ProductName" data-index="@i"
+                                             style="cursor: pointer; height: 80px; object-fit: cover;"
+                                             onclick="changeMainImage('@Model.ImageUrls[i]', @i)">
                                     </div>
                                 }
                             </div>
@@ -162,100 +425,131 @@
 
             <!-- Thông tin sản phẩm -->
             <div class="col-md-6">
-                <div class="card product-card">
-                    <div class="card-body">
-                        <h2 class="card-title">@Model.ProductName</h2>
-                        <p class="text-muted">Danh mục: @Model.CategoryName</p>
+                <div class="product-info-section">
+                    <h1 class="product-title">@Model.ProductName</h1>
+                    <p class="product-category">
+                        <i class="fas fa-tag"></i> Danh mục: @Model.CategoryName
+                    </p>
 
-                        <div class="price-display">
-                            <span class="h2 fw-bold">@Model.Price.ToString("N0") VNĐ</span>
+                    <div class="price-display">
+                        <span class="h1 fw-bold">@Model.Price.ToString("N0") VNĐ</span>
+                    </div>
+
+                    <div class="product-description">
+                        <p>@Model.Description</p>
+                    </div>
+
+                    <div class="product-specs">
+                        <h5><i class="fas fa-info-circle"></i> Thông tin sản phẩm</h5>
+                        <div class="spec-item">
+                            <span class="spec-label">Danh mục:</span>
+                            <span class="spec-value">@Model.CategoryName</span>
                         </div>
-
-                        <div class="mb-3">
-                            <p class="card-text">@Model.Description</p>
-                        </div>
-
-                        <div class="mb-3">
-                            <p class="card-text">
-                                <strong>Thông tin sản phẩm:</strong><br>
-                                • Danh mục: @Model.CategoryName<br>
-                                • Tình trạng:
+                        <div class="spec-item">
+                            <span class="spec-label">Tình trạng:</span>
+                            <span class="spec-value">
                                 @if (Model.StockQuantity > 0)
                                 {
-                                    <span class="text-success">Còn hàng (@Model.StockQuantity sản phẩm)</span>
+                                    <span class="text-success">
+                                        <i class="fas fa-check-circle"></i> Còn hàng (@Model.StockQuantity sản phẩm)
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span class="text-danger">Hết hàng</span>
+                                    <span class="text-danger">
+                                        <i class="fas fa-times-circle"></i> Hết hàng
+                                    </span>
                                 }
-                            </p>
+                            </span>
                         </div>
-
-                        <div class="mb-3">
-                            @if (Model.StockQuantity > 0)
-                            {
-                                <span class="badge bg-success stock-badge">
-                                    <i class="fas fa-check"></i> Còn hàng (@Model.StockQuantity)
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger stock-badge">
-                                    <i class="fas fa-times"></i> Hết hàng
-                                </span>
-                            }
+                        <div class="spec-item">
+                            <span class="spec-label">Mã sản phẩm:</span>
+                            <span class="spec-value">#@Model.ProductId</span>
                         </div>
+                    </div>
 
+                    <div class="mb-3">
                         @if (Model.StockQuantity > 0)
                         {
-                            <div class="mb-3">
-                                <label class="form-label">Số lượng:</label>
-                                <div class="input-group quantity-control" style="width: 150px;">
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="decreaseQuantity()">-</button>
-                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1"
-                                        max="@Model.StockQuantity">
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="increaseQuantity()">+</button>
-                                </div>
-                            </div>
-
-                            @if (Context.Session.GetString("UserId") != null)
-                            {
-                                <div class="d-grid gap-2 action-buttons">
-                                    <button class="btn btn-primary btn-lg add-to-cart-detail"
-                                        data-product-id="@Model.ProductId">
-                                        <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
-                                    </button>
-                                    <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
-                                        <i class="fas fa-heart"></i> Thêm vào yêu thích
-                                    </button>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> Vui lòng <a asp-controller="Account" asp-action="Login"
-                                        class="alert-link">đăng nhập</a> để thêm sản phẩm vào giỏ hàng và đặt hàng.
-                                </div>
-                                <div class="d-grid gap-2 action-buttons">
-                                    <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
-                                        <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua hàng
-                                    </a>
-                                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary">
-                                        <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
-                                    </a>
-                                </div>
-                            }
+                            <span class="badge bg-success stock-badge">
+                                <i class="fas fa-check"></i> Còn hàng (@Model.StockQuantity)
+                            </span>
                         }
                         else
                         {
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i> Sản phẩm hiện tại đã hết hàng. Vui lòng quay lại
-                                sau!
-                            </div>
+                            <span class="badge bg-danger stock-badge">
+                                <i class="fas fa-times"></i> Hết hàng
+                            </span>
                         }
                     </div>
+
+                    <!-- Success/Error Messages -->
+                    <div class="success-message" id="successMessage">
+                        <i class="fas fa-check-circle"></i> <span id="successText"></span>
+                    </div>
+                    <div class="error-message" id="errorMessage">
+                        <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div class="loading-spinner" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    @if (Model.StockQuantity > 0)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-sort-numeric-up"></i> Số lượng:
+                            </label>
+                            <div class="input-group quantity-control" style="width: 150px;">
+                                <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1"
+                                    max="@Model.StockQuantity">
+                                <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        @if (Context.Session.GetString("UserId") != null)
+                        {
+                            <div class="d-grid gap-2 action-buttons">
+                                <button class="btn btn-primary btn-lg add-to-cart-detail" data-product-id="@Model.ProductId">
+                                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                                </button>
+                                <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
+                                    <i class="fas fa-heart"></i> Thêm vào yêu thích
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Vui lòng <a asp-controller="Account" asp-action="Login"
+                                    class="alert-link">đăng nhập</a> để thêm sản phẩm vào giỏ hàng và đặt hàng.
+                            </div>
+                            <div class="d-grid gap-2 action-buttons">
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua hàng
+                                </a>
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary">
+                                    <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Sản phẩm hiện tại đã hết hàng. Vui lòng quay lại
+                            sau!
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -293,69 +587,196 @@
     </div>
 
 @section Scripts {
-        <script>
-            function changeMainImage(imageUrl) {
-                document.getElementById('mainImage').src = imageUrl;
-            }
+    <script>
+        let currentImageIndex = 0;
+        const imageUrls = @Html.Raw(Json.Serialize(Model.ImageUrls));
 
-            function increaseQuantity() {
-                var input = document.getElementById('quantity');
-                var currentValue = parseInt(input.value);
-                var maxValue = parseInt(input.getAttribute('max'));
-                if (currentValue < maxValue) {
-                    input.value = currentValue + 1;
+        function changeMainImage(imageUrl, index) {
+            document.getElementById('mainImage').src = imageUrl;
+            currentImageIndex = index;
+            updateThumbnailActiveState(index);
+        }
+
+        function updateThumbnailActiveState(currentIndex) {
+            document.querySelectorAll('.thumbnail-image').forEach((thumbnail, index) => {
+                thumbnail.classList.remove('active');
+                if (index === currentIndex) {
+                    thumbnail.classList.add('active');
                 }
-            }
-
-            function decreaseQuantity() {
-                var input = document.getElementById('quantity');
-                var currentValue = parseInt(input.value);
-                if (currentValue > 1) {
-                    input.value = currentValue - 1;
-                }
-            }
-
-            $(document).ready(function () {
-                $('.add-to-cart-detail').click(function () {
-                    var productId = $(this).data('product-id');
-                    var quantity = parseInt($('#quantity').val());
-                    var button = $(this);
-
-                    $.post('/Cart/AddToCart', { productId: productId, quantity: quantity })
-                        .done(function (response) {
-                            if (response.success) {
-                                button.html('<i class="fas fa-check"></i> Đã thêm vào giỏ hàng');
-                                button.removeClass('btn-primary').addClass('btn-success');
-                                setTimeout(function () {
-                                    button.html('<i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng');
-                                    button.removeClass('btn-success').addClass('btn-primary');
-                                }, 2000);
-                            } else {
-                                alert('Có lỗi xảy ra: ' + response.message);
-                            }
-                        })
-                        .fail(function () {
-                            alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
-                        });
-                });
-
-                $('.add-to-wishlist').click(function () {
-                    var productId = $(this).data('product-id');
-                    var button = $(this);
-
-                    $.post('/Wishlist/AddToWishlist', { productId: productId })
-                        .done(function (response) {
-                            if (response.success) {
-                                button.html('<i class="fas fa-heart"></i> Đã thêm vào yêu thích');
-                                button.removeClass('btn-outline-danger').addClass('btn-danger');
-                            } else {
-                                alert('Có lỗi xảy ra: ' + response.message);
-                            }
-                        })
-                        .fail(function () {
-                            alert('Có lỗi xảy ra khi thêm vào yêu thích');
-                        });
-                });
             });
-        </script>
+        }
+
+        function previousImage() {
+            if (imageUrls.length > 1) {
+                currentImageIndex = (currentImageIndex - 1 + imageUrls.length) % imageUrls.length;
+                changeMainImage(imageUrls[currentImageIndex], currentImageIndex);
+            }
+        }
+
+        function nextImage() {
+            if (imageUrls.length > 1) {
+                currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+                changeMainImage(imageUrls[currentImageIndex], currentImageIndex);
+            }
+        }
+
+        function increaseQuantity() {
+            var input = document.getElementById('quantity');
+            var currentValue = parseInt(input.value);
+            var maxValue = parseInt(input.getAttribute('max'));
+            if (currentValue < maxValue) {
+                input.value = currentValue + 1;
+            }
+        }
+
+        function decreaseQuantity() {
+            var input = document.getElementById('quantity');
+            var currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+            }
+        }
+
+        function showMessage(type, message) {
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            const successText = document.getElementById('successText');
+            const errorText = document.getElementById('errorText');
+
+            // Hide all messages first
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            if (type === 'success') {
+                successText.textContent = message;
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 5000);
+            } else if (type === 'error') {
+                errorText.textContent = message;
+                errorMsg.style.display = 'block';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        $(document).ready(function () {
+            // Keyboard navigation for image gallery
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    previousImage();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage();
+                }
+            });
+
+            $('.add-to-cart-detail').click(function () {
+                var productId = $(this).data('product-id');
+                var quantity = parseInt($('#quantity').val());
+                var button = $(this);
+
+                showLoading();
+                button.prop('disabled', true);
+
+                $.post('/Cart/AddToCart', { productId: productId, quantity: quantity })
+                    .done(function (response) {
+                        hideLoading();
+                        button.prop('disabled', false);
+                        
+                        if (response.success) {
+                            showMessage('success', 'Đã thêm sản phẩm vào giỏ hàng thành công!');
+                            button.html('<i class="fas fa-check"></i> Đã thêm vào giỏ hàng');
+                            button.removeClass('btn-primary').addClass('btn-success');
+                            setTimeout(function () {
+                                button.html('<i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng');
+                                button.removeClass('btn-success').addClass('btn-primary');
+                            }, 3000);
+                        } else {
+                            showMessage('error', 'Có lỗi xảy ra: ' + response.message);
+                        }
+                    })
+                    .fail(function () {
+                        hideLoading();
+                        button.prop('disabled', false);
+                        showMessage('error', 'Có lỗi xảy ra khi thêm vào giỏ hàng');
+                    });
+            });
+
+            $('.add-to-wishlist').click(function () {
+                var productId = $(this).data('product-id');
+                var button = $(this);
+
+                showLoading();
+                button.prop('disabled', true);
+
+                $.post('/Wishlist/AddToWishlist', { productId: productId })
+                    .done(function (response) {
+                        hideLoading();
+                        button.prop('disabled', false);
+                        
+                        if (response.success) {
+                            showMessage('success', 'Đã thêm sản phẩm vào yêu thích!');
+                            button.html('<i class="fas fa-heart"></i> Đã thêm vào yêu thích');
+                            button.removeClass('btn-outline-danger').addClass('btn-danger');
+                        } else {
+                            showMessage('error', 'Có lỗi xảy ra: ' + response.message);
+                        }
+                    })
+                    .fail(function () {
+                        hideLoading();
+                        button.prop('disabled', false);
+                        showMessage('error', 'Có lỗi xảy ra khi thêm vào yêu thích');
+                    });
+            });
+
+            // Quantity input validation
+            $('#quantity').on('input', function() {
+                var value = parseInt($(this).val());
+                var max = parseInt($(this).attr('max'));
+                
+                if (value < 1) {
+                    $(this).val(1);
+                } else if (value > max) {
+                    $(this).val(max);
+                }
+            });
+
+            // Smooth scroll to top when page loads
+            $('html, body').animate({
+                scrollTop: 0
+            }, 500);
+
+            // Add ripple effect to buttons
+            $('.btn').on('click', function(e) {
+                var ripple = $('<span class="ripple"></span>');
+                var rect = this.getBoundingClientRect();
+                var size = Math.max(rect.width, rect.height);
+                var x = e.clientX - rect.left - size / 2;
+                var y = e.clientY - rect.top - size / 2;
+                
+                ripple.css({
+                    width: size,
+                    height: size,
+                    left: x,
+                    top: y
+                });
+                
+                $(this).append(ripple);
+                
+                setTimeout(function() {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    </script>
 }
