@@ -3,6 +3,17 @@
     ViewData["Title"] = Model.ProductName;
 }
 
+@if (Context.Session.GetString("UserId") == null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-info-circle"></i>
+        <strong>Thông báo:</strong> Bạn có thể xem đầy đủ thông tin sản phẩm mà không cần đăng nhập.
+        <a asp-controller="Account" asp-action="Login" class="alert-link">Đăng nhập</a> hoặc
+        <a asp-controller="Account" asp-action="Register" class="alert-link">đăng ký</a> để mua hàng.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="container">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -54,6 +65,22 @@
                     </div>
 
                     <div class="mb-3">
+                        <p class="card-text">
+                            <strong>Thông tin sản phẩm:</strong><br>
+                            • Danh mục: @Model.CategoryName<br>
+                            • Tình trạng:
+                            @if (Model.StockQuantity > 0)
+                            {
+                                <span class="text-success">Còn hàng (@Model.StockQuantity sản phẩm)</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Hết hàng</span>
+                            }
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
                         @if (Model.StockQuantity > 0)
                         {
                             <span class="badge bg-success">
@@ -82,14 +109,32 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary btn-lg add-to-cart-detail" data-product-id="@Model.ProductId">
-                                <i class="fas fa-cart-plus"></i> Them vao gio hang
-                            </button>
-                            <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
-                                <i class="fas fa-heart"></i> Them vao yeu thich
-                            </button>
-                        </div>
+                        @if (Context.Session.GetString("UserId") != null)
+                        {
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg add-to-cart-detail" data-product-id="@Model.ProductId">
+                                    <i class="fas fa-cart-plus"></i> Them vao gio hang
+                                </button>
+                                <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
+                                    <i class="fas fa-heart"></i> Them vao yeu thich
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Vui lòng <a asp-controller="Account" asp-action="Login"
+                                    class="alert-link">đăng nhập</a> để thêm sản phẩm vào giỏ hàng và đặt hàng.
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua hàng
+                                </a>
+                                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary">
+                                    <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
+                                </a>
+                            </div>
+                        }
                     }
                     else
                     {

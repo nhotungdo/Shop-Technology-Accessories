@@ -3,6 +3,17 @@
     ViewData["Title"] = "Sản phẩm";
 }
 
+@if (Context.Session.GetString("UserId") == null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-info-circle"></i>
+        <strong>Thông báo:</strong> Bạn có thể xem tất cả thông tin sản phẩm mà không cần đăng nhập.
+        <a asp-controller="Account" asp-action="Login" class="alert-link">Đăng nhập</a> hoặc
+        <a asp-controller="Account" asp-action="Register" class="alert-link">đăng ký</a> để mua hàng.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row">
     <!-- Sidebar bộ lọc -->
     <div class="col-md-3">
@@ -109,6 +120,12 @@
                                             <button class="btn btn-success add-to-cart" data-product-id="@product.ProductId">
                                                 <i class="fas fa-cart-plus"></i> Thêm vào giỏ
                                             </button>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Account" asp-action="Login" class="btn btn-warning">
+                                                <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua
+                                            </a>
                                         }
                                     </div>
                                 </div>

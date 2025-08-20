@@ -51,20 +51,78 @@ body {
     animation: twinkle 3s infinite;
 }
 
-.star:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
-.star:nth-child(2) { top: 15%; left: 80%; animation-delay: 0.5s; }
-.star:nth-child(3) { top: 25%; left: 40%; animation-delay: 1s; }
-.star:nth-child(4) { top: 35%; left: 70%; animation-delay: 1.5s; }
-.star:nth-child(5) { top: 45%; left: 10%; animation-delay: 2s; }
-.star:nth-child(6) { top: 55%; left: 90%; animation-delay: 2.5s; }
-.star:nth-child(7) { top: 65%; left: 30%; animation-delay: 0.3s; }
-.star:nth-child(8) { top: 75%; left: 60%; animation-delay: 0.8s; }
-.star:nth-child(9) { top: 85%; left: 15%; animation-delay: 1.3s; }
-.star:nth-child(10) { top: 95%; left: 85%; animation-delay: 1.8s; }
+.star:nth-child(1) {
+    top: 10%;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.star:nth-child(2) {
+    top: 15%;
+    left: 80%;
+    animation-delay: 0.5s;
+}
+
+.star:nth-child(3) {
+    top: 25%;
+    left: 40%;
+    animation-delay: 1s;
+}
+
+.star:nth-child(4) {
+    top: 35%;
+    left: 70%;
+    animation-delay: 1.5s;
+}
+
+.star:nth-child(5) {
+    top: 45%;
+    left: 10%;
+    animation-delay: 2s;
+}
+
+.star:nth-child(6) {
+    top: 55%;
+    left: 90%;
+    animation-delay: 2.5s;
+}
+
+.star:nth-child(7) {
+    top: 65%;
+    left: 30%;
+    animation-delay: 0.3s;
+}
+
+.star:nth-child(8) {
+    top: 75%;
+    left: 60%;
+    animation-delay: 0.8s;
+}
+
+.star:nth-child(9) {
+    top: 85%;
+    left: 15%;
+    animation-delay: 1.3s;
+}
+
+.star:nth-child(10) {
+    top: 95%;
+    left: 85%;
+    animation-delay: 1.8s;
+}
 
 @keyframes twinkle {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
 }
 
 /* Shooting stars */
@@ -88,13 +146,34 @@ body {
     transform: translateX(-100px);
 }
 
-.shooting-star:nth-child(1) { top: 20%; left: 0%; animation-delay: 0s; }
-.shooting-star:nth-child(2) { top: 40%; left: 0%; animation-delay: 2s; }
-.shooting-star:nth-child(3) { top: 60%; left: 0%; animation-delay: 4s; }
+.shooting-star:nth-child(1) {
+    top: 20%;
+    left: 0%;
+    animation-delay: 0s;
+}
+
+.shooting-star:nth-child(2) {
+    top: 40%;
+    left: 0%;
+    animation-delay: 2s;
+}
+
+.shooting-star:nth-child(3) {
+    top: 60%;
+    left: 0%;
+    animation-delay: 4s;
+}
 
 @keyframes shoot {
-    0% { transform: translateX(-100px) translateY(0); opacity: 1; }
-    100% { transform: translateX(calc(100vw + 100px)) translateY(100px); opacity: 0; }
+    0% {
+        transform: translateX(-100px) translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(calc(100vw + 100px)) translateY(100px);
+        opacity: 0;
+    }
 }
 
 /* Navigation */
@@ -175,21 +254,25 @@ body {
 .close-btn {
     position: absolute;
     top: 15px;
-    right: 15px;
-    width: 30px;
-    height: 30px;
-    background: white;
+    right: 20px;
+    background: none;
     border: none;
-    border-radius: 50%;
-    color: #333;
-    font-weight: bold;
+    font-size: 24px;
+    color: #fff;
     cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .close-btn:hover {
-    background: #f0f0f0;
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
 }
 
 .login-title {
@@ -312,17 +395,147 @@ body {
     text-decoration: underline;
 }
 
+/* Ripple effect for links */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Link hover effects */
+.nav-link:hover,
+.oauth-btn:hover,
+.forgot-password:hover,
+.register-link a:hover,
+.forgot-password-link a:hover {
+    transform: translateY(-2px);
+    transition: transform 0.3s ease;
+}
+
+/* Working links styling */
+a[href^="/"] {
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+a[href^="/"]:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* Register link specific styling */
+.register-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.register-link a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+    transform: scale(1.05);
+}
+
+/* Forgot password link styling */
+.forgot-password-link a {
+    color: #6c757d;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.forgot-password-link a:hover {
+    color: #495057;
+    text-decoration: underline;
+}
+
+/* OAuth button improvements */
+.oauth-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.oauth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Navigation link improvements */
+.navbar-nav .nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #fff;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover::after {
+    width: 100%;
+}
+
+/* Close button improvements */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #fff;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+/* Form submission loading state */
+.login-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .login-modal {
         padding: 30px 20px;
         margin: 20px;
     }
-    
+
     .login-title {
         font-size: 1.5rem;
     }
-    
+
     .form-options {
         flex-direction: column;
         gap: 15px;
@@ -336,6 +549,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
