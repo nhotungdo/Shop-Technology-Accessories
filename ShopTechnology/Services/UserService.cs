@@ -27,11 +27,30 @@ public class UserService : IUserService
 
     public async Task<UserDTO?> GetUserByEmailAsync(string email)
     {
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == email);
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
 
-        return _mapper.Map<UserDTO>(user);
+            if (user == null)
+            {
+                Console.WriteLine($"User not found for email: {email}");
+                return null;
+            }
+
+            Console.WriteLine($"User found: {user.FullName}, RoleId: {user.RoleId}, Role: {user.Role?.RoleName ?? "NULL"}");
+
+            var userDto = _mapper.Map<UserDTO>(user);
+            Console.WriteLine($"Mapped UserDTO - RoleName: {userDto.RoleName}, IsAdmin: {userDto.IsAdmin}");
+
+            return userDto;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting user by email {email}: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<List<UserDTO>> GetAllUsersAsync()
@@ -128,18 +147,31 @@ public class UserService : IUserService
 
             if (user == null)
             {
+                Console.WriteLine($"User not found: {email}");
                 return false;
             }
 
             // Kiểm tra password hash có hợp lệ không
-            if (string.IsNullOrEmpty(user.PasswordHash) || !user.PasswordHash.StartsWith("$2a$"))
+            if (string.IsNullOrEmpty(user.PasswordHash))
             {
-                // Nếu password hash không đúng format BCrypt, thử so sánh trực tiếp
-                return user.PasswordHash == password;
+                Console.WriteLine($"Password hash is null for user: {email}");
+                return false;
+            }
+
+            // Nếu password hash không đúng format BCrypt, thử so sánh trực tiếp
+            if (!user.PasswordHash.StartsWith("$2a$"))
+            {
+                Console.WriteLine($"Using direct comparison for user: {email}");
+                bool directResult = user.PasswordHash == password;
+                Console.WriteLine($"Direct comparison result: {directResult}");
+                return directResult;
             }
 
             // Sử dụng BCrypt để verify password
-            return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            Console.WriteLine($"Using BCrypt verification for user: {email}");
+            bool bcryptResult = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            Console.WriteLine($"BCrypt verification result: {bcryptResult}");
+            return bcryptResult;
         }
         catch (Exception ex)
         {
@@ -404,6 +436,75 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             Console.WriteLine($"Error in LinkExternalLoginAsync: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> CreateAdminUserAsync()
+    {
+        try
+        {
+            // Kiểm tra xem admin đã tồn tại chưa
+            var existingAdmin = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == "donhotung2004@gmail.com");
+
+            if (existingAdmin != null)
+            {
+                Console.WriteLine("Admin user already exists");
+                return false;
+            }
+
+            // Tạo tài khoản admin mới
+            var adminUser = new User
+            {
+                UserId = Guid.NewGuid(),
+                FullName = "Admin",
+                Email = "donhotung2004@gmail.com",
+                PasswordHash = "123456", // Plain text password
+                PhoneNumber = "0931982568",
+                RoleId = 1, // Admin role
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(adminUser);
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine("Admin user created successfully");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating admin user: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> CreateRolesAsync()
+    {
+        try
+        {
+            // Kiểm tra xem roles đã tồn tại chưa
+            var existingRoles = await _context.Roles.ToListAsync();
+            if (existingRoles.Any())
+            {
+                Console.WriteLine("Roles already exist");
+                return false;
+            }
+
+            // Tạo roles
+            var adminRole = new Role { RoleId = 1, RoleName = "Admin" };
+            var userRole = new Role { RoleId = 2, RoleName = "User" };
+
+            _context.Roles.Add(adminRole);
+            _context.Roles.Add(userRole);
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine("Roles created successfully");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating roles: {ex.Message}");
             return false;
         }
     }

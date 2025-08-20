@@ -35,14 +35,14 @@ namespace ShopTechnology.Controllers
         {
             try
             {
-                var hasChanges = await _userService.FixPasswordHashesAsync();
-                if (hasChanges)
+                var result = await _userService.FixPasswordHashesAsync();
+                if (result)
                 {
-                    TempData["SuccessMessage"] = "Đã sửa password hash thành công!";
+                    TempData["SuccessMessage"] = "Password hashes đã được sửa thành công!";
                 }
                 else
                 {
-                    TempData["InfoMessage"] = "Password hash đã đúng format, không cần sửa.";
+                    TempData["InfoMessage"] = "Không có password hash nào cần sửa.";
                 }
             }
             catch (Exception ex)
@@ -60,41 +60,56 @@ namespace ShopTechnology.Controllers
             {
                 try
                 {
+                    Console.WriteLine($"Login attempt for email: {model.Email}");
+
                     // Kiểm tra user tồn tại
                     var user = await _userService.GetUserByEmailAsync(model.Email);
                     if (user == null)
                     {
+                        Console.WriteLine($"User not found: {model.Email}");
                         ModelState.AddModelError("", "Email không tồn tại trong hệ thống");
                         return View(model);
                     }
 
+                    Console.WriteLine($"User found: {user.FullName}, Role: {user.RoleName}, IsAdmin: {user.IsAdmin}");
+
                     // Validate password
                     var isValid = await _userService.ValidateUserAsync(model.Email, model.Password);
+                    Console.WriteLine($"Password validation result: {isValid}");
+
                     if (isValid)
                     {
+                        Console.WriteLine($"Login successful for user: {user.FullName}");
+
                         // Lưu thông tin user vào session
                         HttpContext.Session.SetString("UserId", user.UserId.ToString());
                         HttpContext.Session.SetString("UserEmail", user.Email);
                         HttpContext.Session.SetString("UserName", user.FullName);
                         HttpContext.Session.SetString("UserRole", user.RoleName ?? "User");
 
+                        Console.WriteLine($"Session data set - UserId: {user.UserId}, Role: {user.RoleName}");
+
                         // Redirect dựa trên role
                         if (user.IsAdmin)
                         {
+                            Console.WriteLine($"Redirecting admin to dashboard");
                             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                         }
                         else
                         {
+                            Console.WriteLine($"Redirecting user to home");
                             return RedirectToAction("Index", "Home");
                         }
                     }
                     else
                     {
+                        Console.WriteLine($"Password validation failed for user: {user.FullName}");
                         ModelState.AddModelError("", "Mật khẩu không đúng");
                     }
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine($"Login error: {ex.Message}");
                     ModelState.AddModelError("", "Có lỗi xảy ra khi đăng nhập: " + ex.Message);
                 }
             }
@@ -379,6 +394,85 @@ namespace ShopTechnology.Controllers
             }
 
             return View("Profile", model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAdminUser()
+        {
+            try
+            {
+                var result = await _userService.CreateAdminUserAsync();
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Tài khoản admin đã được tạo thành công!";
+                }
+                else
+                {
+                    TempData["InfoMessage"] = "Tài khoản admin đã tồn tại.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRoles()
+        {
+            try
+            {
+                var result = await _userService.CreateRolesAsync();
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Roles đã được tạo thành công!";
+                }
+                else
+                {
+                    TempData["InfoMessage"] = "Roles đã tồn tại.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestUserInfo(string email)
+        {
+            try
+            {
+                var user = await _userService.GetUserByEmailAsync(email);
+                if (user != null)
+                {
+                    var userInfo = new
+                    {
+                        UserId = user.UserId,
+                        FullName = user.FullName,
+                        Email = user.Email,
+                        RoleId = user.RoleId,
+                        RoleName = user.RoleName,
+                        IsAdmin = user.IsAdmin,
+                        IsUser = user.IsUser,
+                        CreatedAt = user.CreatedAt
+                    };
+
+                    return Json(userInfo);
+                }
+                else
+                {
+                    return Json(new { error = "User not found" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
+            }
         }
 
 

@@ -3,6 +3,115 @@
     ViewData["Title"] = Model.ProductName;
 }
 
+<style>
+    .product-details {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+
+    .product-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .main-image {
+        border-radius: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .main-image:hover {
+        transform: scale(1.05);
+    }
+
+    .thumbnail-image {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .thumbnail-image:hover {
+        border-color: #007bff;
+        transform: scale(1.1);
+    }
+
+    .price-display {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .stock-badge {
+        font-size: 1.1em;
+        padding: 10px 15px;
+        border-radius: 25px;
+    }
+
+    .quantity-control {
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .quantity-control .btn {
+        border: none;
+        padding: 10px 15px;
+    }
+
+    .quantity-control input {
+        border: none;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .action-buttons .btn {
+        border-radius: 25px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .related-products {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 40px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .breadcrumb {
+        background: white;
+        border-radius: 10px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .breadcrumb-item a {
+        color: #007bff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #0056b3;
+    }
+</style>
+
 @if (Context.Session.GetString("UserId") == null)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -14,236 +123,239 @@
     </div>
 }
 
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index"
-                    asp-route-categoryId="@Model.CategoryId">@Model.CategoryName</a></li>
-            <li class="breadcrumb-item active" aria-current="page">@Model.ProductName</li>
-        </ol>
-    </nav>
+<div class="product-details">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index"
+                        asp-route-categoryId="@Model.CategoryId">@Model.CategoryName</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.ProductName</li>
+            </ol>
+        </nav>
 
-    <div class="row">
-        <!-- Hình ảnh sản phẩm -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <img src="@Model.MainImageUrl" class="img-fluid rounded" alt="@Model.ProductName" id="mainImage">
+        <div class="row">
+            <!-- Hình ảnh sản phẩm -->
+            <div class="col-md-6">
+                <div class="card product-card">
+                    <div class="card-body">
+                        <img src="@Model.MainImageUrl" class="img-fluid rounded main-image" alt="@Model.ProductName"
+                            id="mainImage">
 
-                    @if (Model.ImageUrls.Count > 1)
-                    {
-                        <div class="row mt-3">
-                            @foreach (var imageUrl in Model.ImageUrls.Take(4))
-                            {
-                                <div class="col-3">
-                                    <img src="@imageUrl" class="img-thumbnail thumbnail-image" alt="@Model.ProductName"
-                                        style="cursor: pointer; height: 80px; object-fit: cover;"
-                                        onclick="changeMainImage('@imageUrl')">
-                                </div>
-                            }
-                        </div>
-                    }
+                        @if (Model.ImageUrls.Count > 1)
+                        {
+                            <div class="row mt-3">
+                                @foreach (var imageUrl in Model.ImageUrls.Take(4))
+                                {
+                                    <div class="col-3">
+                                        <img src="@imageUrl" class="img-thumbnail thumbnail-image" alt="@Model.ProductName"
+                                            style="cursor: pointer; height: 80px; object-fit: cover;"
+                                            onclick="changeMainImage('@imageUrl')">
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Thông tin sản phẩm -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="card-title">@Model.ProductName</h2>
-                    <p class="text-muted">Danh mục: @Model.CategoryName</p>
+            <!-- Thông tin sản phẩm -->
+            <div class="col-md-6">
+                <div class="card product-card">
+                    <div class="card-body">
+                        <h2 class="card-title">@Model.ProductName</h2>
+                        <p class="text-muted">Danh mục: @Model.CategoryName</p>
 
-                    <div class="mb-3">
-                        <span class="h3 text-primary fw-bold">@Model.Price.ToString("N0") VNĐ</span>
-                    </div>
+                        <div class="price-display">
+                            <span class="h2 fw-bold">@Model.Price.ToString("N0") VNĐ</span>
+                        </div>
 
-                    <div class="mb-3">
-                        <p class="card-text">@Model.Description</p>
-                    </div>
+                        <div class="mb-3">
+                            <p class="card-text">@Model.Description</p>
+                        </div>
 
-                    <div class="mb-3">
-                        <p class="card-text">
-                            <strong>Thông tin sản phẩm:</strong><br>
-                            • Danh mục: @Model.CategoryName<br>
-                            • Tình trạng:
+                        <div class="mb-3">
+                            <p class="card-text">
+                                <strong>Thông tin sản phẩm:</strong><br>
+                                • Danh mục: @Model.CategoryName<br>
+                                • Tình trạng:
+                                @if (Model.StockQuantity > 0)
+                                {
+                                    <span class="text-success">Còn hàng (@Model.StockQuantity sản phẩm)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">Hết hàng</span>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="mb-3">
                             @if (Model.StockQuantity > 0)
                             {
-                                <span class="text-success">Còn hàng (@Model.StockQuantity sản phẩm)</span>
+                                <span class="badge bg-success stock-badge">
+                                    <i class="fas fa-check"></i> Còn hàng (@Model.StockQuantity)
+                                </span>
                             }
                             else
                             {
-                                <span class="text-danger">Hết hàng</span>
+                                <span class="badge bg-danger stock-badge">
+                                    <i class="fas fa-times"></i> Hết hàng
+                                </span>
                             }
-                        </p>
-                    </div>
-
-                    <div class="mb-3">
-                        @if (Model.StockQuantity > 0)
-                        {
-                            <span class="badge bg-success">
-                                <i class="fas fa-check"></i> Con hang (@Model.StockQuantity)
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">
-                                <i class="fas fa-times"></i> Het hang
-                            </span>
-                        }
-                    </div>
-
-                    @if (Model.StockQuantity > 0)
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">So luong:</label>
-                            <div class="input-group" style="width: 150px;">
-                                <button class="btn btn-outline-secondary" type="button"
-                                    onclick="decreaseQuantity()">-</button>
-                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1"
-                                    max="@Model.StockQuantity">
-                                <button class="btn btn-outline-secondary" type="button"
-                                    onclick="increaseQuantity()">+</button>
-                            </div>
                         </div>
 
-                        @if (Context.Session.GetString("UserId") != null)
+                        @if (Model.StockQuantity > 0)
                         {
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-primary btn-lg add-to-cart-detail" data-product-id="@Model.ProductId">
-                                    <i class="fas fa-cart-plus"></i> Them vao gio hang
-                                </button>
-                                <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
-                                    <i class="fas fa-heart"></i> Them vao yeu thich
-                                </button>
+                            <div class="mb-3">
+                                <label class="form-label">Số lượng:</label>
+                                <div class="input-group quantity-control" style="width: 150px;">
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        onclick="decreaseQuantity()">-</button>
+                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1"
+                                        max="@Model.StockQuantity">
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        onclick="increaseQuantity()">+</button>
+                                </div>
                             </div>
+
+                            @if (Context.Session.GetString("UserId") != null)
+                            {
+                                <div class="d-grid gap-2 action-buttons">
+                                    <button class="btn btn-primary btn-lg add-to-cart-detail"
+                                        data-product-id="@Model.ProductId">
+                                        <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                                    </button>
+                                    <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
+                                        <i class="fas fa-heart"></i> Thêm vào yêu thích
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Vui lòng <a asp-controller="Account" asp-action="Login"
+                                        class="alert-link">đăng nhập</a> để thêm sản phẩm vào giỏ hàng và đặt hàng.
+                                </div>
+                                <div class="d-grid gap-2 action-buttons">
+                                    <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua hàng
+                                    </a>
+                                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary">
+                                        <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
+                                    </a>
+                                </div>
+                            }
                         }
                         else
                         {
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> Vui lòng <a asp-controller="Account" asp-action="Login"
-                                    class="alert-link">đăng nhập</a> để thêm sản phẩm vào giỏ hàng và đặt hàng.
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua hàng
-                                </a>
-                                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary">
-                                    <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
-                                </a>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Sản phẩm hiện tại đã hết hàng. Vui lòng quay lại
+                                sau!
                             </div>
                         }
-                    }
-                    else
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sản phẩm liên quan -->
+        @if (ViewBag.RelatedProducts != null && ((List<ProductViewModel>)ViewBag.RelatedProducts).Any())
+        {
+            <div class="related-products">
+                <h3 class="mb-4">
+                    <i class="fas fa-thumbs-up text-primary"></i> Sản phẩm liên quan
+                </h3>
+                <div class="row">
+                    @foreach (var product in ViewBag.RelatedProducts)
                     {
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> San pham hien tai da het hang. Vui long quay lai
-                            sau!
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100 shadow-sm product-card">
+                                <img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName"
+                                    style="height: 200px; object-fit: cover;">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">@product.ProductName</h5>
+                                    <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
+                                    <div class="mt-auto">
+                                        <a asp-action="Details" asp-route-id="@product.ProductId"
+                                            class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
             </div>
-        </div>
+        }
     </div>
 
-    <!-- Sản phẩm liên quan -->
-    @if (ViewBag.RelatedProducts != null && ((List<ProductViewModel>)ViewBag.RelatedProducts).Any())
-    {
-        <div class="mt-5">
-            <h3 class="mb-4">
-                <i class="fas fa-thumbs-up text-primary"></i> San pham lien quan
-            </h3>
-            <div class="row">
-                @foreach (var product in ViewBag.RelatedProducts)
-                {
-                    <div class="col-md-3 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName"
-                                style="height: 200px; object-fit: cover;">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@product.ProductName</h5>
-                                <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VND</p>
-                                <div class="mt-auto">
-                                    <a asp-action="Details" asp-route-id="@product.ProductId"
-                                        class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-eye"></i> Chi tiet
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-</div>
-
 @section Scripts {
-    <script>
-        function changeMainImage(imageUrl) {
-            document.getElementById('mainImage').src = imageUrl;
-        }
-
-        function increaseQuantity() {
-            var input = document.getElementById('quantity');
-            var currentValue = parseInt(input.value);
-            var maxValue = parseInt(input.getAttribute('max'));
-            if (currentValue < maxValue) {
-                input.value = currentValue + 1;
+        <script>
+            function changeMainImage(imageUrl) {
+                document.getElementById('mainImage').src = imageUrl;
             }
-        }
 
-        function decreaseQuantity() {
-            var input = document.getElementById('quantity');
-            var currentValue = parseInt(input.value);
-            if (currentValue > 1) {
-                input.value = currentValue - 1;
+            function increaseQuantity() {
+                var input = document.getElementById('quantity');
+                var currentValue = parseInt(input.value);
+                var maxValue = parseInt(input.getAttribute('max'));
+                if (currentValue < maxValue) {
+                    input.value = currentValue + 1;
+                }
             }
-        }
 
-        $(document).ready(function () {
-            $('.add-to-cart-detail').click(function () {
-                var productId = $(this).data('product-id');
-                var quantity = parseInt($('#quantity').val());
-                var button = $(this);
+            function decreaseQuantity() {
+                var input = document.getElementById('quantity');
+                var currentValue = parseInt(input.value);
+                if (currentValue > 1) {
+                    input.value = currentValue - 1;
+                }
+            }
 
-                $.post('/Cart/AddToCart', { productId: productId, quantity: quantity })
-                    .done(function (response) {
-                        if (response.success) {
-                            button.html('<i class="fas fa-check"></i> Da them vao gio hang');
-                            button.removeClass('btn-primary').addClass('btn-success');
-                            setTimeout(function () {
-                                button.html('<i class="fas fa-cart-plus"></i> Them vao gio hang');
-                                button.removeClass('btn-success').addClass('btn-primary');
-                            }, 2000);
-                        } else {
-                            alert('Co loi xay ra: ' + response.message);
-                        }
-                    })
-                    .fail(function () {
-                        alert('Co loi xay ra khi them vao gio hang');
-                    });
+            $(document).ready(function () {
+                $('.add-to-cart-detail').click(function () {
+                    var productId = $(this).data('product-id');
+                    var quantity = parseInt($('#quantity').val());
+                    var button = $(this);
+
+                    $.post('/Cart/AddToCart', { productId: productId, quantity: quantity })
+                        .done(function (response) {
+                            if (response.success) {
+                                button.html('<i class="fas fa-check"></i> Đã thêm vào giỏ hàng');
+                                button.removeClass('btn-primary').addClass('btn-success');
+                                setTimeout(function () {
+                                    button.html('<i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng');
+                                    button.removeClass('btn-success').addClass('btn-primary');
+                                }, 2000);
+                            } else {
+                                alert('Có lỗi xảy ra: ' + response.message);
+                            }
+                        })
+                        .fail(function () {
+                            alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
+                        });
+                });
+
+                $('.add-to-wishlist').click(function () {
+                    var productId = $(this).data('product-id');
+                    var button = $(this);
+
+                    $.post('/Wishlist/AddToWishlist', { productId: productId })
+                        .done(function (response) {
+                            if (response.success) {
+                                button.html('<i class="fas fa-heart"></i> Đã thêm vào yêu thích');
+                                button.removeClass('btn-outline-danger').addClass('btn-danger');
+                            } else {
+                                alert('Có lỗi xảy ra: ' + response.message);
+                            }
+                        })
+                        .fail(function () {
+                            alert('Có lỗi xảy ra khi thêm vào yêu thích');
+                        });
+                });
             });
-
-            $('.add-to-wishlist').click(function () {
-                var productId = $(this).data('product-id');
-                var button = $(this);
-
-                $.post('/Wishlist/AddToWishlist', { productId: productId })
-                    .done(function (response) {
-                        if (response.success) {
-                            button.html('<i class="fas fa-heart"></i> Da them vao yeu thich');
-                            button.removeClass('btn-outline-danger').addClass('btn-danger');
-                        } else {
-                            alert('Co loi xay ra: ' + response.message);
-                        }
-                    })
-                    .fail(function () {
-                        alert('Co loi xay ra khi them vao yeu thich');
-                    });
-            });
-        });
-    </script>
+        </script>
 }

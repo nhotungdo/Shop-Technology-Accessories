@@ -14,9 +14,11 @@ public interface IUserService
     Task<bool> ValidateUserAsync(string email, string password);
     Task<bool> IsEmailExistsAsync(string email);
     Task<bool> IsUserAdminAsync(Guid userId);
-    Task<int> GetTotalUsersCountAsync();
     Task<List<UserDTO>> GetUsersByRoleAsync(string roleName);
+    Task<int> GetTotalUsersCountAsync();
     Task<bool> FixPasswordHashesAsync();
+    Task<bool> CreateAdminUserAsync();
+    Task<bool> CreateRolesAsync();
 
     // Password reset methods
     Task<bool> ForgotPasswordAsync(string email);

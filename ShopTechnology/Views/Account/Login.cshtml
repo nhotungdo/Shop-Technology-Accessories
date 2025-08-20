@@ -149,6 +149,8 @@
             <div class="forgot-password-link">
                 <a href="/Account/ForgotPassword" aria-label="Quên mật khẩu">Quên mật khẩu?</a>
             </div>
+
+
         </div>
     </div>
 
@@ -226,30 +228,32 @@
                 });
             });
 
-            // Add keyboard navigation support
+            // Keyboard navigation
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
                     window.location.href = '/';
                 }
             });
 
+           
+
             // Debug all links on page load
             console.log('Login page loaded');
             console.log('Current path:', window.location.pathname);
-            
+
             const allLinks = document.querySelectorAll('a');
             console.log('Total links found:', allLinks.length);
-            
+
             allLinks.forEach((link, index) => {
                 const href = link.getAttribute('href');
                 const text = link.textContent.trim();
-                
+
                 console.log(`Link ${index + 1}:`, {
                     text: text,
                     href: href,
                     hasHref: !!href
                 });
-                
+
                 // Add visual indicator for working links
                 if (href && href.startsWith('/')) {
                     link.style.border = '1px solid rgba(0, 255, 0, 0.3)';
