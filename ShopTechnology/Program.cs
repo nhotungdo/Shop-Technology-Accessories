@@ -44,6 +44,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ILoginService, LoginService>();
 
 // Auth (JWT for future API endpoints)
 // builder.Services.AddAuthentication(options =>

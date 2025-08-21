@@ -1,85 +1,650 @@
-@model RegisterViewModel
+@model ShopTechnology.DTOs.UserDTO
+
 @{
-    ViewData["Title"] = "Thông tin tài khoản";
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    Layout = null;
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">
-                        <i class="fas fa-user"></i> Thông tin tài khoản
-                    </h3>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Shop Technology Accessories</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .profile-container {
+            display: flex;
+            min-height: 100vh;
+            background: white;
+        }
+
+        .profile-form-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            max-width: 500px;
+        }
+
+        .illustration-section {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .logo-icon i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input:read-only {
+            background: #f8f9fa;
+            color: #666;
+        }
+
+        .update-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+
+        .update-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .update-button:active {
+            transform: translateY(0);
+        }
+
+        .change-password-button {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+
+        .change-password-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .back-link {
+            text-align: center;
+            color: #666;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .back-link a:hover {
+            color: #764ba2;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .user-info h6 {
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* Illustration Styles */
+        .illustration-content {
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 2;
+        }
+
+        .character {
+            width: 200px;
+            height: 300px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .character-body {
+            width: 80px;
+            height: 120px;
+            background: #ffd700;
+            border-radius: 40px;
+            position: relative;
+        }
+
+        .character-head {
+            width: 50px;
+            height: 50px;
+            background: #8b4513;
+            border-radius: 50%;
+            position: absolute;
+            top: -25px;
+            left: 15px;
+        }
+
+        .character-arm {
+            width: 20px;
+            height: 60px;
+            background: #ffd700;
+            border-radius: 10px;
+            position: absolute;
+            right: -10px;
+            top: 20px;
+        }
+
+        .smartphone {
+            width: 80px;
+            height: 120px;
+            background: #333;
+            border-radius: 12px;
+            position: absolute;
+            right: -60px;
+            top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-screen {
+            width: 70px;
+            height: 110px;
+            background: #667eea;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+        }
+
+        .user-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 60%;
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0%, 100% { width: 60%; }
+            50% { width: 80%; }
+        }
+
+        .success-bubble {
+            position: absolute;
+            left: -80px;
+            top: 60px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .security-lock {
+            position: absolute;
+            right: -80px;
+            top: 60px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .cloud:nth-child(1) {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .cloud:nth-child(2) {
+            width: 80px;
+            height: 30px;
+            top: 40%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .cloud:nth-child(3) {
+            width: 120px;
+            height: 50px;
+            top: 70%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: none;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c53030;
+            border-left: 4px solid #c53030;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            color: #2f855a;
+            border-left: 4px solid #2f855a;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-container {
+                flex-direction: column;
+            }
+
+            .profile-form-section {
+                padding: 40px 20px;
+                max-width: none;
+            }
+
+            .illustration-section {
+                min-height: 300px;
+                padding: 40px 20px;
+            }
+
+            .welcome-title {
+                font-size: 28px;
+            }
+
+            .character {
+                width: 150px;
+                height: 200px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="profile-container">
+        <!-- Left Panel - Profile Form -->
+        <div class="profile-form-section">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-laptop"></i>
                 </div>
-                <div class="card-body">
-                    <form asp-action="UpdateProfile" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="logo-text">ShopTech</div>
+            </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="FullName" class="form-label">Họ và tên</label>
-                                    <input asp-for="FullName" class="form-control" />
-                                    <span asp-validation-for="FullName" class="text-danger"></span>
+            <h1 class="welcome-title">My Profile</h1>
+            <p class="welcome-subtitle">Manage your account information</p>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
+            <div class="user-info">
+                <h6><i class="fas fa-user"></i> Account Information</h6>
+                <div class="info-item">
+                    <span class="info-label">Full Name:</span>
+                    <span class="info-value">@Model.FullName</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">@Model.Email</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">@(Model.PhoneNumber ?? "Not provided")</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Role:</span>
+                    <span class="info-value">@Model.RoleName</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Member Since:</span>
+                    <span class="info-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                </div>
+            </div>
+
+            <form asp-controller="Account" asp-action="UpdateProfile" method="post">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input name="FullName" type="text" class="form-input" value="@Model.FullName" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input name="PhoneNumber" type="tel" class="form-input" value="@Model.PhoneNumber" />
+                </div>
+
+                <button type="submit" class="update-button">
+                    <span class="button-text">
+                        <i class="fas fa-save"></i> Update Profile
+                    </span>
+                    <span class="loading">
+                        <i class="fas fa-spinner spinner"></i> Updating...
+                    </span>
+                </button>
+            </form>
+
+            <button type="button" class="change-password-button" onclick="showChangePassword()">
+                <i class="fas fa-key"></i> Change Password
+            </button>
+
+            <div class="back-link">
+                <a asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Panel - Illustration -->
+        <div class="illustration-section">
+            <div class="clouds">
+                <div class="cloud"></div>
+                <div class="cloud"></div>
+                <div class="cloud"></div>
+            </div>
+
+            <div class="illustration-content">
+                <div class="character">
+                    <div class="character-body">
+                        <div class="character-head"></div>
+                        <div class="character-arm"></div>
+                        <div class="smartphone">
+                            <div class="phone-screen">
+                                <div class="user-icon">
+                                    <i class="fas fa-user"></i>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="Email" class="form-label">Email</label>
-                                    <input asp-for="Email" class="form-control" readonly />
-                                    <small class="text-muted">Email không thể thay đổi</small>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div style="font-size: 6px; text-align: center;">
+                                    Profile<br>updated
                                 </div>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
-                            <input asp-for="PhoneNumber" class="form-control" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                        </div>
-
-                        <hr />
-
-                        <h5 class="mb-3">
-                            <i class="fas fa-lock"></i> Thay đổi mật khẩu
-                        </h5>
-                        <small class="text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="Password" class="form-label">Mật khẩu mới</label>
-                                    <input asp-for="Password" class="form-control" />
-                                    <span asp-validation-for="Password" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
-                                    <input asp-for="ConfirmPassword" class="form-control" />
-                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Cập nhật thông tin
-                            </button>
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Quay lại trang chủ
-                            </a>
-                        </div>
-                    </form>
+                    </div>
+                    <div class="success-bubble">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="security-lock">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const button = document.querySelector('.update-button');
+            const buttonText = document.querySelector('.button-text');
+            const loading = document.querySelector('.loading');
+
+            if (form) {
+                form.addEventListener('submit', function () {
+                    button.disabled = true;
+                    buttonText.style.display = 'none';
+                    loading.classList.add('show');
+                });
+            }
+        });
+
+        function showChangePassword() {
+            const newPassword = prompt('Enter new password:');
+            if (newPassword) {
+                const confirmPassword = prompt('Confirm new password:');
+                if (newPassword === confirmPassword) {
+                    // Send change password request
+                    fetch('/Account/ChangePassword', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            currentPassword: '',
+                            newPassword: newPassword,
+                            confirmPassword: confirmPassword
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Password changed successfully!');
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error changing password');
+                    });
+                } else {
+                    alert('Passwords do not match!');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

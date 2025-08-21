@@ -166,10 +166,14 @@ INSERT INTO Categories (CategoryName, Description) VALUES
 INSERT INTO Users (
     FullName, Email, PasswordHash, PhoneNumber, RoleId, CreatedAt
 ) 
-VALUES 
-    (N'Admin', N'donhotung2004@gmail.com', N'$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', N'0931982568', 1, GETDATE()),
-    (N'Administrator', N'admin@shoptech.com', N'$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', N'0123456789', 1, GETDATE()),
-    (N'Test User', N'user@shoptech.com', N'$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', N'0987654321', 2, GETDATE());
+VALUES (
+    N'Admin', 
+    N'donhotung2004@gmail.com', 
+    N'123456', 
+    N'0931982568', 
+    1, 
+    GETDATE()
+);
 
 -- Enable IDENTITY_INSERT
 SET IDENTITY_INSERT Products ON;
@@ -226,4 +230,250 @@ VALUES
 (15, N'https://t-wolf.vn/wp-content/uploads/2024/05/chuot-khong-day-twolf-g580-nhay.jpg', 0);
 
 
+
+-- ===============================
+-- THÊM CÁC BẢNG MỚI CHO CHỨC NĂNG NÂNG CAO
+-- ===============================
+
+USE ShopTechnologyAccessories;
+GO
+
+-- ===============================
+-- 1. Bảng Promotions (Mã giảm giá)
+-- ===============================
+CREATE TABLE Promotions (
+    PromotionId INT PRIMARY KEY IDENTITY(1,1),
+    Code NVARCHAR(20) NOT NULL UNIQUE,
+    Name NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(500) NULL,
+    DiscountAmount DECIMAL(18,2) NOT NULL DEFAULT 0,
+    DiscountPercentage DECIMAL(5,2) NOT NULL DEFAULT 0,
+    MinimumOrderAmount DECIMAL(18,2) NOT NULL DEFAULT 0,
+    MaxUsageCount INT NOT NULL DEFAULT 1,
+    UsedCount INT NOT NULL DEFAULT 0,
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME NULL
+);
+GO
+
+-- ===============================
+-- 2. Bảng Reviews (Đánh giá sản phẩm)
+-- ===============================
+CREATE TABLE Reviews (
+    ReviewId INT PRIMARY KEY IDENTITY(1,1),
+    UserId UNIQUEIDENTIFIER NOT NULL,
+    ProductId INT NOT NULL,
+    Rating INT NOT NULL CHECK (Rating >= 1 AND Rating <= 5),
+    Comment NVARCHAR(1000) NULL,
+    IsVerified BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME NULL,
+    
+    CONSTRAINT FK_Reviews_Users FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    CONSTRAINT FK_Reviews_Products FOREIGN KEY (ProductId) REFERENCES Products(ProductId),
+    CONSTRAINT UQ_User_Product_Review UNIQUE (UserId, ProductId)
+);
+GO
+
+-- ===============================
+-- 3. Thêm dữ liệu mẫu cho Promotions
+-- ===============================
+INSERT INTO Promotions (Code, Name, Description, DiscountAmount, DiscountPercentage, MinimumOrderAmount, MaxUsageCount, StartDate, EndDate, IsActive) VALUES
+('WELCOME10', N'Chào mừng khách hàng mới', N'Giảm 10% cho đơn hàng đầu tiên', 0, 10.00, 100000, 1, GETDATE(), DATEADD(MONTH, 6, GETDATE()), 1),
+('SAVE20', N'Tiết kiệm 20%', N'Giảm 20% cho đơn hàng từ 500k', 0, 20.00, 500000, 100, GETDATE(), DATEADD(MONTH, 3, GETDATE()), 1),
+('FREESHIP', N'Miễn phí vận chuyển', N'Miễn phí vận chuyển cho đơn hàng từ 300k', 50000, 0, 300000, 50, GETDATE(), DATEADD(MONTH, 2, GETDATE()), 1),
+('FLASH50', N'Flash Sale 50%', N'Giảm 50% cho các sản phẩm được chọn', 0, 50.00, 200000, 20, GETDATE(), DATEADD(DAY, 7, GETDATE()), 1);
+GO
+
+
+-- ===============================
+-- 5. Tạo Index để tối ưu hiệu suất
+-- ===============================
+CREATE INDEX IX_Promotions_Code ON Promotions(Code);
+CREATE INDEX IX_Promotions_IsActive ON Promotions(IsActive);
+CREATE INDEX IX_Promotions_StartDate ON Promotions(StartDate);
+CREATE INDEX IX_Promotions_EndDate ON Promotions(EndDate);
+
+CREATE INDEX IX_Reviews_ProductId ON Reviews(ProductId);
+CREATE INDEX IX_Reviews_UserId ON Reviews(UserId);
+CREATE INDEX IX_Reviews_Rating ON Reviews(Rating);
+CREATE INDEX IX_Reviews_CreatedAt ON Reviews(CreatedAt);
+GO
+
+-- ===============================
+-- 6. Tạo View để thống kê đánh giá
+-- ===============================
+CREATE VIEW ProductReviewSummary AS
+SELECT 
+    p.ProductId,
+    p.ProductName,
+    AVG(CAST(r.Rating AS FLOAT)) AS AverageRating,
+    COUNT(r.ReviewId) AS TotalReviews,
+    SUM(CASE WHEN r.Rating = 5 THEN 1 ELSE 0 END) AS FiveStarCount,
+    SUM(CASE WHEN r.Rating = 4 THEN 1 ELSE 0 END) AS FourStarCount,
+    SUM(CASE WHEN r.Rating = 3 THEN 1 ELSE 0 END) AS ThreeStarCount,
+    SUM(CASE WHEN r.Rating = 2 THEN 1 ELSE 0 END) AS TwoStarCount,
+    SUM(CASE WHEN r.Rating = 1 THEN 1 ELSE 0 END) AS OneStarCount
+FROM Products p
+LEFT JOIN Reviews r ON p.ProductId = r.ProductId
+GROUP BY p.ProductId, p.ProductName;
+GO
+
+-- ===============================
+-- 7. Tạo Stored Procedure để tính discount
+-- ===============================
+CREATE PROCEDURE CalculatePromotionDiscount
+    @PromotionCode NVARCHAR(20),
+    @OrderAmount DECIMAL(18,2),
+    @DiscountAmount DECIMAL(18,2) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @PromotionId INT, @DiscountPercent DECIMAL(5,2), @MinAmount DECIMAL(18,2);
+    DECLARE @IsActive BIT, @UsedCount INT, @MaxUsage INT;
+    DECLARE @StartDate DATETIME, @EndDate DATETIME;
+    
+    -- Lấy thông tin promotion
+    SELECT 
+        @PromotionId = PromotionId,
+        @DiscountPercent = DiscountPercentage,
+        @MinAmount = MinimumOrderAmount,
+        @IsActive = IsActive,
+        @UsedCount = UsedCount,
+        @MaxUsage = MaxUsageCount,
+        @StartDate = StartDate,
+        @EndDate = EndDate
+    FROM Promotions 
+    WHERE Code = @PromotionCode;
+    
+    -- Kiểm tra promotion có hợp lệ không
+    IF @PromotionId IS NULL OR 
+       @IsActive = 0 OR 
+       @UsedCount >= @MaxUsage OR
+       GETDATE() < @StartDate OR 
+       GETDATE() > @EndDate OR
+       @OrderAmount < @MinAmount
+    BEGIN
+        SET @DiscountAmount = 0;
+        RETURN;
+    END
+    
+    -- Tính discount
+    SET @DiscountAmount = @OrderAmount * (@DiscountPercent / 100);
+    
+    -- Đảm bảo discount không vượt quá order amount
+    IF @DiscountAmount > @OrderAmount
+        SET @DiscountAmount = @OrderAmount;
+END
+GO
+
+-- ===============================
+-- 8. Tạo Trigger để cập nhật UsedCount
+-- ===============================
+-- CREATE TRIGGER TR_Promotions_UpdateUsedCount
+-- ON Orders
+-- AFTER INSERT
+-- AS
+-- BEGIN
+--     -- Logic để cập nhật UsedCount khi order được tạo
+--     -- (Cần thêm PromotionId vào bảng Orders nếu muốn track)
+-- END
+GO
+
+-- ===============================
+-- 1. Bảng ExternalLogins (OAuth)
+-- ===============================
+CREATE TABLE ExternalLogins (
+    ExternalLoginId INT PRIMARY KEY IDENTITY(1,1),
+    UserId UNIQUEIDENTIFIER NOT NULL,
+    Provider NVARCHAR(50) NOT NULL, -- Google, Facebook
+    ProviderKey NVARCHAR(255) NOT NULL, -- ID từ provider
+    Email NVARCHAR(255) NOT NULL,
+    Name NVARCHAR(100) NOT NULL,
+    PictureUrl NVARCHAR(500) NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    LastLoginAt DATETIME NULL,
+    
+    CONSTRAINT FK_ExternalLogins_Users FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    CONSTRAINT UQ_ExternalLogins_Provider_Key UNIQUE (Provider, ProviderKey)
+);
+GO
+
+-- ===============================
+-- 2. Bảng PasswordResets
+-- ===============================
+CREATE TABLE PasswordResets (
+    PasswordResetId INT PRIMARY KEY IDENTITY(1,1),
+    Email NVARCHAR(255) NOT NULL,
+    Token NVARCHAR(255) NOT NULL,
+    ExpiresAt DATETIME NOT NULL,
+    IsUsed BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    UsedAt DATETIME NULL
+);
+GO
+
+-- ===============================
+-- 3. Tạo Index để tối ưu hiệu suất
+-- ===============================
+CREATE INDEX IX_ExternalLogins_UserId ON ExternalLogins(UserId);
+CREATE INDEX IX_ExternalLogins_Provider ON ExternalLogins(Provider);
+CREATE INDEX IX_ExternalLogins_Email ON ExternalLogins(Email);
+
+CREATE INDEX IX_PasswordResets_Email ON PasswordResets(Email);
+CREATE INDEX IX_PasswordResets_Token ON PasswordResets(Token);
+CREATE INDEX IX_PasswordResets_Email_Token ON PasswordResets(Email, Token);
+CREATE INDEX IX_PasswordResets_ExpiresAt ON PasswordResets(ExpiresAt);
+GO
+
+-- ===============================
+-- 4. Thêm dữ liệu mẫu cho ExternalLogins (nếu cần)
+-- ===============================
+-- INSERT INTO ExternalLogins (UserId, Provider, ProviderKey, Email, Name, CreatedAt, LastLoginAt) VALUES
+-- ((SELECT TOP 1 UserId FROM Users WHERE Email = 'user@shoptech.com'), 'Google', 'google_123456', 'user@shoptech.com', 'Test User', GETDATE(), GETDATE());
+GO
+
+-- ===============================
+-- 5. Tạo Stored Procedure để cleanup expired tokens
+-- ===============================
+CREATE PROCEDURE CleanupExpiredPasswordResets
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DELETE FROM PasswordResets 
+    WHERE ExpiresAt < GETDATE() OR IsUsed = 1;
+    
+    PRINT 'Đã xóa các token hết hạn và đã sử dụng';
+END
+GO
+
+-- ===============================
+-- 6. Tạo Job để tự động cleanup (tùy chọn)
+-- ===============================
+-- EXEC sp_add_job
+--     @job_name = N'CleanupExpiredPasswordResets',
+--     @enabled = 1,
+--     @description = N'Xóa các password reset token hết hạn';
+
+-- EXEC sp_add_jobstep
+--     @job_name = N'CleanupExpiredPasswordResets',
+--     @step_name = N'Cleanup',
+--     @subsystem = N'TSQL',
+--     @command = N'EXEC CleanupExpiredPasswordResets';
+
+-- EXEC sp_add_schedule
+--     @schedule_name = N'DailyCleanup',
+--     @freq_type = 4, -- Daily
+--     @freq_interval = 1,
+--     @active_start_time = 020000; -- 2:00 AM
+
+-- EXEC sp_attach_schedule
+--     @job_name = N'CleanupExpiredPasswordResets',
+--     @schedule_name = N'DailyCleanup';
+GO
 

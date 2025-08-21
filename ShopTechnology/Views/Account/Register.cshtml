@@ -12,155 +12,549 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Shop Technology Accessories</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .register-container {
+            display: flex;
+            min-height: 100vh;
+            background: white;
+        }
+
+        .register-form-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            max-width: 500px;
+        }
+
+        .illustration-section {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .logo-icon i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .register-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+
+        .register-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .register-button:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .login-link a:hover {
+            color: #764ba2;
+        }
+
+        /* Illustration Styles */
+        .illustration-content {
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 2;
+        }
+
+        .character {
+            width: 200px;
+            height: 300px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .character-body {
+            width: 80px;
+            height: 120px;
+            background: #ffd700;
+            border-radius: 40px;
+            position: relative;
+        }
+
+        .character-head {
+            width: 50px;
+            height: 50px;
+            background: #8b4513;
+            border-radius: 50%;
+            position: absolute;
+            top: -25px;
+            left: 15px;
+        }
+
+        .character-arm {
+            width: 20px;
+            height: 60px;
+            background: #ffd700;
+            border-radius: 10px;
+            position: absolute;
+            right: -10px;
+            top: 20px;
+        }
+
+        .smartphone {
+            width: 80px;
+            height: 120px;
+            background: #333;
+            border-radius: 12px;
+            position: absolute;
+            right: -60px;
+            top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-screen {
+            width: 70px;
+            height: 110px;
+            background: #667eea;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+        }
+
+        .user-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 60%;
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0%, 100% { width: 60%; }
+            50% { width: 80%; }
+        }
+
+        .success-bubble {
+            position: absolute;
+            left: -80px;
+            top: 60px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .security-lock {
+            position: absolute;
+            right: -80px;
+            top: 60px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .cloud:nth-child(1) {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .cloud:nth-child(2) {
+            width: 80px;
+            height: 30px;
+            top: 40%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .cloud:nth-child(3) {
+            width: 120px;
+            height: 50px;
+            top: 70%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: none;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c53030;
+            border-left: 4px solid #c53030;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            color: #2f855a;
+            border-left: 4px solid #2f855a;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .register-container {
+                flex-direction: column;
+            }
+
+            .register-form-section {
+                padding: 40px 20px;
+                max-width: none;
+            }
+
+            .illustration-section {
+                min-height: 300px;
+                padding: 40px 20px;
+            }
+
+            .welcome-title {
+                font-size: 28px;
+            }
+
+            .character {
+                width: 150px;
+                height: 200px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
+
 <body>
-    <!-- Background -->
-    <div class="login-background"></div>
-    
-    <!-- Animated Stars -->
-    <div class="stars">
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-    </div>
-    
-    <!-- Shooting Stars -->
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                <i class="fas fa-laptop"></i> Shop Technology
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="About">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Product" asp-action="Index">Services</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link login-btn" asp-controller="Account" asp-action="Login">Login</a>
-                    </li>
-                </ul>
+    <div class="register-container">
+        <!-- Left Panel - Register Form -->
+        <div class="register-form-section">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <div class="logo-text">ShopTech</div>
             </div>
-        </div>
-    </nav>
 
-    <!-- Register Container -->
-    <div class="login-container">
-        <div class="login-modal">
-            <button class="close-btn" onclick="window.history.back()">×</button>
-            
-            <h2 class="login-title">Register</h2>
-            
+            <h1 class="welcome-title">Join Our Community</h1>
+            <p class="welcome-subtitle">Create your account and start your journey with us</p>
+
             @if (TempData["ErrorMessage"] != null)
             {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @TempData["ErrorMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
                 </div>
             }
-            
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
             <form asp-controller="Account" asp-action="Register" method="post">
                 <div class="form-group">
                     <label asp-for="FullName" class="form-label">Full Name</label>
-                    <input asp-for="FullName" type="text" class="form-input" placeholder="Nhập họ tên đầy đủ" required />
-                    <i class="fas fa-user input-icon"></i>
+                    <input asp-for="FullName" type="text" class="form-input" placeholder="Enter your full name" required />
                     <span asp-validation-for="FullName" class="text-danger"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" type="email" class="form-input" placeholder="Nhập email của bạn" required />
-                    <i class="fas fa-envelope input-icon"></i>
+                    <input asp-for="Email" type="email" class="form-input" placeholder="Enter your email" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
-                    <input asp-for="PhoneNumber" type="tel" class="form-input" placeholder="Nhập số điện thoại" />
-                    <i class="fas fa-phone input-icon"></i>
+                    <input asp-for="PhoneNumber" type="tel" class="form-input" placeholder="Enter your phone number" />
                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Password</label>
-                    <input asp-for="Password" type="password" class="form-input" placeholder="Nhập mật khẩu" required />
-                    <i class="fas fa-lock input-icon"></i>
+                    <input asp-for="Password" type="password" class="form-input" placeholder="Create a password" required />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-                    <input asp-for="ConfirmPassword" type="password" class="form-input" placeholder="Xác nhận mật khẩu" required />
-                    <i class="fas fa-lock input-icon"></i>
+                    <input asp-for="ConfirmPassword" type="password" class="form-input" placeholder="Confirm your password" required />
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
-                
-                <button type="submit" class="login-submit">
-                    <i class="fas fa-user-plus"></i> Register
+
+                <button type="submit" class="register-button">
+                    <span class="button-text">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </span>
+                    <span class="loading">
+                        <i class="fas fa-spinner spinner"></i> Creating account...
+                    </span>
                 </button>
             </form>
-            
-            <div class="register-link">
-                Already have an account? <a asp-controller="Account" asp-action="Login">Login</a>
+
+            <div class="login-link">
+                Already have an account? <a asp-controller="Account" asp-action="Login">Sign In</a>
+            </div>
+        </div>
+
+        <!-- Right Panel - Illustration -->
+        <div class="illustration-section">
+            <div class="clouds">
+                <div class="cloud"></div>
+                <div class="cloud"></div>
+                <div class="cloud"></div>
+            </div>
+
+            <div class="illustration-content">
+                <div class="character">
+                    <div class="character-body">
+                        <div class="character-head"></div>
+                        <div class="character-arm"></div>
+                        <div class="smartphone">
+                            <div class="phone-screen">
+                                <div class="user-icon">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div style="font-size: 6px; text-align: center;">
+                                    Creating your<br>account
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="success-bubble">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="security-lock">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
-        // Add some interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add floating effect to register modal
-            const modal = document.querySelector('.login-modal');
-            let mouseX = 0, mouseY = 0;
-            
-            document.addEventListener('mousemove', function(e) {
-                mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
-                mouseY = (e.clientY / window.innerHeight - 0.5) * 20;
-                
-                modal.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
-            });
-            
-            // Add focus effects to inputs
-            const inputs = document.querySelectorAll('.form-input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'scale(1.02)';
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const button = document.querySelector('.register-button');
+            const buttonText = document.querySelector('.button-text');
+            const loading = document.querySelector('.loading');
+
+            if (form) {
+                form.addEventListener('submit', function () {
+                    button.disabled = true;
+                    buttonText.style.display = 'none';
+                    loading.classList.add('show');
                 });
-                
-                input.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'scale(1)';
+            }
+
+            // Password confirmation validation
+            const passwordInput = document.querySelector('input[name="Password"]');
+            const confirmPasswordInput = document.querySelector('input[name="ConfirmPassword"]');
+            
+            if (passwordInput && confirmPasswordInput) {
+                confirmPasswordInput.addEventListener('input', function() {
+                    if (this.value !== passwordInput.value) {
+                        this.setCustomValidity('Passwords do not match');
+                    } else {
+                        this.setCustomValidity('');
+                    }
                 });
-            });
+            }
         });
     </script>
 </body>

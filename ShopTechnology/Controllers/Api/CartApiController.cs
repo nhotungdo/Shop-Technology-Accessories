@@ -21,14 +21,11 @@ public class CartController : ControllerBase
         try
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
-            if (cart == null)
-            {
-                return NotFound(new { error = "Cart not found." });
-            }
-
-            return Ok(cart);
+            return cart == null 
+                ? NotFound(new { error = "Cart not found." })
+                : Ok(cart);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving the cart." });
         }
@@ -51,14 +48,11 @@ public class CartController : ControllerBase
             };
 
             var result = await _cartService.AddToCartAsync(request.UserId, addToCartDto);
-            if (!result)
-            {
-                return BadRequest(new { error = "Failed to add item to cart. Product may be out of stock." });
-            }
-
-            return Ok(new { message = "Item added to cart successfully." });
+            return result 
+                ? Ok(new { message = "Item added to cart successfully." })
+                : BadRequest(new { error = "Failed to add item to cart. Product may be out of stock." });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while adding item to cart." });
         }
@@ -75,14 +69,11 @@ public class CartController : ControllerBase
             }
 
             var result = await _cartService.UpdateCartItemQuantityAsync(cartItemId, request.Quantity);
-            if (!result)
-            {
-                return BadRequest(new { error = "Failed to update cart item. Product may be out of stock." });
-            }
-
-            return Ok(new { message = "Cart item updated successfully." });
+            return result 
+                ? Ok(new { message = "Cart item updated successfully." })
+                : BadRequest(new { error = "Failed to update cart item. Product may be out of stock." });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while updating cart item." });
         }
@@ -94,14 +85,11 @@ public class CartController : ControllerBase
         try
         {
             var result = await _cartService.RemoveFromCartAsync(cartItemId);
-            if (!result)
-            {
-                return NotFound(new { error = "Cart item not found." });
-            }
-
-            return Ok(new { message = "Item removed from cart successfully." });
+            return result 
+                ? Ok(new { message = "Item removed from cart successfully." })
+                : NotFound(new { error = "Cart item not found." });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while removing item from cart." });
         }
@@ -113,58 +101,64 @@ public class CartController : ControllerBase
         try
         {
             var result = await _cartService.ClearCartAsync(userId);
-            if (!result)
-            {
-                return NotFound(new { error = "Cart not found." });
-            }
-
-            return Ok(new { message = "Cart cleared successfully." });
+            return result 
+                ? Ok(new { message = "Cart cleared successfully." })
+                : NotFound(new { error = "Cart not found." });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while clearing cart." });
         }
     }
 
     [HttpGet("count")]
-    public async Task<ActionResult<int>> GetCartItemCount([FromQuery] Guid userId)
+    public async Task<ActionResult<object>> GetCartItemCount([FromQuery] Guid userId)
     {
         try
         {
             var count = await _cartService.GetCartItemCountAsync(userId);
-            return Ok(count);
+            return Ok(new { count });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "An error occurred while getting cart item count." });
+            return StatusCode(500, new { error = "An error occurred while getting cart count." });
         }
     }
 
     [HttpGet("total")]
-    public async Task<ActionResult<decimal>> GetCartTotal([FromQuery] Guid userId)
+    public async Task<ActionResult<object>> GetCartTotal([FromQuery] Guid userId)
     {
         try
         {
             var total = await _cartService.GetCartTotalAsync(userId);
-            return Ok(total);
+            return Ok(new { total = Math.Round(total, 2) });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while getting cart total." });
         }
     }
 
-    [HttpGet("validate")]
-    public async Task<ActionResult<List<CartItemDTO>>> ValidateCart([FromQuery] Guid userId)
+    [HttpGet("summary")]
+    public async Task<ActionResult<object>> GetCartSummary([FromQuery] Guid userId)
     {
         try
         {
-            var invalidItems = await _cartService.GetInvalidCartItemsAsync(userId);
-            return Ok(invalidItems);
+            var cart = await _cartService.GetCartByUserIdAsync(userId);
+            if (cart == null)
+            {
+                return Ok(new { itemCount = 0, total = 0 });
+            }
+
+            return Ok(new
+            {
+                itemCount = cart.Items.Sum(i => i.Quantity),
+                total = Math.Round(cart.Items.Sum(i => i.Price * i.Quantity), 2)
+            });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "An error occurred while validating cart." });
+            return StatusCode(500, new { error = "An error occurred while getting cart summary." });
         }
     }
 }

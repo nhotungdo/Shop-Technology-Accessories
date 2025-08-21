@@ -2,17 +2,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using ShopTechnology.ViewModels;
-using System.Text.Json;
+using ShopTechnology.Services;
 
 namespace ShopTechnology.Controllers
 {
     public class CartController : Controller
     {
         private readonly ShopTechnologyAccessoriesContext _context;
+        private readonly ICartService _cartService;
 
-        public CartController(ShopTechnologyAccessoriesContext context)
+        public CartController(ShopTechnologyAccessoriesContext context, ICartService cartService)
         {
             _context = context;
+            _cartService = cartService;
         }
 
         public async Task<IActionResult> Index()
@@ -50,17 +52,15 @@ namespace ShopTechnology.Controllers
                 }
                 else
                 {
-                    var cartItem = new CartItem
+                    _context.CartItems.Add(new CartItem
                     {
                         CartId = cart.CartId,
                         ProductId = productId,
                         Quantity = quantity
-                    };
-                    _context.CartItems.Add(cartItem);
+                    });
                 }
 
                 await _context.SaveChangesAsync();
-
                 return Json(new { success = true, message = "Đã thêm vào giỏ hàng" });
             }
             catch
@@ -99,15 +99,7 @@ namespace ShopTechnology.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-
-                var cart = await GetCartViewModelAsync(cartItem.Cart);
-                return Json(new
-                {
-                    success = true,
-                    message = "Cập nhật thành công",
-                    totalAmount = cart.TotalAmount,
-                    totalItems = cart.TotalItems
-                });
+                return Json(new { success = true, message = "Đã cập nhật giỏ hàng" });
             }
             catch
             {
@@ -138,14 +130,7 @@ namespace ShopTechnology.Controllers
                 _context.CartItems.Remove(cartItem);
                 await _context.SaveChangesAsync();
 
-                var cart = await GetCartViewModelAsync(cartItem.Cart);
-                return Json(new
-                {
-                    success = true,
-                    message = "Đã xóa sản phẩm",
-                    totalAmount = cart.TotalAmount,
-                    totalItems = cart.TotalItems
-                });
+                return Json(new { success = true, message = "Đã xóa khỏi giỏ hàng" });
             }
             catch
             {
@@ -164,21 +149,68 @@ namespace ShopTechnology.Controllers
 
             try
             {
-                var cart = await _context.Carts
-                    .Include(c => c.CartItems)
-                    .FirstOrDefaultAsync(c => c.UserId.ToString() == userId);
+                var cart = await GetOrCreateCartAsync(Guid.Parse(userId));
+                var cartItems = await _context.CartItems
+                    .Where(ci => ci.CartId == cart.CartId)
+                    .ToListAsync();
 
-                if (cart != null)
-                {
-                    _context.CartItems.RemoveRange(cart.CartItems);
-                    await _context.SaveChangesAsync();
-                }
+                _context.CartItems.RemoveRange(cartItems);
+                await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Đã xóa tất cả sản phẩm" });
+                return Json(new { success = true, message = "Đã xóa giỏ hàng" });
             }
             catch
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCartCount()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { count = 0 });
+            }
+
+            try
+            {
+                var cart = await GetOrCreateCartAsync(Guid.Parse(userId));
+                var count = await _context.CartItems
+                    .Where(ci => ci.CartId == cart.CartId)
+                    .SumAsync(ci => ci.Quantity);
+
+                return Json(new { count });
+            }
+            catch
+            {
+                return Json(new { count = 0 });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCartTotal()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { total = 0 });
+            }
+
+            try
+            {
+                var cart = await GetOrCreateCartAsync(Guid.Parse(userId));
+                var total = await _context.CartItems
+                    .Include(ci => ci.Product)
+                    .Where(ci => ci.CartId == cart.CartId)
+                    .SumAsync(ci => ci.Quantity * ci.Product.Price);
+
+                return Json(new { total = Math.Round(total, 2) });
+            }
+            catch
+            {
+                return Json(new { total = 0 });
             }
         }
 
@@ -189,12 +221,7 @@ namespace ShopTechnology.Controllers
 
             if (cart == null)
             {
-                cart = new Cart
-                {
-                    CartId = Guid.NewGuid(),
-                    UserId = userId,
-                    CreatedAt = DateTime.Now
-                };
+                cart = new Cart { UserId = userId };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
             }
@@ -206,27 +233,28 @@ namespace ShopTechnology.Controllers
         {
             var cartItems = await _context.CartItems
                 .Include(ci => ci.Product)
-                .Include(ci => ci.Product.ProductImages)
+                .ThenInclude(p => p.ProductImages)
                 .Where(ci => ci.CartId == cart.CartId)
                 .ToListAsync();
 
-            var cartViewModel = new CartViewModel
+            var items = cartItems.Select(ci => new CartItemViewModel
             {
-                CartId = cart.CartId,
-                UserId = cart.UserId,
-                Items = cartItems.Select(ci => new CartItemViewModel
-                {
-                    CartItemId = ci.CartItemId,
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product.ProductName,
-                    ProductImage = ci.Product.ProductImages?.FirstOrDefault(pi => pi.IsMain)?.ImageUrl ?? "",
-                    Price = ci.Product.Price,
-                    Quantity = ci.Quantity,
-                    StockQuantity = ci.Product.StockQuantity
-                }).ToList()
-            };
+                CartItemId = ci.CartItemId,
+                ProductId = ci.ProductId,
+                ProductName = ci.Product.ProductName,
+                Price = ci.Product.Price,
+                Quantity = ci.Quantity,
+                Total = ci.Quantity * ci.Product.Price,
+                ImageUrl = ci.Product.ProductImages.FirstOrDefault(pi => pi.IsMain)?.ImageUrl ??
+                          ci.Product.ProductImages.FirstOrDefault()?.ImageUrl ?? string.Empty
+            }).ToList();
 
-            return cartViewModel;
+            return new CartViewModel
+            {
+                Items = items,
+                TotalItems = items.Sum(i => i.Quantity),
+                TotalAmount = items.Sum(i => i.Total)
+            };
         }
     }
 }

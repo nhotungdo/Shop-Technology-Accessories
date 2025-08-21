@@ -7,107 +7,478 @@
 
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Shop Technology Accessories</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            min-height: 100vh;
+            background: white;
+        }
+
+        .login-form-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            max-width: 500px;
+        }
+
+        .illustration-section {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .logo-icon i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            accent-color: #667eea;
+        }
+
+        .forgot-password {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: #764ba2;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .signup-link {
+            text-align: center;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .signup-link a:hover {
+            color: #764ba2;
+        }
+
+        /* Illustration Styles */
+        .illustration-content {
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 2;
+        }
+
+        .character {
+            width: 200px;
+            height: 300px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .character-body {
+            width: 80px;
+            height: 120px;
+            background: #ffd700;
+            border-radius: 40px;
+            position: relative;
+        }
+
+        .character-head {
+            width: 50px;
+            height: 50px;
+            background: #8b4513;
+            border-radius: 50%;
+            position: absolute;
+            top: -25px;
+            left: 15px;
+        }
+
+        .character-arm {
+            width: 20px;
+            height: 60px;
+            background: #ffd700;
+            border-radius: 10px;
+            position: absolute;
+            right: -10px;
+            top: 20px;
+        }
+
+        .smartphone {
+            width: 80px;
+            height: 120px;
+            background: #333;
+            border-radius: 12px;
+            position: absolute;
+            right: -60px;
+            top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-screen {
+            width: 70px;
+            height: 110px;
+            background: #667eea;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+        }
+
+        .fingerprint-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 60%;
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0%, 100% { width: 60%; }
+            50% { width: 80%; }
+        }
+
+        .success-bubble {
+            position: absolute;
+            left: -80px;
+            top: 60px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .security-lock {
+            position: absolute;
+            right: -80px;
+            top: 60px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .cloud:nth-child(1) {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .cloud:nth-child(2) {
+            width: 80px;
+            height: 30px;
+            top: 40%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .cloud:nth-child(3) {
+            width: 120px;
+            height: 50px;
+            top: 70%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: none;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c53030;
+            border-left: 4px solid #c53030;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            color: #2f855a;
+            border-left: 4px solid #2f855a;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .login-form-section {
+                padding: 40px 20px;
+                max-width: none;
+            }
+
+            .illustration-section {
+                min-height: 300px;
+                padding: 40px 20px;
+            }
+
+            .welcome-title {
+                font-size: 28px;
+            }
+
+            .character {
+                width: 150px;
+                height: 200px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Background -->
-    <div class="login-background"></div>
-
-    <!-- Animated Stars -->
-    <div class="stars">
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-        <div class="star"></div>
-    </div>
-
-    <!-- Shooting Stars -->
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-laptop"></i> Shop Technology
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Trang chủ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/About">Giới thiệu</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Product">Sản phẩm</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/Contact">Liên hệ</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link login-btn" href="/Account/Login">Login</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Login Container -->
     <div class="login-container">
-        <div class="login-modal">
-            <a href="@Url.Action("Index", "Home")" class="close-btn" aria-label="Đóng và về trang chủ">×</a>
+        <!-- Left Panel - Login Form -->
+        <div class="login-form-section">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <div class="logo-text">ShopTech</div>
+            </div>
 
-            <h2 class="login-title">Login</h2>
+            <h1 class="welcome-title">Holla, Welcome Back</h1>
+            <p class="welcome-subtitle">Hey, welcome back to your special place</p>
 
             @if (TempData["ErrorMessage"] != null)
             {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @TempData["ErrorMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
                 </div>
             }
 
             @if (!ViewData.ModelState.IsValid)
             {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-danger">
+                    <div asp-validation-summary="All"></div>
                 </div>
             }
 
             <form asp-controller="Account" asp-action="Login" method="post">
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" type="email" class="form-input" placeholder="Nhập email của bạn" required />
-                    <i class="fas fa-envelope input-icon"></i>
+                    <input asp-for="Email" type="email" class="form-input" placeholder="stanley@gmail.com" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Password</label>
-                    <input asp-for="Password" type="password" class="form-input" placeholder="Nhập mật khẩu" required />
-                    <i class="fas fa-lock input-icon"></i>
+                    <input asp-for="Password" type="password" class="form-input" placeholder="••••••••" required />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
@@ -116,41 +487,80 @@
                         <input asp-for="RememberMe" type="checkbox" />
                         Remember me
                     </label>
-                    <a asp-controller="Account" asp-action="ForgotPassword" class="forgot-password">Forget Password?</a>
+                    <a asp-controller="Account" asp-action="ForgotPassword" class="forgot-password">Forgot Password?</a>
                 </div>
 
-                <button type="submit" class="login-submit">
-                    <i class="fas fa-sign-in-alt"></i> Login
+                <button type="submit" class="login-button">
+                    <span class="button-text">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </span>
+                    <span class="loading">
+                        <i class="fas fa-spinner spinner"></i> Signing in...
+                    </span>
                 </button>
             </form>
 
-            <!-- OAuth Login Buttons -->
-            <div class="oauth-section">
-                <div class="divider">
-                    <span>Hoặc đăng nhập với</span>
+            <div class="signup-link">
+                Don't have an account? <a asp-controller="Account" asp-action="Register">Sign Up</a>
+            </div>
+
+            <!-- Debug Tools -->
+            <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+                <h6 style="color: #666; margin-bottom: 15px;">Debug Tools:</h6>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <form asp-controller="Account" asp-action="CreateRoles" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-warning">Create Roles</button>
+                    </form>
+                    <form asp-controller="Account" asp-action="CreateAdminUser" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-info">Create Admin</button>
+                    </form>
+                    <form asp-controller="Account" asp-action="FixPasswordHashes" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-success">Fix Passwords</button>
+                    </form>
                 </div>
-
-                <div class="oauth-buttons">
-                    <a href="/Account/ExternalLogin?provider=Google" class="oauth-btn google-btn"
-                        aria-label="Đăng nhập bằng Google">
-                        <i class="fab fa-google"></i> Google
-                    </a>
-                    <a href="/Account/ExternalLogin?provider=Facebook" class="oauth-btn facebook-btn"
-                        aria-label="Đăng nhập bằng Facebook">
-                        <i class="fab fa-facebook"></i> Facebook
-                    </a>
+                <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="testUserInfo('donhotung2004@gmail.com')">Test Admin</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="testUserInfo('nhotungdo2808@gmail.com')">Test User</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="testAllUsers()">Test All Users</button>
                 </div>
             </div>
+        </div>
 
-            <div class="register-link">
-                Don't have an account? <a href="/Account/Register" aria-label="Đăng ký tài khoản mới">Register</a>
+        <!-- Right Panel - Illustration -->
+        <div class="illustration-section">
+            <div class="clouds">
+                <div class="cloud"></div>
+                <div class="cloud"></div>
+                <div class="cloud"></div>
             </div>
 
-            <div class="forgot-password-link">
-                <a href="/Account/ForgotPassword" aria-label="Quên mật khẩu">Quên mật khẩu?</a>
+            <div class="illustration-content">
+                <div class="character">
+                    <div class="character-body">
+                        <div class="character-head"></div>
+                        <div class="character-arm"></div>
+                        <div class="smartphone">
+                            <div class="phone-screen">
+                                <div class="fingerprint-icon">
+                                    <i class="fas fa-fingerprint"></i>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div style="font-size: 6px; text-align: center;">
+                                    Please tap your finger<br>to your phone
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="success-bubble">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="security-lock">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
             </div>
-
-
         </div>
     </div>
 
@@ -160,107 +570,67 @@
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
     <script>
-        // Add some interactive effects
         document.addEventListener('DOMContentLoaded', function () {
-            // Add floating effect to login modal
-            const modal = document.querySelector('.login-modal');
-            let mouseX = 0, mouseY = 0;
+            const form = document.querySelector('form');
+            const button = document.querySelector('.login-button');
+            const buttonText = document.querySelector('.button-text');
+            const loading = document.querySelector('.loading');
 
-            document.addEventListener('mousemove', function (e) {
-                mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
-                mouseY = (e.clientY / window.innerHeight - 0.5) * 20;
-
-                modal.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
-            });
-
-            // Add focus effects to inputs
-            const inputs = document.querySelectorAll('.form-input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function () {
-                    this.parentElement.style.transform = 'scale(1.02)';
-                });
-
-                input.addEventListener('blur', function () {
-                    this.parentElement.style.transform = 'scale(1)';
-                });
-            });
-
-            // Add loading effect for form submission
-            const loginForm = document.querySelector('form');
-            if (loginForm) {
-                loginForm.addEventListener('submit', function () {
-                    const submitBtn = this.querySelector('.login-submit');
-                    if (submitBtn) {
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đăng nhập...';
-                        submitBtn.disabled = true;
-                    }
+            if (form) {
+                form.addEventListener('submit', function () {
+                    button.disabled = true;
+                    buttonText.style.display = 'none';
+                    loading.classList.add('show');
                 });
             }
 
-            // Add click effects for links
-            const links = document.querySelectorAll('a');
-            links.forEach(link => {
-                link.addEventListener('click', function (e) {
-                    // Debug link clicks
-                    console.log('Link clicked:', {
-                        text: this.textContent.trim(),
-                        href: this.getAttribute('href'),
-                        currentPath: window.location.pathname
+            // Test functions
+            window.testUserInfo = function(email) {
+                fetch(`/Account/TestUserInfo?email=${encodeURIComponent(email)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('Error: ' + data.error);
+                        } else {
+                            alert(`User: ${data.FullName}\nEmail: ${data.Email}\nRole: ${data.RoleName}\nIsAdmin: ${data.IsAdmin}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error testing user info');
                     });
+            };
 
-                    // Add ripple effect
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.classList.add('ripple');
-
-                    this.appendChild(ripple);
-
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
-            });
-
-            // Keyboard navigation
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    window.location.href = '/';
-                }
-            });
-
-           
-
-            // Debug all links on page load
-            console.log('Login page loaded');
-            console.log('Current path:', window.location.pathname);
-
-            const allLinks = document.querySelectorAll('a');
-            console.log('Total links found:', allLinks.length);
-
-            allLinks.forEach((link, index) => {
-                const href = link.getAttribute('href');
-                const text = link.textContent.trim();
-
-                console.log(`Link ${index + 1}:`, {
-                    text: text,
-                    href: href,
-                    hasHref: !!href
-                });
-
-                // Add visual indicator for working links
-                if (href && href.startsWith('/')) {
-                    link.style.border = '1px solid rgba(0, 255, 0, 0.3)';
-                }
-            });
+            window.testAllUsers = function () {
+                fetch('/Account/TestAllUsers')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('Error: ' + data.error);
+                        } else {
+                            let message = `=== USER SUMMARY ===\n`;
+                            message += `Total Users: ${data.summary.totalUsers}\n`;
+                            message += `Admin Users: ${data.summary.adminUsers}\n`;
+                            message += `Regular Users: ${data.summary.regularUsers}\n`;
+                            message += `BCrypt Passwords: ${data.summary.bcryptPasswords}\n`;
+                            message += `Plain Text Passwords: ${data.summary.plainTextPasswords}\n\n`;
+                            message += `=== USER DETAILS ===\n`;
+                            data.users.forEach((user, index) => {
+                                message += `${index + 1}. ${user.FullName} (${user.Email})\n`;
+                                message += `   Role: ${user.RoleName} (ID: ${user.RoleId})\n`;
+                                message += `   Password Type: ${user.PasswordType}\n`;
+                                message += `   Password Preview: ${user.PasswordPreview}\n`;
+                                message += `   Created: ${user.CreatedAt}\n\n`;
+                            });
+                            alert(message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error testing all users');
+                    });
+            };
         });
     </script>
 </body>
-
 </html>

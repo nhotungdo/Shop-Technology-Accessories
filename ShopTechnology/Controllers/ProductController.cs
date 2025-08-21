@@ -24,26 +24,16 @@ namespace ShopTechnology.Controllers
         public async Task<IActionResult> Index(int? categoryId, string? searchTerm, decimal? minPrice, decimal? maxPrice)
         {
             List<ProductDTO> productDtos;
-            List<Category> categories = await _context.Categories.ToListAsync();
+            var categories = await _context.Categories.ToListAsync();
 
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                productDtos = await _productService.SearchProductsAsync(searchTerm);
-            }
-            else if (categoryId.HasValue)
-            {
-                productDtos = await _productService.GetProductsByCategoryAsync(categoryId.Value);
-            }
-            else if (minPrice.HasValue && maxPrice.HasValue)
-            {
-                productDtos = await _productService.GetProductsByPriceRangeAsync(minPrice.Value, maxPrice.Value);
-            }
-            else
-            {
-                productDtos = await _productService.GetAllProductsAsync();
-            }
+            productDtos = !string.IsNullOrEmpty(searchTerm) 
+                ? await _productService.SearchProductsAsync(searchTerm)
+                : categoryId.HasValue 
+                    ? await _productService.GetProductsByCategoryAsync(categoryId.Value)
+                    : minPrice.HasValue && maxPrice.HasValue 
+                        ? await _productService.GetProductsByPriceRangeAsync(minPrice.Value, maxPrice.Value)
+                        : await _productService.GetAllProductsAsync();
 
-            // Convert DTOs to ViewModels
             var products = _mapper.Map<List<ProductViewModel>>(productDtos);
 
             ViewBag.Categories = categories;
@@ -59,34 +49,26 @@ namespace ShopTechnology.Controllers
         {
             try
             {
-                Console.WriteLine($"Product Details requested for ID: {id}");
-
                 var productDto = await _productService.GetProductByIdAsync(id);
                 if (productDto == null)
                 {
-                    Console.WriteLine($"Product not found for ID: {id}");
                     return NotFound();
                 }
 
-                Console.WriteLine($"Product found: {productDto.ProductName}, Category: {productDto.CategoryName}");
-
                 var product = _mapper.Map<ProductViewModel>(productDto);
-                Console.WriteLine($"Mapped to ViewModel - Category: {product.CategoryName}");
 
-                // Lấy sản phẩm liên quan (cùng danh mục)
+                // Get related products (same category)
                 var relatedProductDtos = await _productService.GetProductsByCategoryAsync(product.CategoryId);
                 var relatedProducts = _mapper.Map<List<ProductViewModel>>(relatedProductDtos)
-                    .Where(p => p.ProductId != id).Take(4).ToList();
-
-                Console.WriteLine($"Found {relatedProducts.Count} related products");
+                    .Where(p => p.ProductId != id)
+                    .Take(4)
+                    .ToList();
 
                 ViewBag.RelatedProducts = relatedProducts;
-
                 return View(product);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error in Details action: {ex.Message}");
                 return NotFound();
             }
         }
@@ -101,6 +83,7 @@ namespace ShopTechnology.Controllers
 
             var productDtos = await _productService.SearchProductsAsync(searchTerm);
             var products = _mapper.Map<List<ProductViewModel>>(productDtos);
+
             ViewBag.SearchTerm = searchTerm;
             ViewBag.Categories = await _context.Categories.ToListAsync();
 
@@ -108,132 +91,191 @@ namespace ShopTechnology.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Filter(int? categoryId, decimal? minPrice, decimal? maxPrice)
+        public async Task<IActionResult> FilterByCategory(int categoryId)
         {
-            List<ProductDTO> productDtos;
-            List<Category> categories = await _context.Categories.ToListAsync();
-
-            if (categoryId.HasValue)
-            {
-                productDtos = await _productService.GetProductsByCategoryAsync(categoryId.Value);
-            }
-            else if (minPrice.HasValue && maxPrice.HasValue)
-            {
-                productDtos = await _productService.GetProductsByPriceRangeAsync(minPrice.Value, maxPrice.Value);
-            }
-            else
-            {
-                productDtos = await _productService.GetAllProductsAsync();
-            }
-
+            var productDtos = await _productService.GetProductsByCategoryAsync(categoryId);
             var products = _mapper.Map<List<ProductViewModel>>(productDtos);
 
-            ViewBag.Categories = categories;
             ViewBag.SelectedCategoryId = categoryId;
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+
+            return View("Index", products);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FilterByPrice(decimal minPrice, decimal maxPrice)
+        {
+            var productDtos = await _productService.GetProductsByPriceRangeAsync(minPrice, maxPrice);
+            var products = _mapper.Map<List<ProductViewModel>>(productDtos);
+
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
+            ViewBag.Categories = await _context.Categories.ToListAsync();
 
             return View("Index", products);
         }
 
         [HttpGet]
-        public async Task<IActionResult> TestProduct(int id)
+        public async Task<IActionResult> GetProductsByCategory(int categoryId)
         {
             try
             {
-                var productDto = await _productService.GetProductByIdAsync(id);
-                if (productDto != null)
-                {
-                    var productInfo = new
-                    {
-                        ProductId = productDto.ProductId,
-                        ProductName = productDto.ProductName,
-                        Description = productDto.Description,
-                        Price = productDto.Price,
-                        StockQuantity = productDto.StockQuantity,
-                        CategoryId = productDto.CategoryId,
-                        CategoryName = productDto.CategoryName,
-                        ImageUrls = productDto.ImageUrls,
-                        MainImageUrl = productDto.MainImageUrl
-                    };
-
-                    return Json(productInfo);
-                }
-                else
-                {
-                    return Json(new { error = "Product not found" });
-                }
+                var products = await _productService.GetProductsByCategoryAsync(categoryId);
+                return Json(products);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Json(new { error = ex.Message });
+                return Json(new { error = "Failed to get products" });
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> FixProductCategories()
+        [HttpGet]
+        public async Task<IActionResult> GetProductDetails(int id)
         {
             try
             {
-                // Sửa danh mục cho các sản phẩm
-                var products = await _context.Products.ToListAsync();
-                var categories = await _context.Categories.ToListAsync();
-
-                int updatedCount = 0;
-
-                foreach (var product in products)
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
                 {
-                    int? newCategoryId = null;
-
-                    // Xác định danh mục dựa trên tên sản phẩm
-                    if (product.ProductName.Contains("tai nghe", StringComparison.OrdinalIgnoreCase) ||
-                        product.ProductName.Contains("headphone", StringComparison.OrdinalIgnoreCase))
-                    {
-                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Tai nghe"))?.CategoryId;
-                    }
-                    else if (product.ProductName.Contains("bàn phím", StringComparison.OrdinalIgnoreCase) ||
-                             product.ProductName.Contains("keyboard", StringComparison.OrdinalIgnoreCase))
-                    {
-                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Bàn phím"))?.CategoryId;
-                    }
-                    else if (product.ProductName.Contains("sạc", StringComparison.OrdinalIgnoreCase) ||
-                             product.ProductName.Contains("charger", StringComparison.OrdinalIgnoreCase))
-                    {
-                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Sạc"))?.CategoryId;
-                    }
-                    else if (product.ProductName.Contains("ốp lưng", StringComparison.OrdinalIgnoreCase) ||
-                             product.ProductName.Contains("case", StringComparison.OrdinalIgnoreCase))
-                    {
-                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Phụ kiện"))?.CategoryId;
-                    }
-                    else if (product.ProductName.Contains("SSD", StringComparison.OrdinalIgnoreCase) ||
-                             product.ProductName.Contains("ổ cứng", StringComparison.OrdinalIgnoreCase))
-                    {
-                        newCategoryId = categories.FirstOrDefault(c => c.CategoryName.Contains("Phụ kiện"))?.CategoryId;
-                    }
-
-                    if (newCategoryId.HasValue && newCategoryId.Value != product.CategoryId)
-                    {
-                        product.CategoryId = newCategoryId.Value;
-                        updatedCount++;
-                    }
+                    return Json(new { error = "Product not found" });
                 }
 
-                if (updatedCount > 0)
-                {
-                    await _context.SaveChangesAsync();
-                }
+                return Json(product);
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to get product details" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProductImages(int productId)
+        {
+            try
+            {
+                var images = await _context.ProductImages
+                    .Where(pi => pi.ProductId == productId)
+                    .Select(pi => new { pi.ImageUrl, pi.IsMain })
+                    .ToListAsync();
+
+                return Json(images);
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to get product images" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProductReviews(int productId)
+        {
+            try
+            {
+                var reviews = await _context.Reviews
+                    .Include(r => r.User)
+                    .Where(r => r.ProductId == productId)
+                    .Select(r => new
+                    {
+                        r.ReviewId,
+                        r.Rating,
+                        r.Comment,
+                        r.CreatedAt,
+                        UserName = r.User != null ? r.User.FullName : "Anonymous"
+                    })
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+
+                return Json(reviews);
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to get product reviews" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProductStatistics()
+        {
+            try
+            {
+                var totalProducts = await _context.Products.CountAsync();
+                var totalCategories = await _context.Categories.CountAsync();
+                var averagePrice = await _context.Products.AverageAsync(p => p.Price);
+                var totalReviews = await _context.Reviews.CountAsync();
 
                 return Json(new
                 {
-                    success = true,
-                    message = $"Đã cập nhật {updatedCount} sản phẩm",
-                    updatedCount = updatedCount
+                    TotalProducts = totalProducts,
+                    TotalCategories = totalCategories,
+                    AveragePrice = Math.Round(averagePrice, 2),
+                    TotalReviews = totalReviews
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Json(new { error = ex.Message });
+                return Json(new { error = "Failed to get product statistics" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTopRatedProducts(int count = 5)
+        {
+            try
+            {
+                var topProducts = await _context.Products
+                    .Select(p => new
+                    {
+                        p.ProductId,
+                        p.ProductName,
+                        p.Price,
+                        p.Description,
+                        AverageRating = _context.Reviews
+                            .Where(r => r.ProductId == p.ProductId)
+                            .Any() 
+                            ? _context.Reviews
+                                .Where(r => r.ProductId == p.ProductId)
+                                .Average(r => r.Rating) 
+                            : 0,
+                        ReviewCount = _context.Reviews
+                            .Where(r => r.ProductId == p.ProductId)
+                            .Count()
+                    })
+                    .Where(p => p.ReviewCount > 0)
+                    .OrderByDescending(p => p.AverageRating)
+                    .Take(count)
+                    .ToListAsync();
+
+                return Json(topProducts);
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to get top rated products" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNewestProducts(int count = 5)
+        {
+            try
+            {
+                var newestProducts = await _context.Products
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Take(count)
+                    .Select(p => new
+                    {
+                        p.ProductId,
+                        p.ProductName,
+                        p.Price,
+                        p.Description,
+                        p.CreatedAt
+                    })
+                    .ToListAsync();
+
+                return Json(newestProducts);
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to get newest products" });
             }
         }
     }

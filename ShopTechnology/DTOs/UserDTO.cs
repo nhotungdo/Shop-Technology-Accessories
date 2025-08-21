@@ -5,43 +5,26 @@ namespace ShopTechnology.DTOs;
 public class UserDTO
 {
     public Guid UserId { get; set; }
-
-    [Required]
-    [StringLength(100)]
     public string FullName { get; set; } = string.Empty;
-
-    [Required]
-    [EmailAddress]
-    [StringLength(255)]
     public string Email { get; set; } = string.Empty;
-
-    [StringLength(20)]
     public string? PhoneNumber { get; set; }
-
     public int RoleId { get; set; }
     public string RoleName { get; set; } = string.Empty;
-
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-
-    // Additional properties
     public bool IsAdmin => RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase);
     public bool IsUser => RoleName.Equals("User", StringComparison.OrdinalIgnoreCase);
 }
 
 public class CreateUserDTO
 {
-    [Required]
-    [StringLength(100)]
+    [Required, StringLength(100)]
     public string FullName { get; set; } = string.Empty;
 
-    [Required]
-    [EmailAddress]
-    [StringLength(255)]
+    [Required, EmailAddress, StringLength(255)]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
-    [StringLength(100, MinimumLength = 6)]
+    [Required, StringLength(100, MinimumLength = 6)]
     public string Password { get; set; } = string.Empty;
 
     [StringLength(20)]
@@ -52,8 +35,7 @@ public class CreateUserDTO
 
 public class UpdateUserDTO
 {
-    [Required]
-    [StringLength(100)]
+    [Required, StringLength(100)]
     public string FullName { get; set; } = string.Empty;
 
     [StringLength(20)]
@@ -65,13 +47,30 @@ public class ChangePasswordDTO
     [Required]
     public string CurrentPassword { get; set; } = string.Empty;
 
-    [Required]
-    [StringLength(100, MinimumLength = 6)]
+    [Required, StringLength(100, MinimumLength = 6)]
     public string NewPassword { get; set; } = string.Empty;
 
-    [Required]
-    [Compare("NewPassword")]
+    [Required, Compare("NewPassword")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }
 
+public class ForgotPasswordDTO
+{
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
 
+public class ResetPasswordDTO
+{
+    [Required]
+    public string Token { get; set; } = string.Empty;
+
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, StringLength(100, MinimumLength = 6)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required, Compare("NewPassword")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+}

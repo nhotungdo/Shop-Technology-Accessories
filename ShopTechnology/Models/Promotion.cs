@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
 
 namespace ShopTechnology.Models;
 
 public partial class Promotion
 {
     public int PromotionId { get; set; }
-    public string Code { get; set; } = null!;
-    public string Name { get; set; } = null!;
-    public string Description { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal DiscountPercentage { get; set; }
     public decimal MinimumOrderAmount { get; set; }
@@ -19,6 +18,4 @@ public partial class Promotion
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

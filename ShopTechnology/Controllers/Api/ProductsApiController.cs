@@ -31,8 +31,9 @@ public class ProductsController : ControllerBase
             // Apply filters
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                products = products.Where(p => p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                             p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                products = products.Where(p => 
+                    p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true).ToList();
             }
 
             if (categoryId.HasValue)
@@ -51,18 +52,22 @@ public class ProductsController : ControllerBase
             }
 
             // Apply sorting
-            products = sortBy.ToLower() switch
+            products = (sortBy.ToLower(), sortOrder.ToLower()) switch
             {
-                "name" => sortOrder.ToLower() == "asc" ? products.OrderBy(p => p.ProductName).ToList() : products.OrderByDescending(p => p.ProductName).ToList(),
-                "price" => sortOrder.ToLower() == "asc" ? products.OrderBy(p => p.Price).ToList() : products.OrderByDescending(p => p.Price).ToList(),
-                "stock" => sortOrder.ToLower() == "asc" ? products.OrderBy(p => p.StockQuantity).ToList() : products.OrderByDescending(p => p.StockQuantity).ToList(),
-                "date" => sortOrder.ToLower() == "asc" ? products.OrderBy(p => p.CreatedAt).ToList() : products.OrderByDescending(p => p.CreatedAt).ToList(),
+                ("name", "asc") => products.OrderBy(p => p.ProductName).ToList(),
+                ("name", "desc") => products.OrderByDescending(p => p.ProductName).ToList(),
+                ("price", "asc") => products.OrderBy(p => p.Price).ToList(),
+                ("price", "desc") => products.OrderByDescending(p => p.Price).ToList(),
+                ("stock", "asc") => products.OrderBy(p => p.StockQuantity).ToList(),
+                ("stock", "desc") => products.OrderByDescending(p => p.StockQuantity).ToList(),
+                ("date", "asc") => products.OrderBy(p => p.CreatedAt).ToList(),
+                ("date", "desc") => products.OrderByDescending(p => p.CreatedAt).ToList(),
                 _ => products.OrderBy(p => p.ProductName).ToList()
             };
 
             return Ok(products);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving products." });
         }
@@ -74,14 +79,11 @@ public class ProductsController : ControllerBase
         try
         {
             var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-            {
-                return NotFound(new { error = "Product not found." });
-            }
-
-            return Ok(product);
+            return product == null 
+                ? NotFound(new { error = "Product not found." })
+                : Ok(product);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving the product." });
         }
@@ -95,7 +97,7 @@ public class ProductsController : ControllerBase
             var products = await _productService.GetProductsByCategoryAsync(categoryId);
             return Ok(products);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving products by category." });
         }
@@ -114,7 +116,7 @@ public class ProductsController : ControllerBase
             var products = await _productService.SearchProductsAsync(q);
             return Ok(products);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while searching products." });
         }
@@ -128,21 +130,21 @@ public class ProductsController : ControllerBase
             var products = await _productService.GetFeaturedProductsAsync();
             return Ok(products);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving featured products." });
         }
     }
 
     [HttpGet("newest")]
-    public async Task<ActionResult<List<ProductDTO>>> GetNewestProducts()
+    public async Task<ActionResult<List<ProductDTO>>> GetNewestProducts([FromQuery] int count = 10)
     {
         try
         {
             var products = await _productService.GetNewestProductsAsync();
-            return Ok(products);
+            return Ok(products.Take(count));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving newest products." });
         }
@@ -150,7 +152,7 @@ public class ProductsController : ControllerBase
 
     [HttpGet("price-range")]
     public async Task<ActionResult<List<ProductDTO>>> GetProductsByPriceRange(
-        [FromQuery] decimal minPrice,
+        [FromQuery] decimal minPrice, 
         [FromQuery] decimal maxPrice)
     {
         try
@@ -158,9 +160,31 @@ public class ProductsController : ControllerBase
             var products = await _productService.GetProductsByPriceRangeAsync(minPrice, maxPrice);
             return Ok(products);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "An error occurred while retrieving products by price range." });
+        }
+    }
+
+    [HttpGet("statistics")]
+    public async Task<ActionResult<object>> GetProductStatistics()
+    {
+        try
+        {
+            var totalProducts = await _productService.GetTotalProductsCountAsync();
+            var averagePrice = await _productService.GetAverageProductPriceAsync();
+            var totalCategories = await _productService.GetTotalCategoriesCountAsync();
+
+            return Ok(new
+            {
+                TotalProducts = totalProducts,
+                AveragePrice = Math.Round(averagePrice, 2),
+                TotalCategories = totalCategories
+            });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "An error occurred while retrieving product statistics." });
         }
     }
 }
