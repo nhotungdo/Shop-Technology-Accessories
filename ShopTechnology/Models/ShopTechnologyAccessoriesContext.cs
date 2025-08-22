@@ -38,7 +38,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
     public virtual DbSet<Wishlist> Wishlists { get; set; }
     public virtual DbSet<Promotion> Promotions { get; set; } = null!;
     public virtual DbSet<Review> Reviews { get; set; } = null!;
-    public virtual DbSet<ExternalLogin> ExternalLogins { get; set; } = null!;
+
     public virtual DbSet<PasswordReset> PasswordResets { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -237,20 +237,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.HasOne(d => d.Product).WithMany().HasForeignKey(d => d.ProductId);
         });
 
-        modelBuilder.Entity<ExternalLogin>(entity =>
-        {
-            entity.HasKey(e => e.ExternalLoginId).HasName("PK_ExternalLogins");
 
-            entity.Property(e => e.Provider).HasMaxLength(50);
-            entity.Property(e => e.ProviderKey).HasMaxLength(255);
-            entity.Property(e => e.Email).HasMaxLength(255);
-            entity.Property(e => e.Name).HasMaxLength(100);
-            entity.Property(e => e.PictureUrl).HasMaxLength(500);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
-            entity.HasIndex(e => new { e.Provider, e.ProviderKey }).IsUnique();
-        });
 
         modelBuilder.Entity<PasswordReset>(entity =>
         {

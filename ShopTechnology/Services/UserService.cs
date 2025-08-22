@@ -75,11 +75,34 @@ public class UserService : IUserService
             throw new InvalidOperationException("Email already exists");
         }
 
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
+        // Tạo user mới với GUID và đảm bảo tất cả properties được set đúng
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            FullName = createUserDto.FullName.Trim(),
+            Email = createUserDto.Email.Trim().ToLower(),
+            PhoneNumber = !string.IsNullOrEmpty(createUserDto.PhoneNumber) ? createUserDto.PhoneNumber.Trim() : null,
+            RoleId = createUserDto.RoleId,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = null,
+            // Initialize collections
+            Carts = new List<Cart>(),
+            Orders = new List<Order>(),
+            Wishlists = new List<Wishlist>(),
+            Reviews = new List<Review>()
+        };
 
-        var user = _mapper.Map<User>(createUserDto);
-        user.PasswordHash = passwordHash;
-        user.CreatedAt = DateTime.UtcNow;
+        // Hash password
+        if (createUserDto.Password.StartsWith("$2a$"))
+        {
+            // Password đã được hash
+            user.PasswordHash = createUserDto.Password;
+        }
+        else
+        {
+            // Hash password mới
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
+        }
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
@@ -95,8 +118,10 @@ public class UserService : IUserService
             throw new InvalidOperationException("User not found");
         }
 
-        _mapper.Map(updateUserDto, user);
-        user.UpdatedAt = DateTime.UtcNow;
+        // Update properties manually to ensure proper handling
+        user.FullName = updateUserDto.FullName.Trim();
+        user.PhoneNumber = !string.IsNullOrEmpty(updateUserDto.PhoneNumber) ? updateUserDto.PhoneNumber.Trim() : null;
+        user.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
 
@@ -124,7 +149,7 @@ public class UserService : IUserService
         }
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
         return true;
@@ -206,7 +231,7 @@ public class UserService : IUserService
         if (user == null) return false;
 
         var token = Guid.NewGuid().ToString("N");
-        var expiresAt = DateTime.UtcNow.AddHours(24);
+        var expiresAt = DateTime.Now.AddHours(24);
 
         var passwordReset = new PasswordReset
         {
@@ -214,7 +239,7 @@ public class UserService : IUserService
             Token = token,
             ExpiresAt = expiresAt,
             IsUsed = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         _context.PasswordResets.Add(passwordReset);
@@ -226,7 +251,7 @@ public class UserService : IUserService
     public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
     {
         var resetRecord = await _context.PasswordResets
-            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && pr.IsUsed == false && pr.ExpiresAt > DateTime.UtcNow);
+            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && pr.IsUsed == false && pr.ExpiresAt > DateTime.Now);
 
         if (resetRecord == null) return false;
 
@@ -234,10 +259,10 @@ public class UserService : IUserService
         if (user == null) return false;
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.Now;
 
         resetRecord.IsUsed = true;
-        resetRecord.UsedAt = DateTime.UtcNow;
+        resetRecord.UsedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
         return true;
@@ -246,76 +271,12 @@ public class UserService : IUserService
     public async Task<bool> ValidateResetTokenAsync(string email, string token)
     {
         var resetRecord = await _context.PasswordResets
-            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && pr.IsUsed == false && pr.ExpiresAt > DateTime.UtcNow);
+            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && pr.IsUsed == false && pr.ExpiresAt > DateTime.Now);
 
         return resetRecord != null;
     }
 
-    public async Task<UserDTO?> GetUserByExternalLoginAsync(string provider, string providerKey)
-    {
-        var externalLogin = await _context.ExternalLogins
-            .Include(el => el.User)
-            .ThenInclude(u => u.Role)
-            .FirstOrDefaultAsync(el => el.Provider == provider && el.ProviderKey == providerKey);
 
-        if (externalLogin == null) return null;
-
-        externalLogin.LastLoginAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        return _mapper.Map<UserDTO>(externalLogin.User);
-    }
-
-    public async Task<UserDTO> CreateUserFromExternalLoginAsync(string provider, string providerKey, string email, string name, string? pictureUrl)
-    {
-        var user = new User
-        {
-            Email = email,
-            FullName = name,
-            RoleId = 2,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        var externalLogin = new ExternalLogin
-        {
-            UserId = user.UserId,
-            Provider = provider,
-            ProviderKey = providerKey,
-            Email = email,
-            Name = name,
-            PictureUrl = pictureUrl,
-            CreatedAt = DateTime.UtcNow,
-            LastLoginAt = DateTime.UtcNow
-        };
-
-        _context.ExternalLogins.Add(externalLogin);
-        await _context.SaveChangesAsync();
-
-        return await GetUserByIdAsync(user.UserId) ?? throw new InvalidOperationException("Failed to create user");
-    }
-
-    public async Task<bool> LinkExternalLoginAsync(Guid userId, string provider, string providerKey, string email, string name, string? pictureUrl)
-    {
-        var externalLogin = new ExternalLogin
-        {
-            UserId = userId,
-            Provider = provider,
-            ProviderKey = providerKey,
-            Email = email,
-            Name = name,
-            PictureUrl = pictureUrl,
-            CreatedAt = DateTime.UtcNow,
-            LastLoginAt = DateTime.UtcNow
-        };
-
-        _context.ExternalLogins.Add(externalLogin);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
 
     public async Task<bool> CreateAdminUserAsync()
     {
@@ -329,10 +290,16 @@ public class UserService : IUserService
             UserId = Guid.NewGuid(),
             FullName = "Admin",
             Email = "donhotung2004@gmail.com",
-            PasswordHash = "123456",
+            PasswordHash = "123456", // Plain text password to match database
             PhoneNumber = "0931982568",
             RoleId = 1,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now,
+            UpdatedAt = null,
+            // Initialize collections
+            Carts = new List<Cart>(),
+            Orders = new List<Order>(),
+            Wishlists = new List<Wishlist>(),
+            Reviews = new List<Review>()
         };
 
         _context.Users.Add(adminUser);

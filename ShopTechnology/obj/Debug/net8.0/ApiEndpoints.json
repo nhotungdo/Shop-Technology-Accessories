@@ -71,17 +71,7 @@
         "IsRequired": false
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Int32",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ShopTechnology.Controllers.Api.CartController",
@@ -101,6 +91,22 @@
   },
   {
     "ContainingType": "ShopTechnology.Controllers.Api.CartController",
+    "Method": "GetCartSummary",
+    "RelativePath": "api/Cart/summary",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ShopTechnology.Controllers.Api.CartController",
     "Method": "GetCartTotal",
     "RelativePath": "api/Cart/total",
     "HttpMethod": "GET",
@@ -113,17 +119,7 @@
         "IsRequired": false
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Decimal",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ShopTechnology.Controllers.Api.CartController",
@@ -145,32 +141,6 @@
       }
     ],
     "ReturnTypes": []
-  },
-  {
-    "ContainingType": "ShopTechnology.Controllers.Api.CartController",
-    "Method": "ValidateCart",
-    "RelativePath": "api/Cart/validate",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "userId",
-        "Type": "System.Guid",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.List\u00601[[ShopTechnology.DTOs.CartItemDTO, ShopTechnology, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
   },
   {
     "ContainingType": "ShopTechnology.Controllers.Api.ProductsController",
@@ -302,7 +272,13 @@
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "count",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": [
       {
         "Type": "System.Collections.Generic.List\u00601[[ShopTechnology.DTOs.ProductDTO, ShopTechnology, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
@@ -371,5 +347,15 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "ShopTechnology.Controllers.Api.ProductsController",
+    "Method": "GetProductStatistics",
+    "RelativePath": "api/Products/statistics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   }
 ]

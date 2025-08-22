@@ -166,74 +166,7 @@ public class AccountController : Controller
         return View(model);
     }
 
-    public IActionResult ExternalLogin(string provider, string returnUrl = null)
-    {
-        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
-        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-        return Challenge(properties, provider);
-    }
 
-    public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
-    {
-        if (remoteError != null)
-        {
-            TempData["ErrorMessage"] = $"Lỗi từ {remoteError}";
-            return RedirectToAction(nameof(Login));
-        }
-
-        var info = await HttpContext.AuthenticateAsync();
-        if (!info.Succeeded)
-        {
-            TempData["ErrorMessage"] = "Không thể xác thực với provider.";
-            return RedirectToAction(nameof(Login));
-        }
-
-        var claims = info.Principal.Claims.ToList();
-        var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-        var provider = info.Properties?.Items["scheme"] ?? "Unknown";
-        var providerKey = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(providerKey))
-        {
-            TempData["ErrorMessage"] = "Không thể lấy thông tin từ provider.";
-            return RedirectToAction(nameof(Login));
-        }
-
-        try
-        {
-            var user = await _userService.GetUserByExternalLoginAsync(provider, providerKey);
-
-            if (user == null)
-            {
-                var existingUser = await _userService.GetUserByEmailAsync(email);
-
-                if (existingUser != null)
-                {
-                    await _userService.LinkExternalLoginAsync(existingUser.UserId, provider, providerKey, email, name, string.Empty);
-                    user = existingUser;
-                }
-                else
-                {
-                    user = await _userService.CreateUserFromExternalLoginAsync(provider, providerKey, email, name, string.Empty);
-                }
-            }
-
-            HttpContext.Session.SetString("UserId", user.UserId.ToString());
-            HttpContext.Session.SetString("UserEmail", user.Email);
-            HttpContext.Session.SetString("UserName", user.FullName);
-            HttpContext.Session.SetString("UserRole", user.RoleName ?? "User");
-
-            return user.IsAdmin
-                ? RedirectToAction("Index", "Dashboard", new { area = "Admin" })
-                : RedirectToAction("Index", "Home");
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra khi đăng nhập: " + ex.Message;
-            return RedirectToAction(nameof(Login));
-        }
-    }
 
     public async Task<IActionResult> Profile()
     {
@@ -335,75 +268,36 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Login));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> TestUserInfo(string email)
+    [HttpPost]
+    public async Task<IActionResult> EnsureAdminExists()
     {
         try
         {
-            var user = await _loginService.GetUserByEmailAsync(email);
-
-            if (user == null) return Json(new { error = "User not found" });
-
-            return Json(new
+            // Kiểm tra xem admin user có tồn tại không
+            var adminUser = await _userService.GetUserByEmailAsync("donhotung2004@gmail.com");
+            
+            if (adminUser == null)
             {
-                UserId = user.UserId.ToString(),
-                FullName = user.FullName ?? "NULL",
-                Email = user.Email ?? "NULL",
-                RoleId = user.RoleId,
-                RoleName = user.RoleName ?? "NULL",
-                IsAdmin = user.IsAdmin,
-                IsUser = user.IsUser,
-                CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
-            });
+                // Tạo roles trước nếu chưa có
+                await _userService.CreateRolesAsync();
+                
+                // Tạo admin user
+                var result = await _userService.CreateAdminUserAsync();
+                TempData[result ? "SuccessMessage" : "ErrorMessage"] = result
+                    ? "Tài khoản admin đã được tạo thành công! Email: donhotung2004@gmail.com, Password: 123456"
+                    : "Không thể tạo tài khoản admin.";
+            }
+            else
+            {
+                TempData["InfoMessage"] = "Tài khoản admin đã tồn tại! Email: donhotung2004@gmail.com, Password: 123456";
+            }
         }
         catch (Exception ex)
         {
-            return Json(new { error = ex.Message });
+            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
         }
+
+        return RedirectToAction(nameof(Login));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> TestAllUsers()
-    {
-        try
-        {
-            var statistics = await _loginService.GetUserStatisticsAsync();
-
-            var users = await _context.Users
-                .Include(u => u.Role)
-                .Select(u => new
-                {
-                    UserId = u.UserId.ToString(),
-                    FullName = u.FullName,
-                    Email = u.Email,
-                    RoleId = u.RoleId,
-                    RoleName = u.Role != null ? u.Role.RoleName : "NULL",
-                    PasswordType = u.PasswordHash != null ?
-                        (u.PasswordHash.StartsWith("$2a$") ? "BCrypt" : "Plain Text") : "NULL",
-                    PasswordPreview = u.PasswordHash != null ?
-                        u.PasswordHash.Substring(0, Math.Min(10, u.PasswordHash.Length)) + "..." : "NULL",
-                    CreatedAt = u.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
-                })
-                .ToListAsync();
-
-            return Json(new
-            {
-                users = users,
-                count = users.Count,
-                summary = new
-                {
-                    totalUsers = statistics.TotalUsers,
-                    adminUsers = statistics.AdminUsers,
-                    regularUsers = statistics.RegularUsers,
-                    bcryptPasswords = statistics.BCryptPasswords,
-                    plainTextPasswords = statistics.PlainTextPasswords,
-                    nullPasswords = statistics.NullPasswords
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            return Json(new { error = ex.Message });
-        }
-    }
 }

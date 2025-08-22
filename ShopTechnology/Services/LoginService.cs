@@ -1,9 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using ShopTechnology.DTOs;
-using System.Data;
-using Microsoft.Data.SqlClient;
-using Dapper;
 
 namespace ShopTechnology.Services;
 
@@ -52,63 +49,62 @@ public class LoginService : ILoginService
     {
         try
         {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
+            // Tìm user theo email
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Email == email)
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.FullName,
+                    u.PasswordHash,
+                    u.RoleId,
+                    RoleName = u.Role != null ? u.Role.RoleName : "User"
+                })
+                .FirstOrDefaultAsync();
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@Email", email);
-            parameters.Add("@Password", password);
-
-            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_ValidateUser",
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
-
-            if (result == null)
+            if (user == null)
             {
                 return new LoginResult
                 {
                     IsValid = false,
-                    ErrorMessage = "User not found"
+                    ErrorMessage = "Email không tồn tại trong hệ thống"
                 };
             }
 
-            var isValid = result.IsValid;
-            var userId = result.UserId;
-            var fullName = result.FullName;
-            var roleId = result.RoleId;
-            var roleName = result.RoleName;
+            bool isValid = false;
 
-            if (!isValid && !string.IsNullOrEmpty(password))
+            // Kiểm tra password
+            if (!string.IsNullOrEmpty(user.PasswordHash))
             {
-                var user = await _context.Users
-                    .Where(u => u.Email == email)
-                    .Select(u => u.PasswordHash)
-                    .FirstOrDefaultAsync();
-
-                if (user != null && user.StartsWith("$2a$"))
+                if (user.PasswordHash.StartsWith("$2a$"))
                 {
-                    isValid = BCrypt.Net.BCrypt.Verify(password, user);
+                    // Password đã được hash bằng BCrypt
+                    isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+                }
+                else
+                {
+                    // Password plain text (cho backward compatibility)
+                    isValid = user.PasswordHash.Equals(password, StringComparison.OrdinalIgnoreCase);
                 }
             }
 
             return new LoginResult
             {
                 IsValid = isValid,
-                UserId = userId,
-                FullName = fullName,
-                RoleId = roleId,
-                RoleName = roleName,
-                ErrorMessage = isValid ? null : "Invalid password"
+                UserId = user.UserId,
+                FullName = user.FullName,
+                RoleId = user.RoleId,
+                RoleName = user.RoleName,
+                ErrorMessage = isValid ? null : "Mật khẩu không đúng"
             };
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             return new LoginResult
             {
                 IsValid = false,
-                ErrorMessage = "Database error occurred"
+                ErrorMessage = $"Lỗi xác thực: {ex.Message}"
             };
         }
     }
@@ -117,30 +113,34 @@ public class LoginService : ILoginService
     {
         try
         {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Email == email)
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.FullName,
+                    u.Email,
+                    u.PhoneNumber,
+                    u.RoleId,
+                    u.CreatedAt,
+                    u.UpdatedAt,
+                    RoleName = u.Role != null ? u.Role.RoleName : "User"
+                })
+                .FirstOrDefaultAsync();
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@Email", email);
-
-            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_GetUserByEmail",
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
-
-            if (result == null) return null;
+            if (user == null) return null;
 
             return new UserDTO
             {
-                UserId = result.UserId,
-                FullName = result.FullName,
-                Email = result.Email,
-                PhoneNumber = result.PhoneNumber,
-                RoleId = result.RoleId,
-                RoleName = result.RoleName ?? string.Empty,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                RoleId = user.RoleId,
+                RoleName = user.RoleName,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
             };
         }
         catch (Exception)
@@ -153,30 +153,34 @@ public class LoginService : ILoginService
     {
         try
         {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.UserId == userId)
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.FullName,
+                    u.Email,
+                    u.PhoneNumber,
+                    u.RoleId,
+                    u.CreatedAt,
+                    u.UpdatedAt,
+                    RoleName = u.Role != null ? u.Role.RoleName : "User"
+                })
+                .FirstOrDefaultAsync();
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@UserId", userId);
-
-            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_GetUserWithExternalLogins",
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
-
-            if (result == null) return null;
+            if (user == null) return null;
 
             return new UserDTO
             {
-                UserId = result.UserId,
-                FullName = result.FullName,
-                Email = result.Email,
-                PhoneNumber = result.PhoneNumber,
-                RoleId = result.RoleId,
-                RoleName = result.RoleName ?? string.Empty,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                RoleId = user.RoleId,
+                RoleName = user.RoleName,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
             };
         }
         catch (Exception)
@@ -189,21 +193,8 @@ public class LoginService : ILoginService
     {
         try
         {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            var sql = @"
-                INSERT INTO LoginAttempts (Email, Success, IPAddress, UserAgent, AttemptTime)
-                VALUES (@Email, @Success, @IPAddress, @UserAgent, @AttemptTime)";
-
-            var parameters = new DynamicParameters();
-            parameters.Add("@Email", email);
-            parameters.Add("@Success", success);
-            parameters.Add("@IPAddress", ipAddress);
-            parameters.Add("@UserAgent", userAgent);
-            parameters.Add("@AttemptTime", DateTime.UtcNow);
-
-            await connection.ExecuteAsync(sql, parameters);
+            // Tạo log đơn giản bằng console hoặc có thể tạo bảng LoginAttempts sau
+            Console.WriteLine($"Login attempt - Email: {email}, Success: {success}, IP: {ipAddress}, Time: {DateTime.Now}");
             return true;
         }
         catch (Exception)
@@ -216,24 +207,16 @@ public class LoginService : ILoginService
     {
         try
         {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_GetUserStatistics",
-                commandType: CommandType.StoredProcedure
-            );
-
-            if (result == null) return new UserStatistics();
+            var users = await _context.Users.ToListAsync();
 
             return new UserStatistics
             {
-                TotalUsers = result.TotalUsers,
-                AdminUsers = result.AdminUsers,
-                RegularUsers = result.RegularUsers,
-                BCryptPasswords = result.BCryptPasswords,
-                PlainTextPasswords = result.PlainTextPasswords,
-                NullPasswords = result.NullPasswords
+                TotalUsers = users.Count,
+                AdminUsers = users.Count(u => u.RoleId == 1),
+                RegularUsers = users.Count(u => u.RoleId == 2),
+                BCryptPasswords = users.Count(u => u.PasswordHash != null && u.PasswordHash.StartsWith("$2a$")),
+                PlainTextPasswords = users.Count(u => u.PasswordHash != null && !u.PasswordHash.StartsWith("$2a$")),
+                NullPasswords = users.Count(u => string.IsNullOrEmpty(u.PasswordHash))
             };
         }
         catch (Exception)
@@ -246,18 +229,9 @@ public class LoginService : ILoginService
     {
         try
         {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            var parameters = new DynamicParameters();
-            parameters.Add("@DaysToKeep", daysToKeep);
-
-            await connection.ExecuteAsync(
-                "sp_CleanupOldLoginAttempts",
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
-
+            // Tạm thời return true vì chưa có bảng LoginAttempts
+            // Có thể implement sau khi tạo bảng LoginAttempts
+            Console.WriteLine($"Cleanup old login attempts - keeping {daysToKeep} days");
             return true;
         }
         catch (Exception)

@@ -20,9 +20,7 @@ public interface IUserService
     Task<bool> ForgotPasswordAsync(string email);
     Task<bool> ResetPasswordAsync(string email, string token, string newPassword);
     Task<bool> ValidateResetTokenAsync(string email, string token);
-    Task<UserDTO?> GetUserByExternalLoginAsync(string provider, string providerKey);
-    Task<UserDTO> CreateUserFromExternalLoginAsync(string provider, string providerKey, string email, string name, string? pictureUrl);
-    Task<bool> LinkExternalLoginAsync(Guid userId, string provider, string providerKey, string email, string name, string? pictureUrl);
+
     Task<bool> CreateAdminUserAsync();
     Task<bool> CreateRolesAsync();
 }

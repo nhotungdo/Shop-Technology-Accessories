@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopTechnology.Services;
 using ShopTechnology.DTOs;
+using System.Linq;
 
 namespace ShopTechnology.Controllers.Api;
 
@@ -21,7 +22,7 @@ public class CartController : ControllerBase
         try
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
-            return cart == null 
+            return cart == null
                 ? NotFound(new { error = "Cart not found." })
                 : Ok(cart);
         }
@@ -48,7 +49,7 @@ public class CartController : ControllerBase
             };
 
             var result = await _cartService.AddToCartAsync(request.UserId, addToCartDto);
-            return result 
+            return result
                 ? Ok(new { message = "Item added to cart successfully." })
                 : BadRequest(new { error = "Failed to add item to cart. Product may be out of stock." });
         }
@@ -69,7 +70,7 @@ public class CartController : ControllerBase
             }
 
             var result = await _cartService.UpdateCartItemQuantityAsync(cartItemId, request.Quantity);
-            return result 
+            return result
                 ? Ok(new { message = "Cart item updated successfully." })
                 : BadRequest(new { error = "Failed to update cart item. Product may be out of stock." });
         }
@@ -85,7 +86,7 @@ public class CartController : ControllerBase
         try
         {
             var result = await _cartService.RemoveFromCartAsync(cartItemId);
-            return result 
+            return result
                 ? Ok(new { message = "Item removed from cart successfully." })
                 : NotFound(new { error = "Cart item not found." });
         }
@@ -101,7 +102,7 @@ public class CartController : ControllerBase
         try
         {
             var result = await _cartService.ClearCartAsync(userId);
-            return result 
+            return result
                 ? Ok(new { message = "Cart cleared successfully." })
                 : NotFound(new { error = "Cart not found." });
         }
@@ -152,8 +153,8 @@ public class CartController : ControllerBase
 
             return Ok(new
             {
-                itemCount = cart.Items.Sum(i => i.Quantity),
-                total = Math.Round(cart.Items.Sum(i => i.Price * i.Quantity), 2)
+                itemCount = cart.CartItems?.Sum(i => i.Quantity) ?? 0,
+                total = Math.Round(cart.CartItems?.Sum(i => i.Price * i.Quantity) ?? 0, 2)
             });
         }
         catch (Exception)

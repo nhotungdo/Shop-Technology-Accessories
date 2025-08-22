@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopTechnology.Services;
 using ShopTechnology.DTOs;
+using ShopTechnology.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace ShopTechnology.Controllers.Api;
 
@@ -9,10 +12,12 @@ namespace ShopTechnology.Controllers.Api;
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly ShopTechnologyAccessoriesContext _context;
 
-    public ProductsController(IProductService productService)
+    public ProductsController(IProductService productService, ShopTechnologyAccessoriesContext context)
     {
         _productService = productService;
+        _context = context;
     }
 
     [HttpGet]
@@ -31,7 +36,7 @@ public class ProductsController : ControllerBase
             // Apply filters
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                products = products.Where(p => 
+                products = products.Where(p =>
                     p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                     p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true).ToList();
             }
@@ -79,7 +84,7 @@ public class ProductsController : ControllerBase
         try
         {
             var product = await _productService.GetProductByIdAsync(id);
-            return product == null 
+            return product == null
                 ? NotFound(new { error = "Product not found." })
                 : Ok(product);
         }
@@ -152,7 +157,7 @@ public class ProductsController : ControllerBase
 
     [HttpGet("price-range")]
     public async Task<ActionResult<List<ProductDTO>>> GetProductsByPriceRange(
-        [FromQuery] decimal minPrice, 
+        [FromQuery] decimal minPrice,
         [FromQuery] decimal maxPrice)
     {
         try
@@ -172,8 +177,9 @@ public class ProductsController : ControllerBase
         try
         {
             var totalProducts = await _productService.GetTotalProductsCountAsync();
-            var averagePrice = await _productService.GetAverageProductPriceAsync();
-            var totalCategories = await _productService.GetTotalCategoriesCountAsync();
+            var products = await _productService.GetAllProductsAsync();
+            var averagePrice = products.Any() ? products.Average(p => p.Price) : 0;
+            var totalCategories = await _context.Categories.CountAsync();
 
             return Ok(new
             {

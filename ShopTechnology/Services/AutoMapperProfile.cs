@@ -96,9 +96,7 @@ public class AutoMapperProfile : Profile
         CreateMap<CreateReviewDTO, Review>();
         CreateMap<UpdateReviewDTO, Review>();
 
-        // Auth mappings
-        CreateMap<LoginDTO, LoginViewModel>();
-        CreateMap<RegisterDTO, RegisterViewModel>();
+        // Auth mappings - Using ViewModels directly instead of DTOs
         CreateMap<ForgotPasswordDTO, ForgotPasswordDTO>();
         CreateMap<ResetPasswordDTO, ResetPasswordDTO>();
     }

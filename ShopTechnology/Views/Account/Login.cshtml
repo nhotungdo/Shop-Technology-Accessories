@@ -7,431 +7,14 @@
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Shop Technology Accessories</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8f9fa;
-            min-height: 100vh;
-        }
-
-        .login-container {
-            display: flex;
-            min-height: 100vh;
-            background: white;
-        }
-
-        .login-form-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 60px;
-            max-width: 500px;
-        }
-
-        .illustration-section {
-            flex: 1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-        }
-
-        .logo-icon i {
-            color: white;
-            font-size: 20px;
-        }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .welcome-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .welcome-subtitle {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 40px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .remember-me input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-            accent-color: #667eea;
-        }
-
-        .forgot-password {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .forgot-password:hover {
-            color: #764ba2;
-        }
-
-        .login-button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 24px;
-        }
-
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-button:active {
-            transform: translateY(0);
-        }
-
-        .signup-link {
-            text-align: center;
-            color: #666;
-        }
-
-        .signup-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            margin-left: 4px;
-        }
-
-        .signup-link a:hover {
-            color: #764ba2;
-        }
-
-        /* Illustration Styles */
-        .illustration-content {
-            text-align: center;
-            color: white;
-            position: relative;
-            z-index: 2;
-        }
-
-        .character {
-            width: 200px;
-            height: 300px;
-            background: white;
-            border-radius: 20px;
-            margin: 0 auto 30px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .character-body {
-            width: 80px;
-            height: 120px;
-            background: #ffd700;
-            border-radius: 40px;
-            position: relative;
-        }
-
-        .character-head {
-            width: 50px;
-            height: 50px;
-            background: #8b4513;
-            border-radius: 50%;
-            position: absolute;
-            top: -25px;
-            left: 15px;
-        }
-
-        .character-arm {
-            width: 20px;
-            height: 60px;
-            background: #ffd700;
-            border-radius: 10px;
-            position: absolute;
-            right: -10px;
-            top: 20px;
-        }
-
-        .smartphone {
-            width: 80px;
-            height: 120px;
-            background: #333;
-            border-radius: 12px;
-            position: absolute;
-            right: -60px;
-            top: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .phone-screen {
-            width: 70px;
-            height: 110px;
-            background: #667eea;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 8px;
-        }
-
-        .fingerprint-icon {
-            font-size: 20px;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            width: 50px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            margin: 8px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: white;
-            width: 60%;
-            border-radius: 2px;
-            animation: progress 2s ease-in-out infinite;
-        }
-
-        @keyframes progress {
-            0%, 100% { width: 60%; }
-            50% { width: 80%; }
-        }
-
-        .success-bubble {
-            position: absolute;
-            left: -80px;
-            top: 60px;
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #667eea;
-            font-size: 24px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .security-lock {
-            position: absolute;
-            right: -80px;
-            top: 60px;
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #667eea;
-            font-size: 24px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .clouds {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .cloud {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .cloud:nth-child(1) {
-            width: 100px;
-            height: 40px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .cloud:nth-child(2) {
-            width: 80px;
-            height: 30px;
-            top: 40%;
-            right: 15%;
-            animation-delay: 2s;
-        }
-
-        .cloud:nth-child(3) {
-            width: 120px;
-            height: 50px;
-            top: 70%;
-            left: 20%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-
-        /* Alert Styles */
-        .alert {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            border: none;
-        }
-
-        .alert-danger {
-            background: #fee;
-            color: #c53030;
-            border-left: 4px solid #c53030;
-        }
-
-        .alert-success {
-            background: #f0fff4;
-            color: #2f855a;
-            border-left: 4px solid #2f855a;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .login-container {
-                flex-direction: column;
-            }
-
-            .login-form-section {
-                padding: 40px 20px;
-                max-width: none;
-            }
-
-            .illustration-section {
-                min-height: 300px;
-                padding: 40px 20px;
-            }
-
-            .welcome-title {
-                font-size: 28px;
-            }
-
-            .character {
-                width: 150px;
-                height: 200px;
-            }
-        }
-
-        /* Loading Animation */
-        .loading {
-            display: none;
-        }
-
-        .loading.show {
-            display: inline-block;
-        }
-
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/login-modern.css" />
 </head>
 
 <body>
@@ -501,29 +84,29 @@
             </form>
 
             <div class="signup-link">
-                Don't have an account? <a asp-controller="Account" asp-action="Register">Sign Up</a>
+                Don't have an account? <a href="/Account/Register">Sign Up</a>
             </div>
 
-            <!-- Debug Tools -->
-            <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
-                <h6 style="color: #666; margin-bottom: 15px;">Debug Tools:</h6>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <form asp-controller="Account" asp-action="CreateRoles" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-sm btn-warning">Create Roles</button>
-                    </form>
-                    <form asp-controller="Account" asp-action="CreateAdminUser" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-sm btn-info">Create Admin</button>
-                    </form>
-                    <form asp-controller="Account" asp-action="FixPasswordHashes" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-sm btn-success">Fix Passwords</button>
-                    </form>
-                </div>
-                <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="testUserInfo('donhotung2004@gmail.com')">Test Admin</button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="testUserInfo('nhotungdo2808@gmail.com')">Test User</button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="testAllUsers()">Test All Users</button>
-                </div>
+            <!-- Admin Setup Buttons -->
+            <div class="admin-setup" style="margin-top: 20px; text-align: center;">
+                <form asp-action="CreateRoles" method="post" style="display: inline-block; margin-right: 10px;">
+                    <button type="submit" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-users-cog"></i> Tạo Roles
+                    </button>
+                </form>
+                <form asp-action="EnsureAdminExists" method="post" style="display: inline-block; margin-right: 10px;">
+                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-user-shield"></i> Tạo Admin
+                    </button>
+                </form>
+                <form asp-action="FixPasswordHashes" method="post" style="display: inline-block;">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-key"></i> Sửa Passwords
+                    </button>
+                </form>
             </div>
+
+
         </div>
 
         <!-- Right Panel - Illustration -->
@@ -584,53 +167,25 @@
                 });
             }
 
-            // Test functions
-            window.testUserInfo = function(email) {
-                fetch(`/Account/TestUserInfo?email=${encodeURIComponent(email)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert('Error: ' + data.error);
-                        } else {
-                            alert(`User: ${data.FullName}\nEmail: ${data.Email}\nRole: ${data.RoleName}\nIsAdmin: ${data.IsAdmin}`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error testing user info');
-                    });
-            };
+            // Ensure Sign Up link works
+            const signUpLink = document.querySelector('.signup-link a');
+            if (signUpLink) {
+                signUpLink.addEventListener('click', function (e) {
+                    console.log('Sign Up link clicked');
+                    // Add visual feedback
+                    this.style.transform = 'scale(0.95)';
+                    this.style.backgroundColor = 'rgba(102, 126, 234, 0.2)';
 
-            window.testAllUsers = function () {
-                fetch('/Account/TestAllUsers')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert('Error: ' + data.error);
-                        } else {
-                            let message = `=== USER SUMMARY ===\n`;
-                            message += `Total Users: ${data.summary.totalUsers}\n`;
-                            message += `Admin Users: ${data.summary.adminUsers}\n`;
-                            message += `Regular Users: ${data.summary.regularUsers}\n`;
-                            message += `BCrypt Passwords: ${data.summary.bcryptPasswords}\n`;
-                            message += `Plain Text Passwords: ${data.summary.plainTextPasswords}\n\n`;
-                            message += `=== USER DETAILS ===\n`;
-                            data.users.forEach((user, index) => {
-                                message += `${index + 1}. ${user.FullName} (${user.Email})\n`;
-                                message += `   Role: ${user.RoleName} (ID: ${user.RoleId})\n`;
-                                message += `   Password Type: ${user.PasswordType}\n`;
-                                message += `   Password Preview: ${user.PasswordPreview}\n`;
-                                message += `   Created: ${user.CreatedAt}\n\n`;
-                            });
-                            alert(message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error testing all users');
-                    });
-            };
+                    // Reset after animation
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.backgroundColor = '';
+                    }, 150);
+                });
+            }
+
         });
     </script>
 </body>
+
 </html>

@@ -77,15 +77,8 @@
                         </button>
                     </div>
                 </form>
-                
-                @if (Context.Request.Host.Host == "localhost")
-                {
-                    <div class="mt-3 pt-3 border-top">
-                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="fixProductCategories()">
-                            <i class="fas fa-tools"></i> Sửa danh mục sản phẩm
-                        </button>
-                    </div>
-                }
+
+
             </div>
         </div>
 
@@ -136,13 +129,7 @@
                                                 <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua
                                             </a>
                                         }
-                                        @if (Context.Request.Host.Host == "localhost")
-                                        {
-                                            <button type="button" class="btn btn-outline-info btn-sm" 
-                                                    onclick="testProduct(@product.ProductId)">
-                                                <i class="fas fa-bug"></i> Test
-                                            </button>
-                                        }
+
                                     </div>
                                 </div>
                             </div>
@@ -191,58 +178,8 @@
             });
         });
 
-        // Test product function
-        function testProduct(productId) {
-            console.log('Testing product ID:', productId);
-            fetch(`/Product/TestProduct?id=${productId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Product info:', data);
-                    if (data.error) {
-                        alert('Error: ' + data.error);
-                    } else {
-                        alert(`Product Info:\n` +
-                              `ID: ${data.ProductId}\n` +
-                              `Name: ${data.ProductName}\n` +
-                              `Category: ${data.CategoryName} (ID: ${data.CategoryId})\n` +
-                              `Price: ${data.Price} VNĐ\n` +
-                              `Stock: ${data.StockQuantity}\n` +
-                              `Description: ${data.Description}\n` +
-                              `Main Image: ${data.MainImageUrl}\n` +
-                              `Total Images: ${data.ImageUrls.length}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error testing product: ' + error.message);
-                });
-        }
 
-        // Fix product categories function
-        function fixProductCategories() {
-            if (confirm('Bạn có chắc muốn sửa lại danh mục cho tất cả sản phẩm?')) {
-                fetch('/Product/FixProductCategories', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Fix categories result:', data);
-                    if (data.success) {
-                        alert(data.message);
-                        // Reload page to see changes
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error fixing categories: ' + error.message);
-                });
-            }
-        }
+
+
     </script>
 }

@@ -244,16 +244,16 @@ namespace ShopTechnology.Controllers
                 ProductName = ci.Product.ProductName,
                 Price = ci.Product.Price,
                 Quantity = ci.Quantity,
-                Total = ci.Quantity * ci.Product.Price,
-                ImageUrl = ci.Product.ProductImages.FirstOrDefault(pi => pi.IsMain)?.ImageUrl ??
-                          ci.Product.ProductImages.FirstOrDefault()?.ImageUrl ?? string.Empty
+                ProductImage = ci.Product.ProductImages.FirstOrDefault(pi => pi.IsMain)?.ImageUrl ??
+                          ci.Product.ProductImages.FirstOrDefault()?.ImageUrl ?? string.Empty,
+                StockQuantity = ci.Product.StockQuantity
             }).ToList();
 
             return new CartViewModel
             {
-                Items = items,
-                TotalItems = items.Sum(i => i.Quantity),
-                TotalAmount = items.Sum(i => i.Total)
+                CartId = cart.CartId,
+                UserId = cart.UserId,
+                Items = items
             };
         }
     }

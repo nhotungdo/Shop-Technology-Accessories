@@ -614,3 +614,4 @@ F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\obj\D
 F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\obj\Debug\net8.0\ShopTechnology.pdb
 F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\obj\Debug\net8.0\ShopTechnology.genruntimeconfig.cache
 F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\obj\Debug\net8.0\ref\ShopTechnology.dll
+F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\bin\Debug\net8.0\Dapper.dll
