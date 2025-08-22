@@ -14,7 +14,7 @@
     <title>@ViewData["Title"] - Shop Technology Accessories</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="stylesheet" href="~/css/register.css" />
+    <link rel="stylesheet" href="~/css/register-modern.css" />
 </head>
 
 <body>
@@ -23,13 +23,13 @@
         <div class="register-form-section">
             <div class="logo">
                 <div class="logo-icon">
-                    <i class="fas fa-laptop"></i>
+                    <i class="fas fa-user-plus"></i>
                 </div>
                 <div class="logo-text">ShopTech</div>
             </div>
 
-            <h1 class="welcome-title">Join Our Community</h1>
-            <p class="welcome-subtitle">Create your account and start your journey with us</p>
+            <h1 class="welcome-title">Tạo tài khoản mới</h1>
+            <p class="welcome-subtitle">Tham gia cùng chúng tôi để trải nghiệm mua sắm tuyệt vời</p>
 
             @if (TempData["ErrorMessage"] != null)
             {
@@ -52,52 +52,55 @@
                 </div>
             }
 
-            <form asp-controller="Account" asp-action="Register" method="post">
+            <form asp-controller="Account" asp-action="Register" method="post"
+                asp-route-returnurl="@ViewData["ReturnUrl"]">
                 <div class="form-group">
-                    <label asp-for="FullName" class="form-label">Full Name</label>
-                    <input asp-for="FullName" type="text" class="form-input" placeholder="Enter your full name"
+                    <label asp-for="FullName" class="form-label">Họ tên</label>
+                    <input asp-for="FullName" type="text" class="form-input" placeholder="Nhập họ tên của bạn"
                         required />
                     <span asp-validation-for="FullName" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" type="email" class="form-input" placeholder="Enter your email" required />
+                    <input asp-for="Email" type="email" class="form-input" placeholder="example@gmail.com" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
-                    <input asp-for="PhoneNumber" type="tel" class="form-input" placeholder="Enter your phone number" />
+                    <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
+                    <input asp-for="PhoneNumber" type="tel" class="form-input" placeholder="0123456789" />
                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="Password" class="form-label">Password</label>
-                    <input asp-for="Password" type="password" class="form-input" placeholder="Create a password"
-                        required />
+                    <label asp-for="Password" class="form-label">Mật khẩu</label>
+                    <input asp-for="Password" type="password" class="form-input" placeholder="••••••••" required />
+                    <small class="form-text text-muted">
+                        Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                    </small>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-                    <input asp-for="ConfirmPassword" type="password" class="form-input"
-                        placeholder="Confirm your password" required />
+                    <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-input" placeholder="••••••••"
+                        required />
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <button type="submit" class="register-button">
                     <span class="button-text">
-                        <i class="fas fa-user-plus"></i> Create Account
+                        <i class="fas fa-user-plus"></i> Đăng ký
                     </span>
                     <span class="loading">
-                        <i class="fas fa-spinner spinner"></i> Creating account...
+                        <i class="fas fa-spinner spinner"></i> Đang đăng ký...
                     </span>
                 </button>
             </form>
 
             <div class="login-link">
-                Already have an account? <a asp-controller="Account" asp-action="Login">Sign In</a>
+                Đã có tài khoản? <a href="/Account/Login">Đăng nhập ngay</a>
             </div>
         </div>
 
@@ -123,7 +126,7 @@
                                     <div class="progress-fill"></div>
                                 </div>
                                 <div style="font-size: 6px; text-align: center;">
-                                    Creating your<br>account
+                                    Join us today<br>for amazing shopping
                                 </div>
                             </div>
                         </div>
@@ -156,20 +159,6 @@
                     button.disabled = true;
                     buttonText.style.display = 'none';
                     loading.classList.add('show');
-                });
-            }
-
-            // Password confirmation validation
-            const passwordInput = document.querySelector('input[name="Password"]');
-            const confirmPasswordInput = document.querySelector('input[name="ConfirmPassword"]');
-
-            if (passwordInput && confirmPasswordInput) {
-                confirmPasswordInput.addEventListener('input', function () {
-                    if (this.value !== passwordInput.value) {
-                        this.setCustomValidity('Passwords do not match');
-                    } else {
-                        this.setCustomValidity('');
-                    }
                 });
             }
         });

@@ -1,6 +1,4 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ShopTechnology.DTOs;
 using ShopTechnology.Models;
 
 namespace ShopTechnology.Services;
@@ -8,118 +6,99 @@ namespace ShopTechnology.Services;
 public class CategoryService : ICategoryService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly IMapper _mapper;
 
-    public CategoryService(ShopTechnologyAccessoriesContext context, IMapper mapper)
+    public CategoryService(ShopTechnologyAccessoriesContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
-    public async Task<List<CategoryDTO>> GetAllCategoriesAsync()
+    public async Task<List<Category>> GetAllCategoriesAsync()
     {
-        var categories = await _context.Categories
+        return await _context.Categories
+            .Include(c => c.Products)
             .OrderBy(c => c.CategoryName)
             .ToListAsync();
-
-        return _mapper.Map<List<CategoryDTO>>(categories);
     }
 
-    public async Task<CategoryDTO?> GetCategoryByIdAsync(int categoryId)
+    public async Task<Category?> GetCategoryByIdAsync(int id)
     {
-        var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.CategoryId == categoryId);
-
-        return _mapper.Map<CategoryDTO>(category);
+        return await _context.Categories
+            .Include(c => c.Products)
+            .FirstOrDefaultAsync(c => c.CategoryId == id);
     }
 
-    public async Task<CategoryDTO> CreateCategoryAsync(CreateCategoryDTO createCategoryDto)
+    public async Task<Category?> GetCategoryByNameAsync(string name)
     {
-        // Check if category name already exists
-        if (await IsCategoryNameExistsAsync(createCategoryDto.CategoryName))
-        {
-            throw new InvalidOperationException("Category name already exists");
-        }
+        return await _context.Categories
+            .Include(c => c.Products)
+            .FirstOrDefaultAsync(c => c.CategoryName.ToLower() == name.ToLower());
+    }
 
-        var category = _mapper.Map<Category>(createCategoryDto);
+    public async Task<List<Category>> GetCategoriesWithProductCountAsync()
+    {
+        return await _context.Categories
+            .Include(c => c.Products)
+            .Select(c => new Category
+            {
+                CategoryId = c.CategoryId,
+                CategoryName = c.CategoryName,
+                Description = c.Description,
+                Products = c.Products.Where(p => p.StockQuantity > 0).ToList()
+            })
+            .OrderBy(c => c.CategoryName)
+            .ToListAsync();
+    }
 
+    public async Task<Category> CreateCategoryAsync(Category category)
+    {
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
-
-        return await GetCategoryByIdAsync(category.CategoryId) ?? throw new InvalidOperationException("Failed to create category");
+        return category;
     }
 
-    public async Task<CategoryDTO> UpdateCategoryAsync(int categoryId, UpdateCategoryDTO updateCategoryDto)
+    public async Task<bool> UpdateCategoryAsync(Category category)
     {
-        var category = await _context.Categories.FindAsync(categoryId);
-        if (category == null)
-        {
-            throw new InvalidOperationException("Category not found");
-        }
-
-        // Check if new name conflicts with existing category
-        if (category.CategoryName != updateCategoryDto.CategoryName && 
-            await IsCategoryNameExistsAsync(updateCategoryDto.CategoryName))
-        {
-            throw new InvalidOperationException("Category name already exists");
-        }
-
-        _mapper.Map(updateCategoryDto, category);
-
-        await _context.SaveChangesAsync();
-
-        return await GetCategoryByIdAsync(categoryId) ?? throw new InvalidOperationException("Failed to update category");
-    }
-
-    public async Task<bool> DeleteCategoryAsync(int categoryId)
-    {
-        var category = await _context.Categories
-            .Include(c => c.Products)
-            .FirstOrDefaultAsync(c => c.CategoryId == categoryId);
-
-        if (category == null)
-        {
+        var existingCategory = await _context.Categories.FindAsync(category.CategoryId);
+        if (existingCategory == null)
             return false;
-        }
 
-        // Check if category has products
-        if (category.Products.Any())
-        {
-            throw new InvalidOperationException("Cannot delete category that has products");
-        }
+        existingCategory.CategoryName = category.CategoryName;
+        existingCategory.Description = category.Description;
 
-        _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
-
         return true;
     }
 
-    public async Task<bool> IsCategoryNameExistsAsync(string categoryName)
+    public async Task<bool> DeleteCategoryAsync(int id)
     {
-        return await _context.Categories.AnyAsync(c => c.CategoryName == categoryName);
+        var category = await _context.Categories.FindAsync(id);
+        if (category == null)
+            return false;
+
+        // Check if category has products
+        var hasProducts = await _context.Products.AnyAsync(p => p.CategoryId == id);
+        if (hasProducts)
+            return false; // Cannot delete category with products
+
+        _context.Categories.Remove(category);
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<int> GetTotalCategoriesCountAsync()
+    public async Task<bool> CategoryExistsAsync(int id)
     {
-        return await _context.Categories.CountAsync();
+        return await _context.Categories.AnyAsync(c => c.CategoryId == id);
     }
 
-    public async Task<List<CategoryDTO>> GetCategoriesWithProductCountAsync()
+    public async Task<bool> CategoryNameExistsAsync(string name, int? excludeId = null)
     {
-        var categories = await _context.Categories
-            .Include(c => c.Products)
-            .OrderBy(c => c.CategoryName)
-            .ToListAsync();
-
-        var categoryDtos = _mapper.Map<List<CategoryDTO>>(categories);
-
-        // Set product count for each category
-        foreach (var categoryDto in categoryDtos)
+        var query = _context.Categories.AsQueryable();
+        
+        if (excludeId.HasValue)
         {
-            var category = categories.First(c => c.CategoryId == categoryDto.CategoryId);
-            categoryDto.ProductCount = category.Products.Count;
+            query = query.Where(c => c.CategoryId != excludeId.Value);
         }
 
-        return categoryDtos;
+        return await query.AnyAsync(c => c.CategoryName.ToLower() == name.ToLower());
     }
 }

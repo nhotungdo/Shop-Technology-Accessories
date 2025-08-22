@@ -4,12 +4,9 @@ namespace ShopTechnology.Services;
 
 public interface IEmailService
 {
-    Task<bool> SendOrderConfirmationAsync(OrderDTO order);
-    Task<bool> SendOrderStatusUpdateAsync(OrderDTO order, string newStatus);
-    Task<bool> SendPasswordResetAsync(string email, string resetToken);
-    Task<bool> SendWelcomeEmailAsync(UserDTO user);
-    Task<bool> SendPromotionEmailAsync(string email, string subject, string body);
-    Task<bool> SendReviewReminderAsync(OrderDTO order);
-    Task<bool> SendLowStockAlertAsync(ProductDTO product);
-    Task<bool> SendEmailAsync(string to, string subject, string body, bool isHtml = true);
+    Task<bool> SendEmailAsync(string to, string subject, string body, bool isHtml = false);
+    Task<bool> SendPasswordResetEmailAsync(string email, string resetLink);
+    Task<bool> SendOrderConfirmationEmailAsync(string email, string orderNumber, decimal totalAmount);
+    Task<bool> SendWelcomeEmailAsync(string email, string fullName);
+    Task<bool> SendOrderStatusUpdateEmailAsync(string email, string orderNumber, string status);
 }

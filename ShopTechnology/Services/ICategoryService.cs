@@ -1,15 +1,16 @@
-using ShopTechnology.DTOs;
+using ShopTechnology.Models;
 
 namespace ShopTechnology.Services;
 
 public interface ICategoryService
 {
-    Task<List<CategoryDTO>> GetAllCategoriesAsync();
-    Task<CategoryDTO?> GetCategoryByIdAsync(int categoryId);
-    Task<CategoryDTO> CreateCategoryAsync(CreateCategoryDTO createCategoryDto);
-    Task<CategoryDTO> UpdateCategoryAsync(int categoryId, UpdateCategoryDTO updateCategoryDto);
-    Task<bool> DeleteCategoryAsync(int categoryId);
-    Task<bool> IsCategoryNameExistsAsync(string categoryName);
-    Task<int> GetTotalCategoriesCountAsync();
-    Task<List<CategoryDTO>> GetCategoriesWithProductCountAsync();
+    Task<List<Category>> GetAllCategoriesAsync();
+    Task<Category?> GetCategoryByIdAsync(int id);
+    Task<Category?> GetCategoryByNameAsync(string name);
+    Task<List<Category>> GetCategoriesWithProductCountAsync();
+    Task<Category> CreateCategoryAsync(Category category);
+    Task<bool> UpdateCategoryAsync(Category category);
+    Task<bool> DeleteCategoryAsync(int id);
+    Task<bool> CategoryExistsAsync(int id);
+    Task<bool> CategoryNameExistsAsync(string name, int? excludeId = null);
 }

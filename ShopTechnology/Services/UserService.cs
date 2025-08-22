@@ -1,6 +1,4 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ShopTechnology.DTOs;
 using ShopTechnology.Models;
 
 namespace ShopTechnology.Services;
@@ -8,168 +6,36 @@ namespace ShopTechnology.Services;
 public class UserService : IUserService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly IMapper _mapper;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(ShopTechnologyAccessoriesContext context, IMapper mapper)
+    public UserService(ShopTechnologyAccessoriesContext context, ILogger<UserService> logger)
     {
         _context = context;
-        _mapper = mapper;
+        _logger = logger;
     }
 
-    public async Task<UserDTO?> GetUserByIdAsync(Guid userId)
+    public async Task<List<User>> GetAllUsersAsync()
     {
-        var user = await _context.Users
+        return await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-
-        return _mapper.Map<UserDTO>(user);
-    }
-
-    public async Task<UserDTO?> GetUserByEmailAsync(string email)
-    {
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.Email == email)
-            .Select(u => new
-            {
-                u.UserId,
-                u.FullName,
-                u.Email,
-                u.PhoneNumber,
-                u.RoleId,
-                u.CreatedAt,
-                u.UpdatedAt,
-                RoleName = u.Role != null ? u.Role.RoleName : string.Empty
-            })
-            .FirstOrDefaultAsync();
-
-        if (user == null) return null;
-
-        return new UserDTO
-        {
-            UserId = user.UserId,
-            FullName = user.FullName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            RoleId = user.RoleId,
-            RoleName = user.RoleName,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        };
-    }
-
-    public async Task<List<UserDTO>> GetAllUsersAsync()
-    {
-        var users = await _context.Users
-            .Include(u => u.Role)
-            .OrderBy(u => u.FullName)
+            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
-
-        return _mapper.Map<List<UserDTO>>(users);
     }
 
-    public async Task<UserDTO> CreateUserAsync(CreateUserDTO createUserDto)
+    public async Task<User?> GetUserByIdAsync(Guid userId)
     {
-        if (await IsEmailExistsAsync(createUserDto.Email))
-        {
-            throw new InvalidOperationException("Email already exists");
-        }
-
-        // Tạo user mới với GUID và đảm bảo tất cả properties được set đúng
-        var user = new User
-        {
-            UserId = Guid.NewGuid(),
-            FullName = createUserDto.FullName.Trim(),
-            Email = createUserDto.Email.Trim().ToLower(),
-            PhoneNumber = !string.IsNullOrEmpty(createUserDto.PhoneNumber) ? createUserDto.PhoneNumber.Trim() : null,
-            RoleId = createUserDto.RoleId,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = null,
-            // Initialize collections
-            Carts = new List<Cart>(),
-            Orders = new List<Order>(),
-            Wishlists = new List<Wishlist>(),
-            Reviews = new List<Review>()
-        };
-
-        // Hash password
-        if (createUserDto.Password.StartsWith("$2a$"))
-        {
-            // Password đã được hash
-            user.PasswordHash = createUserDto.Password;
-        }
-        else
-        {
-            // Hash password mới
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
-        }
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return await GetUserByIdAsync(user.UserId) ?? throw new InvalidOperationException("Failed to create user");
+        return await _context.Users
+            .Include(u => u.Role)
+            .Include(u => u.Orders)
+            .Include(u => u.Reviews)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
-    public async Task<UserDTO> UpdateUserAsync(Guid userId, UpdateUserDTO updateUserDto)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-        {
-            throw new InvalidOperationException("User not found");
-        }
-
-        // Update properties manually to ensure proper handling
-        user.FullName = updateUserDto.FullName.Trim();
-        user.PhoneNumber = !string.IsNullOrEmpty(updateUserDto.PhoneNumber) ? updateUserDto.PhoneNumber.Trim() : null;
-        user.UpdatedAt = DateTime.Now;
-
-        await _context.SaveChangesAsync();
-
-        return await GetUserByIdAsync(userId) ?? throw new InvalidOperationException("Failed to update user");
-    }
-
-    public async Task<bool> DeleteUserAsync(Guid userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDTO changePasswordDto)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
-
-        if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, user.PasswordHash))
-        {
-            return false;
-        }
-
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
-        user.UpdatedAt = DateTime.Now;
-
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> ValidateUserAsync(string email, string password)
-    {
-        var user = await _context.Users
-            .Where(u => u.Email == email)
-            .Select(u => new { u.PasswordHash, u.Email })
-            .FirstOrDefaultAsync();
-
-        if (user == null || string.IsNullOrEmpty(user.PasswordHash))
-        {
-            return false;
-        }
-
-        return !user.PasswordHash.StartsWith("$2a$")
-            ? user.PasswordHash.Equals(password, StringComparison.OrdinalIgnoreCase)
-            : BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+        return await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<bool> IsEmailExistsAsync(string email)
@@ -177,24 +43,190 @@ public class UserService : IUserService
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
-    public async Task<bool> IsUserAdminAsync(Guid userId)
+    public async Task<User> CreateUserAsync(User user)
     {
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
+        user.UserId = Guid.NewGuid();
+        user.CreatedAt = DateTime.UtcNow;
+        user.IsActive = true;
 
-        return user?.Role?.RoleName == "Admin";
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("User created: {Email}", user.Email);
+        return user;
     }
 
-    public async Task<List<UserDTO>> GetUsersByRoleAsync(string roleName)
+    public async Task<bool> UpdateUserAsync(Guid userId, User user)
     {
-        var users = await _context.Users
+        try
+        {
+            var existingUser = await _context.Users.FindAsync(userId);
+            if (existingUser == null)
+            {
+                return false;
+            }
+
+            existingUser.FullName = user.FullName;
+            existingUser.PhoneNumber = user.PhoneNumber;
+            existingUser.Address = user.Address;
+            existingUser.City = user.City;
+            existingUser.PostalCode = user.PostalCode;
+            existingUser.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User updated: {UserId}", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteUserAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User deleted: {UserId}", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, string newPasswordHash)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.PasswordHash = newPasswordHash;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Password changed for user: {UserId}", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing password for user: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateLastLoginAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.LastLoginAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating last login for user: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> ToggleUserStatusAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.IsActive = !user.IsActive;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User status toggled: {UserId} -> {IsActive}", userId, user.IsActive);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling user status: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> ChangeUserRoleAsync(Guid userId, int roleId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            var role = await _context.Roles.FindAsync(roleId);
+            if (role == null)
+            {
+                return false;
+            }
+
+            user.RoleId = roleId;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User role changed: {UserId} -> {RoleName}", userId, role.RoleName);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing user role: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<List<User>> GetUsersByRoleAsync(string roleName)
+    {
+        return await _context.Users
             .Include(u => u.Role)
             .Where(u => u.Role.RoleName == roleName)
-            .OrderBy(u => u.FullName)
+            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
+    }
 
-        return _mapper.Map<List<UserDTO>>(users);
+    public async Task<List<User>> GetActiveUsersAsync()
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .Where(u => u.IsActive)
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<int> GetTotalUsersCountAsync()
@@ -202,124 +234,77 @@ public class UserService : IUserService
         return await _context.Users.CountAsync();
     }
 
-    public async Task<bool> FixPasswordHashesAsync()
+    public async Task<int> GetActiveUsersCountAsync()
     {
-        var users = await _context.Users.ToListAsync();
-        var hasChanges = false;
+        return await _context.Users.CountAsync(u => u.IsActive);
+    }
 
-        foreach (var user in users)
+    public async Task<int> GetNewUsersCountAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Users
+            .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= endDate);
+    }
+
+    public async Task<List<User>> GetRecentUsersAsync(int count = 10)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<List<User>> SearchUsersAsync(string searchTerm)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .Where(u => u.FullName.Contains(searchTerm) ||
+                       u.Email.Contains(searchTerm) ||
+                       u.PhoneNumber.Contains(searchTerm))
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<bool> VerifyPasswordAsync(Guid userId, string passwordHash)
+    {
+        try
         {
-            if (string.IsNullOrEmpty(user.PasswordHash) || !user.PasswordHash.StartsWith("$2a$"))
+            var user = await _context.Users.FindAsync(userId);
+            return user?.PasswordHash == passwordHash;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying password for user: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateUserProfileAsync(Guid userId, string fullName, string phoneNumber, string? address, string? city, string? postalCode)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
             {
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash ?? "123456");
-                user.UpdatedAt = DateTime.UtcNow;
-                hasChanges = true;
+                return false;
             }
-        }
 
-        if (hasChanges)
-        {
+            user.FullName = fullName;
+            user.PhoneNumber = phoneNumber;
+            user.Address = address;
+            user.City = city;
+            user.PostalCode = postalCode;
+            user.UpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User profile updated: {UserId}", userId);
+            return true;
         }
-
-        return hasChanges;
-    }
-
-    public async Task<bool> ForgotPasswordAsync(string email)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user == null) return false;
-
-        var token = Guid.NewGuid().ToString("N");
-        var expiresAt = DateTime.Now.AddHours(24);
-
-        var passwordReset = new PasswordReset
+        catch (Exception ex)
         {
-            Email = email,
-            Token = token,
-            ExpiresAt = expiresAt,
-            IsUsed = false,
-            CreatedAt = DateTime.Now
-        };
-
-        _context.PasswordResets.Add(passwordReset);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
-    {
-        var resetRecord = await _context.PasswordResets
-            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && pr.IsUsed == false && pr.ExpiresAt > DateTime.Now);
-
-        if (resetRecord == null) return false;
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user == null) return false;
-
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        user.UpdatedAt = DateTime.Now;
-
-        resetRecord.IsUsed = true;
-        resetRecord.UsedAt = DateTime.Now;
-
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> ValidateResetTokenAsync(string email, string token)
-    {
-        var resetRecord = await _context.PasswordResets
-            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && pr.IsUsed == false && pr.ExpiresAt > DateTime.Now);
-
-        return resetRecord != null;
-    }
-
-
-
-    public async Task<bool> CreateAdminUserAsync()
-    {
-        var existingAdmin = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == "donhotung2004@gmail.com");
-
-        if (existingAdmin != null) return false;
-
-        var adminUser = new User
-        {
-            UserId = Guid.NewGuid(),
-            FullName = "Admin",
-            Email = "donhotung2004@gmail.com",
-            PasswordHash = "123456", // Plain text password to match database
-            PhoneNumber = "0931982568",
-            RoleId = 1,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = null,
-            // Initialize collections
-            Carts = new List<Cart>(),
-            Orders = new List<Order>(),
-            Wishlists = new List<Wishlist>(),
-            Reviews = new List<Review>()
-        };
-
-        _context.Users.Add(adminUser);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> CreateRolesAsync()
-    {
-        var existingRoles = await _context.Roles.ToListAsync();
-        if (existingRoles.Any()) return false;
-
-        var adminRole = new Role { RoleId = 1, RoleName = "Admin" };
-        var userRole = new Role { RoleId = 2, RoleName = "User" };
-
-        _context.Roles.Add(adminRole);
-        _context.Roles.Add(userRole);
-        await _context.SaveChangesAsync();
-
-        return true;
+            _logger.LogError(ex, "Error updating user profile: {UserId}", userId);
+            return false;
+        }
     }
 }

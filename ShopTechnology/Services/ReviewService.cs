@@ -1,6 +1,4 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ShopTechnology.DTOs;
 using ShopTechnology.Models;
 
 namespace ShopTechnology.Services;
@@ -8,171 +6,192 @@ namespace ShopTechnology.Services;
 public class ReviewService : IReviewService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly IMapper _mapper;
+    private readonly ILogger<ReviewService> _logger;
 
-    public ReviewService(ShopTechnologyAccessoriesContext context, IMapper mapper)
+    public ReviewService(ShopTechnologyAccessoriesContext context, ILogger<ReviewService> logger)
     {
         _context = context;
-        _mapper = mapper;
+        _logger = logger;
     }
 
-    public async Task<List<ReviewDTO>> GetAllReviewsAsync()
+    public async Task<List<Review>> GetReviewsByProductIdAsync(int productId, int page = 1, int pageSize = 10)
     {
-        var reviews = await _context.Reviews
+        return await _context.Reviews
             .Include(r => r.User)
-            .Include(r => r.Product)
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
-
-        return _mapper.Map<List<ReviewDTO>>(reviews);
-    }
-
-    public async Task<ReviewDTO?> GetReviewByIdAsync(int id)
-    {
-        var review = await _context.Reviews
-            .Include(r => r.User)
-            .Include(r => r.Product)
-            .FirstOrDefaultAsync(r => r.ReviewId == id);
-
-        return _mapper.Map<ReviewDTO>(review);
-    }
-
-    public async Task<List<ReviewDTO>> GetReviewsByProductIdAsync(int productId)
-    {
-        var reviews = await _context.Reviews
-            .Include(r => r.User)
-            .Include(r => r.Product)
             .Where(r => r.ProductId == productId)
             .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
-
-        return _mapper.Map<List<ReviewDTO>>(reviews);
     }
 
-    public async Task<List<ReviewDTO>> GetReviewsByUserIdAsync(Guid userId)
+    public async Task<Review?> GetReviewByIdAsync(int reviewId)
     {
-        var reviews = await _context.Reviews
+        return await _context.Reviews
             .Include(r => r.User)
             .Include(r => r.Product)
-            .Where(r => r.UserId == userId)
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
-
-        return _mapper.Map<List<ReviewDTO>>(reviews);
+            .FirstOrDefaultAsync(r => r.ReviewId == reviewId);
     }
 
-    public async Task<ReviewDTO> CreateReviewAsync(Guid userId, CreateReviewDTO createReviewDto)
+    public async Task<Review?> GetUserReviewForProductAsync(Guid userId, int productId)
     {
-        // Check if user has already reviewed this product
-        if (await HasUserReviewedProductAsync(userId, createReviewDto.ProductId))
-        {
-            throw new InvalidOperationException("Bạn đã đánh giá sản phẩm này rồi");
-        }
+        return await _context.Reviews
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == productId);
+    }
 
-        // Check if user has purchased this product (for verified badge)
-        var isVerified = await HasUserPurchasedProductAsync(userId, createReviewDto.ProductId);
-
-        var review = _mapper.Map<Review>(createReviewDto);
-        review.UserId = userId;
-        review.IsVerified = isVerified;
+    public async Task<Review> CreateReviewAsync(Review review)
+    {
         review.CreatedAt = DateTime.UtcNow;
 
         _context.Reviews.Add(review);
+
+        // Update product rating
+        await UpdateProductRatingAsync(review.ProductId);
+
         await _context.SaveChangesAsync();
 
-        return await GetReviewByIdAsync(review.ReviewId) ?? throw new InvalidOperationException("Failed to create review");
+        _logger.LogInformation("Review created for product {ProductId} by user {UserId}", review.ProductId, review.UserId);
+        return review;
     }
 
-    public async Task<ReviewDTO> UpdateReviewAsync(int reviewId, Guid userId, UpdateReviewDTO updateReviewDto)
+    public async Task<bool> UpdateReviewAsync(Review review)
     {
-        var review = await _context.Reviews
-            .FirstOrDefaultAsync(r => r.ReviewId == reviewId && r.UserId == userId);
-
-        if (review == null)
+        try
         {
-            throw new InvalidOperationException("Review not found or you don't have permission to edit it");
+            var existingReview = await _context.Reviews.FindAsync(review.ReviewId);
+            if (existingReview == null)
+            {
+                return false;
+            }
+
+            existingReview.Rating = review.Rating;
+            existingReview.Comment = review.Comment;
+            existingReview.UpdatedAt = DateTime.UtcNow;
+
+            // Update product rating
+            await UpdateProductRatingAsync(review.ProductId);
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Review updated: {ReviewId}", review.ReviewId);
+            return true;
         }
-
-        _mapper.Map(updateReviewDto, review);
-        review.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        return await GetReviewByIdAsync(reviewId) ?? throw new InvalidOperationException("Failed to update review");
-    }
-
-    public async Task<bool> DeleteReviewAsync(int reviewId, Guid userId)
-    {
-        var review = await _context.Reviews
-            .FirstOrDefaultAsync(r => r.ReviewId == reviewId && r.UserId == userId);
-
-        if (review == null)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error updating review: {ReviewId}", review.ReviewId);
             return false;
         }
-
-        _context.Reviews.Remove(review);
-        await _context.SaveChangesAsync();
-
-        return true;
     }
 
-    public async Task<bool> VerifyReviewAsync(int reviewId)
+    public async Task<bool> DeleteReviewAsync(int reviewId)
     {
-        var review = await _context.Reviews.FindAsync(reviewId);
-        if (review == null)
+        try
         {
+            var review = await _context.Reviews.FindAsync(reviewId);
+            if (review == null)
+            {
+                return false;
+            }
+
+            var productId = review.ProductId;
+            _context.Reviews.Remove(review);
+
+            // Update product rating
+            await UpdateProductRatingAsync(productId);
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Review deleted: {ReviewId}", reviewId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting review: {ReviewId}", reviewId);
             return false;
         }
-
-        review.IsVerified = true;
-        review.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        return true;
     }
 
-    public async Task<ProductReviewSummaryDTO> GetProductReviewSummaryAsync(int productId)
+    public async Task<List<Review>> GetReviewsByUserIdAsync(Guid userId)
+    {
+        return await _context.Reviews
+            .Include(r => r.Product)
+            .ThenInclude(p => p.ProductImages)
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<double> GetAverageRatingForProductAsync(int productId)
     {
         var reviews = await _context.Reviews
             .Where(r => r.ProductId == productId)
             .ToListAsync();
 
-        var summary = new ProductReviewSummaryDTO
+        if (!reviews.Any())
         {
-            ProductId = productId,
-            TotalReviews = reviews.Count,
-            AverageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0,
-            FiveStarCount = reviews.Count(r => r.Rating == 5),
-            FourStarCount = reviews.Count(r => r.Rating == 4),
-            ThreeStarCount = reviews.Count(r => r.Rating == 3),
-            TwoStarCount = reviews.Count(r => r.Rating == 2),
-            OneStarCount = reviews.Count(r => r.Rating == 1)
-        };
-
-        // Get product name
-        var product = await _context.Products.FindAsync(productId);
-        if (product != null)
-        {
-            summary.ProductName = product.ProductName;
+            return 0;
         }
 
-        return summary;
+        return reviews.Average(r => r.Rating);
     }
 
-    public async Task<double> GetProductAverageRatingAsync(int productId)
-    {
-        var reviews = await _context.Reviews
-            .Where(r => r.ProductId == productId)
-            .ToListAsync();
-
-        return reviews.Any() ? reviews.Average(r => r.Rating) : 0;
-    }
-
-    public async Task<int> GetProductReviewCountAsync(int productId)
+    public async Task<int> GetReviewCountForProductAsync(int productId)
     {
         return await _context.Reviews
             .CountAsync(r => r.ProductId == productId);
+    }
+
+    public async Task<Dictionary<int, double>> GetAverageRatingsForProductsAsync(List<int> productIds)
+    {
+        var ratings = await _context.Reviews
+            .Where(r => productIds.Contains(r.ProductId))
+            .GroupBy(r => r.ProductId)
+            .Select(g => new { ProductId = g.Key, AverageRating = g.Average(r => r.Rating) })
+            .ToListAsync();
+
+        return ratings.ToDictionary(r => r.ProductId, r => r.AverageRating);
+    }
+
+    public async Task<List<Review>> GetRecentReviewsAsync(int count = 10)
+    {
+        return await _context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Product)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<List<Review>> GetTopRatedReviewsAsync(int productId, int count = 5)
+    {
+        return await _context.Reviews
+            .Include(r => r.User)
+            .Where(r => r.ProductId == productId && r.Rating >= 4)
+            .OrderByDescending(r => r.Rating)
+            .ThenByDescending(r => r.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<List<Review>> GetLowRatedReviewsAsync(int productId, int count = 5)
+    {
+        return await _context.Reviews
+            .Include(r => r.User)
+            .Where(r => r.ProductId == productId && r.Rating <= 2)
+            .OrderBy(r => r.Rating)
+            .ThenByDescending(r => r.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<bool> HasUserPurchasedProductAsync(Guid userId, int productId)
+    {
+        return await _context.OrderDetails
+            .Include(od => od.Order)
+            .AnyAsync(od => od.ProductId == productId && 
+                           od.Order.UserId == userId && 
+                           od.Order.Status == "Completed");
     }
 
     public async Task<bool> HasUserReviewedProductAsync(Guid userId, int productId)
@@ -181,30 +200,115 @@ public class ReviewService : IReviewService
             .AnyAsync(r => r.UserId == userId && r.ProductId == productId);
     }
 
-    public async Task<bool> HasUserPurchasedProductAsync(Guid userId, int productId)
+    public async Task<Dictionary<int, int>> GetRatingDistributionAsync(int productId)
     {
-        // Check if user has any completed orders containing this product
-        return await _context.OrderDetails
-            .Include(od => od.Order)
-            .AnyAsync(od => od.Order.UserId == userId && 
-                           od.ProductId == productId && 
-                           od.Order.Status == "Completed");
-    }
-
-    public async Task<List<ReviewDTO>> GetRecentReviewsAsync(int count = 10)
-    {
-        var reviews = await _context.Reviews
-            .Include(r => r.User)
-            .Include(r => r.Product)
-            .OrderByDescending(r => r.CreatedAt)
-            .Take(count)
+        var distribution = await _context.Reviews
+            .Where(r => r.ProductId == productId)
+            .GroupBy(r => r.Rating)
+            .Select(g => new { Rating = g.Key, Count = g.Count() })
             .ToListAsync();
 
-        return _mapper.Map<List<ReviewDTO>>(reviews);
+        var result = new Dictionary<int, int>();
+        for (int i = 1; i <= 5; i++)
+        {
+            result[i] = distribution.FirstOrDefault(d => d.Rating == i)?.Count ?? 0;
+        }
+
+        return result;
+    }
+
+    public async Task<List<Review>> SearchReviewsAsync(string searchTerm, int? productId = null)
+    {
+        var query = _context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Product)
+            .AsQueryable();
+
+        if (productId.HasValue)
+        {
+            query = query.Where(r => r.ProductId == productId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(r => r.Comment.Contains(searchTerm) || 
+                                   r.User.FullName.Contains(searchTerm));
+        }
+
+        return await query
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<bool> ValidateReviewAsync(Guid userId, int productId)
+    {
+        // Check if user has purchased the product
+        var hasPurchased = await HasUserPurchasedProductAsync(userId, productId);
+        if (!hasPurchased)
+        {
+            return false;
+        }
+
+        // Check if user has already reviewed the product
+        var hasReviewed = await HasUserReviewedProductAsync(userId, productId);
+        if (hasReviewed)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task UpdateProductRatingAsync(int productId)
+    {
+        try
+        {
+            var reviews = await _context.Reviews
+                .Where(r => r.ProductId == productId)
+                .ToListAsync();
+
+            var product = await _context.Products.FindAsync(productId);
+            if (product != null)
+            {
+                if (reviews.Any())
+                {
+                    product.Rating = reviews.Average(r => r.Rating);
+                    product.ReviewCount = reviews.Count;
+                }
+                else
+                {
+                    product.Rating = 0;
+                    product.ReviewCount = 0;
+                }
+
+                product.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating product rating for product {ProductId}", productId);
+        }
     }
 
     public async Task<int> GetTotalReviewsCountAsync()
     {
         return await _context.Reviews.CountAsync();
+    }
+
+    public async Task<double> GetOverallAverageRatingAsync()
+    {
+        var reviews = await _context.Reviews.ToListAsync();
+        return reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+    }
+
+    public async Task<List<Review>> GetReviewsByRatingAsync(int productId, int rating, int page = 1, int pageSize = 10)
+    {
+        return await _context.Reviews
+            .Include(r => r.User)
+            .Where(r => r.ProductId == productId && r.Rating == rating)
+            .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
     }
 }

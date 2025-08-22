@@ -1,233 +1,199 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ShopTechnology.DTOs;
 using ShopTechnology.Models;
+using ShopTechnology.DTOs;
 
 namespace ShopTechnology.Services;
 
 public class ProductService : IProductService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly IMapper _mapper;
 
-    public ProductService(ShopTechnologyAccessoriesContext context, IMapper mapper)
+    public ProductService(ShopTechnologyAccessoriesContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
-    // Basic CRUD operations
-    public async Task<List<ProductDTO>> GetAllProductsAsync()
+    public async Task<Product?> GetProductByIdAsync(int id)
     {
-        var products = await _context.Products
+        return await _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductImages)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
+            .Include(p => p.Reviews)
+            .FirstOrDefaultAsync(p => p.ProductId == id);
     }
 
-    public async Task<ProductDTO?> GetProductByIdAsync(int id)
+    public async Task<PagedResult<Product>> GetProductsAsync(
+        int? categoryId = null,
+        string? searchTerm = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        string? sortBy = null,
+        int page = 1,
+        int pageSize = 12)
+    {
+        var query = _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductImages)
+            .Include(p => p.Reviews)
+            .AsQueryable();
+
+        // Filter by category
+        if (categoryId.HasValue)
+        {
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+        }
+
+        // Search by name or description
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(p =>
+                p.ProductName.Contains(searchTerm) ||
+                (p.Description != null && p.Description.Contains(searchTerm)));
+        }
+
+        // Filter by price range
+        if (minPrice.HasValue)
+        {
+            query = query.Where(p => p.Price >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue)
+        {
+            query = query.Where(p => p.Price <= maxPrice.Value);
+        }
+
+        // Sort products
+        query = sortBy?.ToLower() switch
+        {
+            "price_asc" => query.OrderBy(p => p.Price),
+            "price_desc" => query.OrderByDescending(p => p.Price),
+            "name_asc" => query.OrderBy(p => p.ProductName),
+            "name_desc" => query.OrderByDescending(p => p.ProductName),
+            "newest" => query.OrderByDescending(p => p.CreatedAt),
+            "rating" => query.OrderByDescending(p => p.Reviews.Average(r => r.Rating)),
+            _ => query.OrderByDescending(p => p.CreatedAt)
+        };
+
+        var totalCount = await query.CountAsync();
+        var products = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Product>
+        {
+            Items = products,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<List<Product>> GetFeaturedProductsAsync(int count = 8)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductImages)
+            .Where(p => p.StockQuantity > 0)
+            .OrderByDescending(p => p.Reviews.Count)
+            .ThenByDescending(p => p.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<List<Product>> GetLatestProductsAsync(int count = 6)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductImages)
+            .Where(p => p.StockQuantity > 0)
+            .OrderByDescending(p => p.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<List<Product>> GetRelatedProductsAsync(int productId, int count = 4)
     {
         var product = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .FirstOrDefaultAsync(p => p.ProductId == id);
+            .FirstOrDefaultAsync(p => p.ProductId == productId);
 
-        return _mapper.Map<ProductDTO>(product);
-    }
-
-    public async Task<ProductDTO> CreateProductAsync(CreateProductDTO createProductDto)
-    {
-        var product = _mapper.Map<Product>(createProductDto);
-        product.CreatedAt = DateTime.UtcNow;
-
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-
-        // Add product images
-        if (createProductDto.ImageUrls.Any())
-        {
-            var productImages = createProductDto.ImageUrls.Select((url, index) => new ProductImage
-            {
-                ProductId = product.ProductId,
-                ImageUrl = url,
-                IsMain = index == 0 // First image is main
-            }).ToList();
-
-            _context.ProductImages.AddRange(productImages);
-            await _context.SaveChangesAsync();
-        }
-
-        return await GetProductByIdAsync(product.ProductId) ?? throw new InvalidOperationException("Failed to create product");
-    }
-
-    public async Task<ProductDTO> UpdateProductAsync(int id, UpdateProductDTO updateProductDto)
-    {
-        var product = await _context.Products.FindAsync(id);
         if (product == null)
-        {
-            throw new InvalidOperationException("Product not found");
-        }
+            return new List<Product>();
 
-        _mapper.Map(updateProductDto, product);
-        product.UpdatedAt = DateTime.UtcNow;
-
-        // Update product images
-        var existingImages = await _context.ProductImages.Where(pi => pi.ProductId == id).ToListAsync();
-        _context.ProductImages.RemoveRange(existingImages);
-
-        if (updateProductDto.ImageUrls.Any())
-        {
-            var productImages = updateProductDto.ImageUrls.Select((url, index) => new ProductImage
-            {
-                ProductId = product.ProductId,
-                ImageUrl = url,
-                IsMain = index == 0
-            }).ToList();
-
-            _context.ProductImages.AddRange(productImages);
-        }
-
-        await _context.SaveChangesAsync();
-
-        return await GetProductByIdAsync(id) ?? throw new InvalidOperationException("Failed to update product");
-    }
-
-    public async Task<bool> DeleteProductAsync(int id)
-    {
-        var product = await _context.Products.FindAsync(id);
-        if (product == null)
-        {
-            return false;
-        }
-
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    // Filtering and searching
-    public async Task<List<ProductDTO>> GetProductsByCategoryAsync(int categoryId)
-    {
-        var products = await _context.Products
+        return await _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductImages)
-            .Where(p => p.CategoryId == categoryId)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
-    }
-
-    public async Task<List<ProductDTO>> SearchProductsAsync(string searchTerm)
-    {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .Where(p => p.ProductName.Contains(searchTerm) || (p.Description != null && p.Description.Contains(searchTerm)))
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
-    }
-
-    public async Task<List<ProductDTO>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice)
-    {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
-            .OrderBy(p => p.Price)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
-    }
-
-    // Special queries
-    public async Task<List<ProductDTO>> GetFeaturedProductsAsync()
-    {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(8)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
-    }
-
-    public async Task<List<ProductDTO>> GetNewestProductsAsync()
-    {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(12)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
-    }
-
-    public async Task<List<ProductDTO>> GetTopSellingProductsAsync(int count)
-    {
-        // This would need to be implemented based on order history
-        // For now, return newest products
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
+            .Where(p => p.CategoryId == product.CategoryId && p.ProductId != productId)
+            .Where(p => p.StockQuantity > 0)
             .OrderByDescending(p => p.CreatedAt)
             .Take(count)
             .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
     }
 
-    public async Task<List<ProductDTO>> GetLowStockProductsAsync(int count)
+    public async Task<List<Product>> GetProductsByCategoryAsync(int categoryId, int count = 12)
     {
-        var products = await _context.Products
+        return await _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductImages)
-            .Where(p => p.StockQuantity <= 10) // Low stock threshold
-            .OrderBy(p => p.StockQuantity)
+            .Where(p => p.CategoryId == categoryId && p.StockQuantity > 0)
+            .OrderByDescending(p => p.CreatedAt)
             .Take(count)
             .ToListAsync();
-
-        return _mapper.Map<List<ProductDTO>>(products);
     }
 
-    // Stock management
+    public async Task<List<Product>> SearchProductsAsync(string searchTerm, int count = 20)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductImages)
+            .Where(p => p.ProductName.Contains(searchTerm) ||
+                       (p.Description != null && p.Description.Contains(searchTerm)))
+            .Where(p => p.StockQuantity > 0)
+            .OrderByDescending(p => p.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
     public async Task<bool> UpdateStockAsync(int productId, int quantity)
     {
         var product = await _context.Products.FindAsync(productId);
         if (product == null)
-        {
             return false;
-        }
 
-        product.StockQuantity = quantity;
+        if (product.StockQuantity < quantity)
+            return false;
+
+        product.StockQuantity -= quantity;
         product.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
 
+        await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> IsProductInStockAsync(int productId)
+    public async Task<List<Product>> GetLowStockProductsAsync(int threshold = 10)
     {
-        var product = await _context.Products.FindAsync(productId);
-        return product?.StockQuantity > 0;
+        return await _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.StockQuantity <= threshold && p.StockQuantity > 0)
+            .OrderBy(p => p.StockQuantity)
+            .ToListAsync();
     }
 
-    // Statistics
-    public async Task<int> GetTotalProductsCountAsync()
+    public async Task<List<Product>> GetOutOfStockProductsAsync()
     {
-        return await _context.Products.CountAsync();
+        return await _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.StockQuantity == 0)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
     }
+}
 
-    public async Task<decimal> GetTotalProductsValueAsync()
-    {
-        return await _context.Products.SumAsync(p => p.Price * p.StockQuantity);
-    }
+public class PagedResult<T>
+{
+    public List<T> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
 }

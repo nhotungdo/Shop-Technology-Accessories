@@ -1,28 +1,37 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using AutoMapper;
 using ShopTechnology.Services;
-using ShopTechnology.DTOs;
 using ShopTechnology.Middleware;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews()
-    .AddRazorRuntimeCompilation();
+builder.Services.AddControllersWithViews();
 
-// EF Core
+// Add DbContext
 builder.Services.AddDbContext<ShopTechnologyAccessoriesContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
+// Add Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+    });
 
-// Session
+// Add Authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+});
+
+// Add Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -30,44 +39,37 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Caching & Compression
-builder.Services.AddResponseCaching();
-builder.Services.AddResponseCompression();
+// Add Logging
+builder.Services.AddLogging();
 
-// App services
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// Register Services
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IWishlistService, WishlistService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IPromotionService, PromotionService>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IPromotionService, PromotionService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
-// Auth (JWT for future API endpoints)
-// builder.Services.AddAuthentication(options =>
-// {
-//     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-// })
-// .AddJwtBearer(options =>
-// {
-//     options.TokenValidationParameters = new TokenValidationParameters
-//     {
-//         ValidateIssuer = true,
-//         ValidateAudience = true,
-//         ValidateLifetime = true,
-//         ValidateIssuerSigningKey = true,
-//         ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//         ValidAudience = builder.Configuration["Jwt:Audience"],
-//         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKey123!@#$%^&*()"))
-//     };
-// });
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -79,37 +81,30 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseResponseCompression();
-app.UseResponseCaching();
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseSession();
 
-// Add custom middleware for Admin authentication
-app.UseAdminAuthentication();
+// Add Admin Authentication Middleware
+app.UseMiddleware<AdminAuthenticationMiddleware>();
 
-// app.UseAuthentication();
-// app.UseAuthorization();
-
+// Configure routing for areas
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
-
-// Specific route for Admin area
-app.MapControllerRoute(
-    name: "admin",
-    pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}",
-    defaults: new { area = "Admin" });
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// khi chạy chương trình sẽ tự động đến trang chủ
-app.MapControllerRoute(
-    name: "home",
-    pattern: "",
-    defaults: new { controller = "Home", action = "Index" });
-
-
+// Ensure database is created
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ShopTechnologyAccessoriesContext>();
+    context.Database.EnsureCreated();
+}
 
 app.Run();

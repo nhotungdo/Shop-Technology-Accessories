@@ -1,32 +1,24 @@
-using ShopTechnology.DTOs;
+using ShopTechnology.Models;
 
 namespace ShopTechnology.Services;
 
 public interface IProductService
 {
-    // Basic CRUD operations
-    Task<List<ProductDTO>> GetAllProductsAsync();
-    Task<ProductDTO?> GetProductByIdAsync(int id);
-    Task<ProductDTO> CreateProductAsync(CreateProductDTO createProductDto);
-    Task<ProductDTO> UpdateProductAsync(int id, UpdateProductDTO updateProductDto);
-    Task<bool> DeleteProductAsync(int id);
-    
-    // Filtering and searching
-    Task<List<ProductDTO>> GetProductsByCategoryAsync(int categoryId);
-    Task<List<ProductDTO>> SearchProductsAsync(string searchTerm);
-    Task<List<ProductDTO>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
-    
-    // Special queries
-    Task<List<ProductDTO>> GetFeaturedProductsAsync();
-    Task<List<ProductDTO>> GetNewestProductsAsync();
-    Task<List<ProductDTO>> GetTopSellingProductsAsync(int count);
-    Task<List<ProductDTO>> GetLowStockProductsAsync(int count);
-    
-    // Stock management
+    Task<Product?> GetProductByIdAsync(int id);
+    Task<PagedResult<Product>> GetProductsAsync(
+        int? categoryId = null, 
+        string? searchTerm = null, 
+        decimal? minPrice = null, 
+        decimal? maxPrice = null, 
+        string? sortBy = null, 
+        int page = 1, 
+        int pageSize = 12);
+    Task<List<Product>> GetFeaturedProductsAsync(int count = 8);
+    Task<List<Product>> GetLatestProductsAsync(int count = 6);
+    Task<List<Product>> GetRelatedProductsAsync(int productId, int count = 4);
+    Task<List<Product>> GetProductsByCategoryAsync(int categoryId, int count = 12);
+    Task<List<Product>> SearchProductsAsync(string searchTerm, int count = 20);
     Task<bool> UpdateStockAsync(int productId, int quantity);
-    Task<bool> IsProductInStockAsync(int productId);
-    
-    // Statistics
-    Task<int> GetTotalProductsCountAsync();
-    Task<decimal> GetTotalProductsValueAsync();
+    Task<List<Product>> GetLowStockProductsAsync(int threshold = 10);
+    Task<List<Product>> GetOutOfStockProductsAsync();
 }

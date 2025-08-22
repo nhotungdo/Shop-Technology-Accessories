@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|f:\\prn212-review\\shoptechnology\\shop-technology-accessories\\shoptechnology\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|solutionrelative:shoptechnology\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|f:\\prn212-review\\shoptechnology\\shop-technology-accessories\\shoptechnology\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|solutionrelative:shoptechnology\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -119,10 +123,6 @@
       "RelativeMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|solutionrelative:shoptechnology\\services\\iuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|f:\\prn212-review\\shoptechnology\\shop-technology-accessories\\shoptechnology\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|solutionrelative:shoptechnology\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|f:\\prn212-review\\shoptechnology\\shop-technology-accessories\\shoptechnology\\areas\\admin\\views\\users\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{3FA084B0-2644-4D5A-9AF1-6637186CE005}|ShopTechnology\\ShopTechnology.csproj|solutionrelative:shoptechnology\\areas\\admin\\views\\users\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
@@ -174,7 +174,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 11,
+          "SelectedChildIndex": 17,
           "Children": [
             {
               "$type": "Bookmark",
@@ -222,46 +222,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "AccountController.cs",
-              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\AccountController.cs",
-              "RelativeDocumentMoniker": "ShopTechnology\\Controllers\\AccountController.cs",
-              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\AccountController.cs",
-              "RelativeToolTip": "ShopTechnology\\Controllers\\AccountController.cs",
-              "ViewState": "AgIAAOIAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:29:37.814Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "OrderService.cs",
-              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\OrderService.cs",
-              "RelativeDocumentMoniker": "ShopTechnology\\Services\\OrderService.cs",
-              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\OrderService.cs",
-              "RelativeToolTip": "ShopTechnology\\Services\\OrderService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:28:06.268Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "PromotionService.cs",
-              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\PromotionService.cs",
-              "RelativeDocumentMoniker": "ShopTechnology\\Services\\PromotionService.cs",
-              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\PromotionService.cs",
-              "RelativeToolTip": "ShopTechnology\\Services\\PromotionService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:28:05.618Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "WishlistService.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\WishlistService.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Services\\WishlistService.cs",
@@ -269,12 +230,11 @@
               "RelativeToolTip": "ShopTechnology\\Services\\WishlistService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:28:04.921Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:28:04.921Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "UserService.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\UserService.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Services\\UserService.cs",
@@ -282,12 +242,11 @@
               "RelativeToolTip": "ShopTechnology\\Services\\UserService.cs",
               "ViewState": "AgIAAAkBAAAAAAAAAAAAABYBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:27:59.092Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:27:59.092Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "PasswordReset.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\PasswordReset.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\PasswordReset.cs",
@@ -295,12 +254,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\PasswordReset.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:23:17.089Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:23:17.089Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ShopTechnologyAccessoriesContext.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\ShopTechnologyAccessoriesContext.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\ShopTechnologyAccessoriesContext.cs",
@@ -308,12 +266,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\ShopTechnologyAccessoriesContext.cs",
               "ViewState": "AgIAACcAAAAAAAAAAAAqwCgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:22:47.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:22:47.612Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "LoginService.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\LoginService.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Services\\LoginService.cs",
@@ -321,12 +278,11 @@
               "RelativeToolTip": "ShopTechnology\\Services\\LoginService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:28:06.842Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:28:06.842Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "OrderDetail.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\OrderDetail.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\OrderDetail.cs",
@@ -334,12 +290,49 @@
               "RelativeToolTip": "ShopTechnology\\Models\\OrderDetail.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:23:04.353Z",
+              "WhenOpened": "2025-08-22T14:23:04.353Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Program.cs",
+              "RelativeDocumentMoniker": "ShopTechnology\\Program.cs",
+              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Program.cs",
+              "RelativeToolTip": "ShopTechnology\\Program.cs",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAhwGMAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-18T16:39:14.591Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 5,
+              "Title": "PromotionService.cs",
+              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\PromotionService.cs",
+              "RelativeDocumentMoniker": "ShopTechnology\\Services\\PromotionService.cs",
+              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\PromotionService.cs",
+              "RelativeToolTip": "ShopTechnology\\Services\\PromotionService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-22T14:28:05.618Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "ShopTechnology\\Controllers\\AccountController.cs",
+              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "ShopTechnology\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAAFcBAAAAAAAAAAAowAIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-22T14:29:37.814Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
               "Title": "Promotion.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\Promotion.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\Promotion.cs",
@@ -347,12 +340,23 @@
               "RelativeToolTip": "ShopTechnology\\Models\\Promotion.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:22:58.679Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:22:58.679Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 4,
+              "Title": "OrderService.cs",
+              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\OrderService.cs",
+              "RelativeDocumentMoniker": "ShopTechnology\\Services\\OrderService.cs",
+              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\OrderService.cs",
+              "RelativeToolTip": "ShopTechnology\\Services\\OrderService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-22T14:28:06.268Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
               "Title": "Review.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\Review.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\Review.cs",
@@ -360,12 +364,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\Review.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-22T14:22:57.652Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:22:57.652Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "Order.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\Order.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\Order.cs",
@@ -373,12 +376,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\Order.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:40:40.223Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-18T16:40:40.223Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Category.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\Category.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\Category.cs",
@@ -386,12 +388,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\Category.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:40:24.328Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-18T16:40:24.328Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "User.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\User.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\User.cs",
@@ -399,12 +400,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\User.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAA1wBYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:40:29.2Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-18T16:40:29.2Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "appsettings.json",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\appsettings.json",
               "RelativeDocumentMoniker": "ShopTechnology\\appsettings.json",
@@ -412,12 +412,11 @@
               "RelativeToolTip": "ShopTechnology\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-08-22T14:22:16.262Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T14:22:16.262Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "Wishlist.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\Wishlist.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\Wishlist.cs",
@@ -425,12 +424,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\Wishlist.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:40:30.036Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-18T16:40:30.036Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "Login.cshtml",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Account\\Login.cshtml",
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Account\\Login.cshtml",
@@ -438,12 +436,11 @@
               "RelativeToolTip": "ShopTechnology\\Views\\Account\\Login.cshtml",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABAAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-08-21T17:01:51.55Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-21T17:01:51.55Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "CartItem.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\CartItem.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\CartItem.cs",
@@ -451,12 +448,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\CartItem.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:40:23.408Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-18T16:40:23.408Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "Role.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Models\\Role.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Models\\Role.cs",
@@ -464,12 +460,11 @@
               "RelativeToolTip": "ShopTechnology\\Models\\Role.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:40:32.648Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-18T16:40:32.648Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "Profile.cshtml",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Account\\Profile.cshtml",
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Account\\Profile.cshtml",
@@ -477,12 +472,11 @@
               "RelativeToolTip": "ShopTechnology\\Views\\Account\\Profile.cshtml",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAM8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-08-21T17:18:40.388Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-21T17:18:40.388Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "CartApiController.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\Api\\CartApiController.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Controllers\\Api\\CartApiController.cs",
@@ -494,7 +488,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "Details.cshtml",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Product\\Details.cshtml",
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Product\\Details.cshtml",
@@ -506,7 +500,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "ForgotPassword.cshtml",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Account\\ForgotPassword.cshtml",
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Account\\ForgotPassword.cshtml",
@@ -514,12 +508,11 @@
               "RelativeToolTip": "ShopTechnology\\Views\\Account\\ForgotPassword.cshtml",
               "ViewState": "AgIAABAAAAAAAAAAAAAawBAAAAA+AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-08-21T17:18:36.224Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-21T17:18:36.224Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "ResetPassword.cshtml",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Account\\ResetPassword.cshtml",
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Account\\ResetPassword.cshtml",
@@ -527,12 +520,11 @@
               "RelativeToolTip": "ShopTechnology\\Views\\Account\\ResetPassword.cshtml",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-08-22T13:59:45.919Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-22T13:59:45.919Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "ProductsApiController.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\Api\\ProductsApiController.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Controllers\\Api\\ProductsApiController.cs",
@@ -544,7 +536,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "Register.cshtml",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Views\\Account\\Register.cshtml",
               "RelativeDocumentMoniker": "ShopTechnology\\Views\\Account\\Register.cshtml",
@@ -552,12 +544,11 @@
               "RelativeToolTip": "ShopTechnology\\Views\\Account\\Register.cshtml",
               "ViewState": "AgIAABAAAAAAAAAAAAAawBAAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-08-21T17:18:43.986Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-21T17:18:43.986Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "CartController.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Controllers\\CartController.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Controllers\\CartController.cs",
@@ -569,7 +560,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "AutoMapperProfile.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\AutoMapperProfile.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Services\\AutoMapperProfile.cs",
@@ -605,7 +596,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "IUserService.cs",
               "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Services\\IUserService.cs",
               "RelativeDocumentMoniker": "ShopTechnology\\Services\\IUserService.cs",
@@ -614,18 +605,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-21T16:40:37.606Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 29,
-              "Title": "Program.cs",
-              "DocumentMoniker": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Program.cs",
-              "RelativeDocumentMoniker": "ShopTechnology\\Program.cs",
-              "ToolTip": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\Program.cs",
-              "RelativeToolTip": "ShopTechnology\\Program.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAAAGYAAAAUAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T16:39:14.591Z"
             },
             {
               "$type": "Document",

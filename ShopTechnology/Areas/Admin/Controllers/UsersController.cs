@@ -1,146 +1,95 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ShopTechnology.Models;
 using ShopTechnology.Services;
-using ShopTechnology.DTOs;
 
 namespace ShopTechnology.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles = "Admin")]
 public class UsersController : Controller
 {
+    private readonly ShopTechnologyAccessoriesContext _context;
     private readonly IUserService _userService;
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService)
+    public UsersController(
+        ShopTechnologyAccessoriesContext context,
+        IUserService userService,
+        ILogger<UsersController> logger)
     {
+        _context = context;
         _userService = userService;
+        _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm, string? role, bool? isActive, int page = 1)
     {
         try
         {
-            var users = await _userService.GetAllUsersAsync();
+            const int pageSize = 20;
+            var query = _context.Users
+                .Include(u => u.Role)
+                .AsQueryable();
+
+            // Filter by search term
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(u =>
+                    u.FullName.Contains(searchTerm) ||
+                    u.Email.Contains(searchTerm) ||
+                    u.PhoneNumber.Contains(searchTerm));
+            }
+
+            // Filter by role
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                query = query.Where(u => u.Role.RoleName == role);
+            }
+
+            // Filter by active status
+            if (isActive.HasValue)
+            {
+                query = query.Where(u => u.IsActive == isActive.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+            var users = await query
+                .OrderByDescending(u => u.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var roles = await _context.Roles.ToListAsync();
+
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.Role = role;
+            ViewBag.IsActive = isActive;
+            ViewBag.Roles = roles;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.TotalCount = totalCount;
+
             return View(users);
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError("", "An error occurred while loading users.");
-            return View(new List<UserDTO>());
+            _logger.LogError(ex, "Error loading users list");
+            return View("Error");
         }
-    }
-
-    public IActionResult Create()
-    {
-        return View(new CreateUserDTO());
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateUserDTO createUserDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(createUserDto);
-        }
-
-        try
-        {
-            await _userService.CreateUserAsync(createUserDto);
-            TempData["Success"] = "User created successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-        catch (InvalidOperationException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            return View(createUserDto);
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", "An error occurred while creating the user.");
-            return View(createUserDto);
-        }
-    }
-
-    public async Task<IActionResult> Edit(Guid id)
-    {
-        try
-        {
-            var user = await _userService.GetUserByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            var updateUserDto = new UpdateUserDTO
-            {
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber
-            };
-
-            return View(updateUserDto);
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", "An error occurred while loading the user.");
-            return View(new UpdateUserDTO());
-        }
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, UpdateUserDTO updateUserDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(updateUserDto);
-        }
-
-        try
-        {
-            await _userService.UpdateUserAsync(id, updateUserDto);
-            TempData["Success"] = "User updated successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-        catch (InvalidOperationException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            return View(updateUserDto);
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", "An error occurred while updating the user.");
-            return View(updateUserDto);
-        }
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        try
-        {
-            var result = await _userService.DeleteUserAsync(id);
-            if (result)
-            {
-                TempData["Success"] = "User deleted successfully.";
-            }
-            else
-            {
-                TempData["Error"] = "User not found.";
-            }
-        }
-        catch (Exception ex)
-        {
-            TempData["Error"] = "An error occurred while deleting the user.";
-        }
-
-        return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Details(Guid id)
     {
         try
         {
-            var user = await _userService.GetUserByIdAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.Orders)
+                .Include(u => u.Reviews)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
             if (user == null)
             {
                 return NotFound();
@@ -150,8 +99,306 @@ public class UsersController : Controller
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError("", "An error occurred while loading the user.");
-            return View(new UserDTO());
+            _logger.LogError(ex, "Error loading user details for ID: {UserId}", id);
+            return View("Error");
+        }
+    }
+
+    public async Task<IActionResult> Create()
+    {
+        try
+        {
+            var roles = await _context.Roles.ToListAsync();
+            ViewBag.Roles = roles;
+            return View();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading create user form");
+            return View("Error");
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(User user)
+    {
+        try
+        {
+            if (ModelState.IsValid)
+            {
+                // Check if email already exists
+                if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+                {
+                    ModelState.AddModelError("Email", "Email đã được sử dụng");
+                    var roles = await _context.Roles.ToListAsync();
+                    ViewBag.Roles = roles;
+                    return View(user);
+                }
+
+                user.UserId = Guid.NewGuid();
+                user.CreatedAt = DateTime.UtcNow;
+                user.IsActive = true;
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Người dùng đã được tạo thành công!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var roles = await _context.Roles.ToListAsync();
+            ViewBag.Roles = roles;
+            return View(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating user");
+            ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi tạo người dùng");
+
+            var roles = await _context.Roles.ToListAsync();
+            ViewBag.Roles = roles;
+            return View(user);
+        }
+    }
+
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var roles = await _context.Roles.ToListAsync();
+            ViewBag.Roles = roles;
+            return View(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading edit user form for ID: {UserId}", id);
+            return View("Error");
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, User user)
+    {
+        try
+        {
+            if (id != user.UserId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                var existingUser = await _context.Users.FindAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound();
+                }
+
+                // Check if email already exists (excluding current user)
+                if (await _context.Users.AnyAsync(u => u.Email == user.Email && u.UserId != id))
+                {
+                    ModelState.AddModelError("Email", "Email đã được sử dụng");
+                    var roles = await _context.Roles.ToListAsync();
+                    ViewBag.Roles = roles;
+                    return View(user);
+                }
+
+                existingUser.FullName = user.FullName;
+                existingUser.Email = user.Email;
+                existingUser.PhoneNumber = user.PhoneNumber;
+                existingUser.Address = user.Address;
+                existingUser.City = user.City;
+                existingUser.PostalCode = user.PostalCode;
+                existingUser.RoleId = user.RoleId;
+                existingUser.IsActive = user.IsActive;
+                existingUser.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Thông tin người dùng đã được cập nhật thành công!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var roles = await _context.Roles.ToListAsync();
+            ViewBag.Roles = roles;
+            return View(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user with ID: {UserId}", id);
+            ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi cập nhật người dùng");
+
+            var roles = await _context.Roles.ToListAsync();
+            ViewBag.Roles = roles;
+            return View(user);
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ToggleActive(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Người dùng không tồn tại" });
+            }
+
+            user.IsActive = !user.IsActive;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = user.IsActive ? "Người dùng đã được kích hoạt" : "Người dùng đã bị khóa",
+                isActive = user.IsActive
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling user active status for ID: {UserId}", userId);
+            return Json(new { success = false, message = "Có lỗi xảy ra" });
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ChangeRole(Guid userId, int roleId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Người dùng không tồn tại" });
+            }
+
+            var role = await _context.Roles.FindAsync(roleId);
+            if (role == null)
+            {
+                return Json(new { success = false, message = "Vai trò không tồn tại" });
+            }
+
+            user.RoleId = roleId;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = $"Vai trò đã được thay đổi thành: {role.RoleName}",
+                roleName = role.RoleName
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing user role for ID: {UserId}", userId);
+            return Json(new { success = false, message = "Có lỗi xảy ra" });
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CustomerOrders(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Orders)
+                .ThenInclude(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading customer orders for ID: {UserId}", userId);
+            return View("Error");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CustomerReviews(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Reviews)
+                .ThenInclude(r => r.Product)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading customer reviews for ID: {UserId}", userId);
+            return View("Error");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportUsers(string? role, bool? isActive)
+    {
+        try
+        {
+            var query = _context.Users
+                .Include(u => u.Role)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                query = query.Where(u => u.Role.RoleName == role);
+            }
+
+            if (isActive.HasValue)
+            {
+                query = query.Where(u => u.IsActive == isActive.Value);
+            }
+
+            var users = await query
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+
+            // Generate CSV content
+            var csvContent = "User ID,Full Name,Email,Phone,Role,Status,Created Date,Last Login\n";
+
+            foreach (var user in users)
+            {
+                csvContent += $"{user.UserId},{user.FullName},{user.Email},{user.PhoneNumber},{user.Role.RoleName},{user.IsActive},{user.CreatedAt:yyyy-MM-dd HH:mm},{user.LastLoginAt:yyyy-MM-dd HH:mm}\n";
+            }
+
+            var fileName = $"users_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+
+            return File(bytes, "text/csv", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting users");
+            TempData["ErrorMessage"] = "Có lỗi xảy ra khi xuất dữ liệu";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

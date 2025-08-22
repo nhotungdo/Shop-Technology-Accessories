@@ -1,303 +1,376 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using ShopTechnology.ViewModels;
-using ShopTechnology.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShopTechnology.Models;
 using ShopTechnology.Services;
-using ShopTechnology.DTOs;
+using ShopTechnology.ViewModels;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ShopTechnology.Controllers;
 
 public class AccountController : Controller
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly IUserService _userService;
-    private readonly ILoginService _loginService;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(ShopTechnologyAccessoriesContext context, IUserService userService, ILoginService loginService)
+    public AccountController(
+        ShopTechnologyAccessoriesContext context,
+        IEmailService emailService,
+        ILogger<AccountController> logger)
     {
         _context = context;
-        _userService = userService;
-        _loginService = loginService;
+        _emailService = emailService;
+        _logger = logger;
     }
 
-    public IActionResult Login() => View();
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
 
     [HttpPost]
-    public async Task<IActionResult> Login(LoginViewModel model)
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
-        if (!ModelState.IsValid) return View(model);
+        ViewData["ReturnUrl"] = returnUrl;
 
-        try
+        if (ModelState.IsValid)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            var loginResult = await _loginService.ValidateUserAsync(model.Email, model.Password);
-
-            if (loginResult.IsValid && loginResult.UserId.HasValue)
+            try
             {
-                await _loginService.LogLoginAttemptAsync(model.Email, true, ipAddress, userAgent);
+                var user = await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Email == model.Email);
 
-                HttpContext.Session.SetString("UserId", loginResult.UserId.Value.ToString());
-                HttpContext.Session.SetString("UserEmail", model.Email);
-                HttpContext.Session.SetString("UserName", loginResult.FullName ?? "User");
-                HttpContext.Session.SetString("UserRole", loginResult.RoleName ?? "User");
+                if (user != null && VerifyPassword(model.Password, user.PasswordHash))
+                {
+                    if (!user.IsActive)
+                    {
+                        ModelState.AddModelError(string.Empty, "Tài khoản đã bị khóa. Vui lòng liên hệ admin.");
+                        return View(model);
+                    }
 
-                return loginResult.RoleName?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true
-                    ? RedirectToAction("Index", "Dashboard", new { area = "Admin" })
-                    : RedirectToAction("Index", "Home");
+                    // Update last login
+                    user.LastLoginAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+
+                    // Create claims
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                        new Claim(ClaimTypes.Name, user.FullName),
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, user.Role.RoleName)
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = model.RememberMe,
+                        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+                    };
+
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
+
+                    _logger.LogInformation("User {Email} logged in successfully", user.Email);
+
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+
+                    return RedirectToAction("Index", "Home");
+                }
+
+                ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
             }
-
-            await _loginService.LogLoginAttemptAsync(model.Email, false, ipAddress, userAgent);
-            ModelState.AddModelError("", loginResult.ErrorMessage ?? "Email hoặc mật khẩu không đúng");
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", "Có lỗi xảy ra khi đăng nhập: " + ex.Message);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for email: {Email}", model.Email);
+                ModelState.AddModelError(string.Empty, "Có lỗi xảy ra. Vui lòng thử lại.");
+            }
         }
 
         return View(model);
     }
 
-    public IActionResult Register() => View();
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
 
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
-
-        try
+        if (ModelState.IsValid)
         {
-            if (await _userService.IsEmailExistsAsync(model.Email))
+            try
             {
-                ModelState.AddModelError("Email", "Email đã được sử dụng");
-                return View(model);
+                // Check if email already exists
+                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
+                {
+                    ModelState.AddModelError("Email", "Email đã được sử dụng.");
+                    return View(model);
+                }
+
+                // Get default user role
+                var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
+                if (userRole == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Không thể tạo tài khoản. Vui lòng thử lại sau.");
+                    return View(model);
+                }
+
+                var user = new User
+                {
+                    UserId = Guid.NewGuid(),
+                    FullName = model.FullName,
+                    Email = model.Email,
+                    PasswordHash = HashPassword(model.Password),
+                    PhoneNumber = model.PhoneNumber,
+                    RoleId = userRole.RoleId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("New user registered: {Email}", user.Email);
+
+                TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+                return RedirectToAction(nameof(Login));
             }
-
-            var createUserDto = new CreateUserDTO
+            catch (Exception ex)
             {
-                FullName = model.FullName,
-                Email = model.Email,
-                Password = model.Password,
-                PhoneNumber = model.PhoneNumber,
-                RoleId = 2
-            };
-
-            await _userService.CreateUserAsync(createUserDto);
-            TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
-            return RedirectToAction(nameof(Login));
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", "Có lỗi xảy ra khi đăng ký: " + ex.Message);
+                _logger.LogError(ex, "Error during registration for email: {Email}", model.Email);
+                ModelState.AddModelError(string.Empty, "Có lỗi xảy ra. Vui lòng thử lại.");
+            }
         }
 
         return View(model);
     }
 
-    public IActionResult Logout()
+    [HttpPost]
+    public async Task<IActionResult> Logout()
     {
-        HttpContext.Session.Clear();
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Index", "Home");
     }
 
-    public IActionResult ForgotPassword() => View();
-
-    [HttpPost]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordDTO model)
-    {
-        if (!ModelState.IsValid) return View(model);
-
-        try
-        {
-            var result = await _userService.ForgotPasswordAsync(model.Email);
-            TempData[result ? "SuccessMessage" : "ErrorMessage"] = result
-                ? "Đã gửi email hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn."
-                : "Email không tồn tại trong hệ thống.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
-        }
-
-        return View(model);
-    }
-
-    public async Task<IActionResult> ResetPassword(string token, string email)
-    {
-        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
-        {
-            TempData["ErrorMessage"] = "Link đặt lại mật khẩu không hợp lệ.";
-            return RedirectToAction(nameof(Login));
-        }
-
-        var isValid = await _userService.ValidateResetTokenAsync(email, token);
-        if (!isValid)
-        {
-            TempData["ErrorMessage"] = "Link đặt lại mật khẩu đã hết hạn hoặc không hợp lệ.";
-            return RedirectToAction(nameof(Login));
-        }
-
-        return View(new ResetPasswordDTO { Token = token, Email = email });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> ResetPassword(ResetPasswordDTO model)
-    {
-        if (!ModelState.IsValid) return View(model);
-
-        try
-        {
-            var result = await _userService.ResetPasswordAsync(model.Email, model.Token, model.NewPassword);
-            if (result)
-            {
-                TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.";
-                return RedirectToAction(nameof(Login));
-            }
-            TempData["ErrorMessage"] = "Không thể đặt lại mật khẩu. Vui lòng thử lại.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
-        }
-
-        return View(model);
-    }
-
-
-
+    [HttpGet]
     public async Task<IActionResult> Profile()
     {
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId)) return RedirectToAction(nameof(Login));
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+        {
+            return RedirectToAction(nameof(Login));
+        }
 
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId.ToString() == userId);
+            .FirstOrDefaultAsync(u => u.UserId == userGuid);
 
-        if (user == null) return RedirectToAction(nameof(Login));
+        if (user == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
 
-        return View(new RegisterViewModel
+        var viewModel = new ProfileViewModel
         {
             FullName = user.FullName,
             Email = user.Email,
-            PhoneNumber = user.PhoneNumber
-        });
+            PhoneNumber = user.PhoneNumber,
+            Address = user.Address,
+            City = user.City,
+            PostalCode = user.PostalCode
+        };
+
+        return View(viewModel);
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateProfile(RegisterViewModel model)
+    public async Task<IActionResult> Profile(ProfileViewModel model)
     {
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId)) return RedirectToAction(nameof(Login));
-
-        if (!ModelState.IsValid) return View("Profile", model);
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId.ToString() == userId);
-        if (user == null) return RedirectToAction(nameof(Login));
-
-        user.FullName = model.FullName;
-        user.PhoneNumber = model.PhoneNumber;
-        user.UpdatedAt = DateTime.Now;
-
-        if (!string.IsNullOrEmpty(model.Password))
+        if (ModelState.IsValid)
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
-        }
-
-        await _context.SaveChangesAsync();
-        HttpContext.Session.SetString("UserName", user.FullName);
-        TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
-
-        return RedirectToAction(nameof(Profile));
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateAdminUser()
-    {
-        try
-        {
-            var result = await _userService.CreateAdminUserAsync();
-            TempData[result ? "SuccessMessage" : "InfoMessage"] = result
-                ? "Tài khoản admin đã được tạo thành công!"
-                : "Tài khoản admin đã tồn tại.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
-        }
-
-        return RedirectToAction(nameof(Login));
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateRoles()
-    {
-        try
-        {
-            var result = await _userService.CreateRolesAsync();
-            TempData[result ? "SuccessMessage" : "InfoMessage"] = result
-                ? "Roles đã được tạo thành công!"
-                : "Roles đã tồn tại.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
-        }
-
-        return RedirectToAction(nameof(Login));
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> FixPasswordHashes()
-    {
-        try
-        {
-            var result = await _userService.FixPasswordHashesAsync();
-            TempData[result ? "SuccessMessage" : "InfoMessage"] = result
-                ? "Password hashes đã được sửa thành công!"
-                : "Không có password hash nào cần sửa.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
-        }
-
-        return RedirectToAction(nameof(Login));
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> EnsureAdminExists()
-    {
-        try
-        {
-            // Kiểm tra xem admin user có tồn tại không
-            var adminUser = await _userService.GetUserByEmailAsync("donhotung2004@gmail.com");
-            
-            if (adminUser == null)
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
             {
-                // Tạo roles trước nếu chưa có
-                await _userService.CreateRolesAsync();
-                
-                // Tạo admin user
-                var result = await _userService.CreateAdminUserAsync();
-                TempData[result ? "SuccessMessage" : "ErrorMessage"] = result
-                    ? "Tài khoản admin đã được tạo thành công! Email: donhotung2004@gmail.com, Password: 123456"
-                    : "Không thể tạo tài khoản admin.";
+                return RedirectToAction(nameof(Login));
             }
-            else
+
+            var user = await _context.Users.FindAsync(userGuid);
+            if (user == null)
             {
-                TempData["InfoMessage"] = "Tài khoản admin đã tồn tại! Email: donhotung2004@gmail.com, Password: 123456";
+                return RedirectToAction(nameof(Login));
+            }
+
+            user.FullName = model.FullName;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Address = model.Address;
+            user.City = model.City;
+            user.PostalCode = model.PostalCode;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+                if (user != null)
+                {
+                    var token = GeneratePasswordResetToken();
+                    var expiresAt = DateTime.UtcNow.AddHours(24);
+
+                    var passwordReset = new PasswordReset
+                    {
+                        Email = model.Email,
+                        Token = token,
+                        ExpiresAt = expiresAt,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.PasswordResets.Add(passwordReset);
+                    await _context.SaveChangesAsync();
+
+                    // Send email
+                    var resetLink = Url.Action("ResetPassword", "Account",
+                        new { email = model.Email, token = token },
+                        Request.Scheme, Request.Host.Value);
+
+                    await _emailService.SendPasswordResetEmailAsync(model.Email, resetLink);
+
+                    _logger.LogInformation("Password reset requested for email: {Email}", model.Email);
+                }
+
+                // Always show success message to prevent email enumeration
+                TempData["SuccessMessage"] = "Nếu email tồn tại, chúng tôi đã gửi link đặt lại mật khẩu.";
+                return RedirectToAction(nameof(Login));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during forgot password for email: {Email}", model.Email);
+                ModelState.AddModelError(string.Empty, "Có lỗi xảy ra. Vui lòng thử lại.");
             }
         }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
-        }
 
-        return RedirectToAction(nameof(Login));
+        return View(model);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ResetPassword(string email, string token)
+    {
+        var passwordReset = await _context.PasswordResets
+            .FirstOrDefaultAsync(pr => pr.Email == email && pr.Token == token && !pr.IsUsed);
+
+        if (passwordReset == null || passwordReset.ExpiresAt < DateTime.UtcNow)
+        {
+            TempData["ErrorMessage"] = "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        var model = new ResetPasswordViewModel
+        {
+            Email = email,
+            Token = token
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                var passwordReset = await _context.PasswordResets
+                    .FirstOrDefaultAsync(pr => pr.Email == model.Email &&
+                                             pr.Token == model.Token &&
+                                             !pr.IsUsed);
+
+                if (passwordReset == null || passwordReset.ExpiresAt < DateTime.UtcNow)
+                {
+                    TempData["ErrorMessage"] = "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
+                    return RedirectToAction(nameof(Login));
+                }
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài khoản.";
+                    return RedirectToAction(nameof(Login));
+                }
+
+                user.PasswordHash = HashPassword(model.Password);
+                user.UpdatedAt = DateTime.UtcNow;
+
+                passwordReset.IsUsed = true;
+                passwordReset.UsedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Password reset completed for email: {Email}", model.Email);
+
+                TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
+                return RedirectToAction(nameof(Login));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during password reset for email: {Email}", model.Email);
+                ModelState.AddModelError(string.Empty, "Có lỗi xảy ra. Vui lòng thử lại.");
+            }
+        }
+
+        return View(model);
+    }
+
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashedBytes);
+    }
+
+    private bool VerifyPassword(string password, string hash)
+    {
+        return HashPassword(password) == hash;
+    }
+
+    private string GeneratePasswordResetToken()
+    {
+        return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .Replace("/", "_")
+            .Replace("+", "-")
+            .Substring(0, 22);
+    }
 }

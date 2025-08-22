@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ShopTechnology.Models;
 
 public partial class ShopTechnologyAccessoriesContext : DbContext
 {
+    private readonly IConfiguration _configuration;
+
     public ShopTechnologyAccessoriesContext()
     {
     }
@@ -13,6 +16,12 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
     public ShopTechnologyAccessoriesContext(DbContextOptions<ShopTechnologyAccessoriesContext> options)
         : base(options)
     {
+    }
+
+    public ShopTechnologyAccessoriesContext(DbContextOptions<ShopTechnologyAccessoriesContext> options, IConfiguration configuration)
+        : base(options)
+    {
+        _configuration = configuration;
     }
 
     public virtual DbSet<Cart> Carts { get; set; }
@@ -42,8 +51,22 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
     public virtual DbSet<PasswordReset> PasswordResets { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=NHOTUNG\\SQLEXPRESS;Database=ShopTechnologyAccessories;User Id=sa;Password=123;TrustServerCertificate=true;Trusted_Connection=SSPI;Encrypt=false;");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            // Sử dụng connection string với retry logic
+            var connectionString = _configuration?.GetConnectionString("DefaultConnection") 
+                ?? "Data Source=NHOTUNG\\SQLEXPRESS;Database=ShopTechnologyAccessories;User Id=sa;Password=123;TrustServerCertificate=true;Trusted_Connection=SSPI;Encrypt=false;";
+            
+            optionsBuilder.UseSqlServer(connectionString, options => 
+            {
+                options.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -236,8 +259,6 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
             entity.HasOne(d => d.Product).WithMany().HasForeignKey(d => d.ProductId);
         });
-
-
 
         modelBuilder.Entity<PasswordReset>(entity =>
         {

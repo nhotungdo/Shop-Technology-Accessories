@@ -52,7 +52,8 @@
                 </div>
             }
 
-            <form asp-controller="Account" asp-action="Login" method="post">
+            <form asp-controller="Account" asp-action="Login" method="post"
+                asp-route-returnurl="@ViewData["ReturnUrl"]">
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
                     <input asp-for="Email" type="email" class="form-input" placeholder="stanley@gmail.com" required />
@@ -60,7 +61,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="Password" class="form-label">Password</label>
+                    <label asp-for="Password" class="form-label">Mật khẩu</label>
                     <input asp-for="Password" type="password" class="form-input" placeholder="••••••••" required />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
@@ -68,45 +69,33 @@
                 <div class="form-options">
                     <label class="remember-me">
                         <input asp-for="RememberMe" type="checkbox" />
-                        Remember me
+                        Ghi nhớ tôi
                     </label>
-                    <a asp-controller="Account" asp-action="ForgotPassword" class="forgot-password">Forgot Password?</a>
+                    <a asp-controller="Account" asp-action="ForgotPassword" class="forgot-password">Quên mật khẩu?</a>
                 </div>
 
                 <button type="submit" class="login-button">
                     <span class="button-text">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
                     </span>
                     <span class="loading">
-                        <i class="fas fa-spinner spinner"></i> Signing in...
+                        <i class="fas fa-spinner spinner"></i> Đang đăng nhập...
                     </span>
                 </button>
             </form>
 
             <div class="signup-link">
-                Don't have an account? <a href="/Account/Register">Sign Up</a>
+                Chưa có tài khoản? <a href="/Account/Register">Đăng ký ngay</a>
             </div>
 
-            <!-- Admin Setup Buttons -->
-            <div class="admin-setup" style="margin-top: 20px; text-align: center;">
-                <form asp-action="CreateRoles" method="post" style="display: inline-block; margin-right: 10px;">
+            <!-- Setup Database Button (for debugging) -->
+            <div style="margin-top: 20px; text-align: center;">
+                <form asp-action="SetupDatabase" method="post">
                     <button type="submit" class="btn btn-outline-info btn-sm">
-                        <i class="fas fa-users-cog"></i> Tạo Roles
-                    </button>
-                </form>
-                <form asp-action="EnsureAdminExists" method="post" style="display: inline-block; margin-right: 10px;">
-                    <button type="submit" class="btn btn-outline-warning btn-sm">
-                        <i class="fas fa-user-shield"></i> Tạo Admin
-                    </button>
-                </form>
-                <form asp-action="FixPasswordHashes" method="post" style="display: inline-block;">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-key"></i> Sửa Passwords
+                        <i class="fas fa-database"></i> Setup Database & Admin
                     </button>
                 </form>
             </div>
-
-
         </div>
 
         <!-- Right Panel - Illustration -->
@@ -166,24 +155,6 @@
                     loading.classList.add('show');
                 });
             }
-
-            // Ensure Sign Up link works
-            const signUpLink = document.querySelector('.signup-link a');
-            if (signUpLink) {
-                signUpLink.addEventListener('click', function (e) {
-                    console.log('Sign Up link clicked');
-                    // Add visual feedback
-                    this.style.transform = 'scale(0.95)';
-                    this.style.backgroundColor = 'rgba(102, 126, 234, 0.2)';
-
-                    // Reset after animation
-                    setTimeout(() => {
-                        this.style.transform = '';
-                        this.style.backgroundColor = '';
-                    }, 150);
-                });
-            }
-
         });
     </script>
 </body>
