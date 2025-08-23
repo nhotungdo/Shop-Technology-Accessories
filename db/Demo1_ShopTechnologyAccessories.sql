@@ -52,6 +52,8 @@ CREATE TABLE Products (
     Description NVARCHAR(MAX) NULL,
     Price DECIMAL(18,2) NOT NULL,
     StockQuantity INT NOT NULL DEFAULT 0,
+     Rating FLOAT DEFAULT 0.0,
+	 ReviewCount INT DEFAULT 0,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     CONSTRAINT FK_Products_Categories FOREIGN KEY (CategoryId) REFERENCES Categories(CategoryId)
@@ -476,4 +478,5 @@ GO
 --     @job_name = N'CleanupExpiredPasswordResets',
 --     @schedule_name = N'DailyCleanup';
 GO
+
 

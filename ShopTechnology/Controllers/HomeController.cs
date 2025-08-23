@@ -15,7 +15,7 @@ public class HomeController : Controller
     private readonly ICategoryService _categoryService;
 
     public HomeController(
-        ILogger<HomeController> logger, 
+        ILogger<HomeController> logger,
         ShopTechnologyAccessoriesContext context,
         IProductService productService,
         ICategoryService categoryService)
@@ -50,18 +50,18 @@ public class HomeController : Controller
         }
     }
 
-    public async Task<IActionResult> Products(int? categoryId, string? searchTerm, 
+    public async Task<IActionResult> Products(int? categoryId, string? searchTerm,
         decimal? minPrice, decimal? maxPrice, string? sortBy, int page = 1)
     {
         try
         {
             const int pageSize = 12;
-            
+
             var products = await _productService.GetProductsAsync(
                 categoryId, searchTerm, minPrice, maxPrice, sortBy, page, pageSize);
-            
+
             var categories = await _categoryService.GetAllCategoriesAsync();
-            
+
             var viewModel = new ProductListViewModel
             {
                 Products = products.Items,
@@ -144,7 +144,7 @@ public class HomeController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        return View();
     }
 
     [HttpGet]
@@ -157,7 +157,7 @@ public class HomeController : Controller
 
         const int pageSize = 12;
         var products = await _productService.GetProductsAsync(null, q, null, null, null, page, pageSize);
-        
+
         var viewModel = new SearchViewModel
         {
             SearchTerm = q,
@@ -176,7 +176,7 @@ public class HomeController : Controller
         const int pageSize = 12;
         var products = await _productService.GetProductsAsync(id, null, null, null, null, page, pageSize);
         var category = await _categoryService.GetCategoryByIdAsync(id);
-        
+
         if (category == null)
         {
             return NotFound();
@@ -192,5 +192,32 @@ public class HomeController : Controller
         };
 
         return View(viewModel);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> TestDatabase()
+    {
+        try
+        {
+            var productCount = await _context.Products.CountAsync();
+            var categoryCount = await _context.Categories.CountAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = "Database connection successful",
+                productCount = productCount,
+                categoryCount = categoryCount
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Database connection failed",
+                error = ex.Message
+            });
+        }
     }
 }

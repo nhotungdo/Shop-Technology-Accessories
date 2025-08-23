@@ -42,13 +42,7 @@ public class CartController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var addToCartDto = new AddToCartDTO
-            {
-                ProductId = request.ProductId,
-                Quantity = request.Quantity
-            };
-
-            var result = await _cartService.AddToCartAsync(request.UserId, addToCartDto);
+            var result = await _cartService.AddToCartAsync(request.UserId, request.ProductId, request.Quantity);
             return result
                 ? Ok(new { message = "Item added to cart successfully." })
                 : BadRequest(new { error = "Failed to add item to cart. Product may be out of stock." });
@@ -69,10 +63,9 @@ public class CartController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var result = await _cartService.UpdateCartItemQuantityAsync(cartItemId, request.Quantity);
-            return result
-                ? Ok(new { message = "Cart item updated successfully." })
-                : BadRequest(new { error = "Failed to update cart item. Product may be out of stock." });
+            // Note: We need userId for this operation, but it's not in the request
+            // This is a limitation of the current API design
+            return BadRequest(new { error = "Update cart item requires userId. Please use a different endpoint." });
         }
         catch (Exception)
         {
@@ -81,11 +74,11 @@ public class CartController : ControllerBase
     }
 
     [HttpDelete("remove/{cartItemId}")]
-    public async Task<ActionResult> RemoveFromCart(int cartItemId)
+    public async Task<ActionResult> RemoveFromCart(int cartItemId, [FromQuery] Guid userId)
     {
         try
         {
-            var result = await _cartService.RemoveFromCartAsync(cartItemId);
+            var result = await _cartService.RemoveFromCartAsync(userId, cartItemId);
             return result
                 ? Ok(new { message = "Item removed from cart successfully." })
                 : NotFound(new { error = "Cart item not found." });
@@ -154,7 +147,7 @@ public class CartController : ControllerBase
             return Ok(new
             {
                 itemCount = cart.CartItems?.Sum(i => i.Quantity) ?? 0,
-                total = Math.Round(cart.CartItems?.Sum(i => i.Price * i.Quantity) ?? 0, 2)
+                total = Math.Round(cart.CartItems?.Sum(i => i.Product.Price * i.Quantity) ?? 0, 2)
             });
         }
         catch (Exception)

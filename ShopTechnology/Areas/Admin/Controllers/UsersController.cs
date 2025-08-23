@@ -131,8 +131,7 @@ public class UsersController : Controller
                 if (await _context.Users.AnyAsync(u => u.Email == user.Email))
                 {
                     ModelState.AddModelError("Email", "Email đã được sử dụng");
-                    var roles = await _context.Roles.ToListAsync();
-                    ViewBag.Roles = roles;
+                    ViewBag.Roles = await _context.Roles.ToListAsync();
                     return View(user);
                 }
 
@@ -147,8 +146,7 @@ public class UsersController : Controller
                 return RedirectToAction(nameof(Index));
             }
 
-            var roles = await _context.Roles.ToListAsync();
-            ViewBag.Roles = roles;
+            ViewBag.Roles = await _context.Roles.ToListAsync();
             return View(user);
         }
         catch (Exception ex)
@@ -156,8 +154,7 @@ public class UsersController : Controller
             _logger.LogError(ex, "Error creating user");
             ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi tạo người dùng");
 
-            var roles = await _context.Roles.ToListAsync();
-            ViewBag.Roles = roles;
+            ViewBag.Roles = await _context.Roles.ToListAsync();
             return View(user);
         }
     }
@@ -209,8 +206,7 @@ public class UsersController : Controller
                 if (await _context.Users.AnyAsync(u => u.Email == user.Email && u.UserId != id))
                 {
                     ModelState.AddModelError("Email", "Email đã được sử dụng");
-                    var roles = await _context.Roles.ToListAsync();
-                    ViewBag.Roles = roles;
+                    ViewBag.Roles = await _context.Roles.ToListAsync();
                     return View(user);
                 }
 
@@ -230,8 +226,7 @@ public class UsersController : Controller
                 return RedirectToAction(nameof(Index));
             }
 
-            var roles = await _context.Roles.ToListAsync();
-            ViewBag.Roles = roles;
+            ViewBag.Roles = await _context.Roles.ToListAsync();
             return View(user);
         }
         catch (Exception ex)
@@ -239,8 +234,7 @@ public class UsersController : Controller
             _logger.LogError(ex, "Error updating user with ID: {UserId}", id);
             ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi cập nhật người dùng");
 
-            var roles = await _context.Roles.ToListAsync();
-            ViewBag.Roles = roles;
+            ViewBag.Roles = await _context.Roles.ToListAsync();
             return View(user);
         }
     }

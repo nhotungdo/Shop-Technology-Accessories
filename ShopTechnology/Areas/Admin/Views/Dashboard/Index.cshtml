@@ -1,4 +1,4 @@
-@model ShopTechnology.Areas.Admin.Controllers.DashboardViewModel
+@model ShopTechnology.ViewModels.DashboardViewModel
 
 @{
     ViewData["Title"] = "Admin Dashboard";
@@ -122,7 +122,8 @@
                                             <td>@order.UserFullName</td>
                                             <td>@order.TotalAmount.ToString("C0")</td>
                                             <td>
-                                                <span class="badge badge-@(order.Status == "Completed" ? "success" : order.Status == "Pending" ? "warning" : "info")">
+                                                <span
+                                                    class="badge badge-@(order.Status == "Completed" ? "success" : order.Status == "Pending" ? "warning" : "info")">
                                                     @order.StatusDisplay
                                                 </span>
                                             </td>
@@ -171,7 +172,8 @@
                                             </td>
                                             <td>@product.CategoryName</td>
                                             <td>
-                                                <span class="badge badge-@(product.StockQuantity == 0 ? "danger" : product.StockQuantity <= 5 ? "warning" : "success")">
+                                                <span
+                                                    class="badge badge-@(product.StockQuantity == 0 ? "danger" : product.StockQuantity <= 5 ? "warning" : "success")">
                                                     @product.StockQuantity
                                                 </span>
                                             </td>
@@ -193,22 +195,27 @@
 </div>
 
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-.text-gray-800 {
-    color: #5a5c69 !important;
-}
-.text-gray-300 {
-    color: #dddfeb !important;
-}
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+
+    .border-left-success {
+        border-left: 0.25rem solid #1cc88a !important;
+    }
+
+    .border-left-info {
+        border-left: 0.25rem solid #36b9cc !important;
+    }
+
+    .border-left-warning {
+        border-left: 0.25rem solid #f6c23e !important;
+    }
+
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
 </style>

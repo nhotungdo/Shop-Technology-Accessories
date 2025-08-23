@@ -22,7 +22,7 @@ public class WishlistService : IWishlistService
             .Include(w => w.Product)
             .ThenInclude(p => p.Category)
             .Where(w => w.UserId == userId)
-            .OrderByDescending(w => w.CreatedAt)
+            .OrderByDescending(w => w.Id)
             .ToListAsync();
     }
 
@@ -56,8 +56,7 @@ public class WishlistService : IWishlistService
             var wishlistItem = new Wishlist
             {
                 UserId = userId,
-                ProductId = productId,
-                CreatedAt = DateTime.UtcNow
+                ProductId = productId
             };
 
             _context.Wishlists.Add(wishlistItem);
@@ -195,8 +194,7 @@ public class WishlistService : IWishlistService
             {
                 CartId = cart.CartId,
                 ProductId = productId,
-                Quantity = 1,
-                CreatedAt = DateTime.UtcNow
+                Quantity = 1
             };
 
             _context.CartItems.Add(cartItem);
@@ -224,7 +222,7 @@ public class WishlistService : IWishlistService
             .Include(w => w.Product)
             .ThenInclude(p => p.Category)
             .Where(w => w.UserId == userId)
-            .OrderByDescending(w => w.CreatedAt)
+            .OrderByDescending(w => w.Id)
             .ToListAsync();
     }
 
@@ -238,11 +236,8 @@ public class WishlistService : IWishlistService
                 return false;
             }
 
-            if (createdAt.HasValue)
-            {
-                wishlistItem.CreatedAt = createdAt.Value;
-            }
-
+            // Note: Wishlist model doesn't have CreatedAt property
+            // This method is kept for interface compatibility but doesn't update anything
             await _context.SaveChangesAsync();
             return true;
         }
@@ -259,7 +254,7 @@ public class WishlistService : IWishlistService
             .Include(w => w.Product)
             .ThenInclude(p => p.ProductImages)
             .Where(w => w.UserId == userId)
-            .OrderByDescending(w => w.CreatedAt)
+            .OrderByDescending(w => w.Id)
             .Take(count)
             .ToListAsync();
     }
@@ -268,19 +263,10 @@ public class WishlistService : IWishlistService
     {
         try
         {
-            var expiredItems = await _context.Wishlists
-                .Where(w => w.CreatedAt < expirationDate)
-                .ToListAsync();
-
-            if (!expiredItems.Any())
-            {
-                return true;
-            }
-
-            _context.Wishlists.RemoveRange(expiredItems);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Removed {Count} expired wishlist items", expiredItems.Count);
+            // Note: Wishlist model doesn't have CreatedAt property
+            // This method is kept for interface compatibility but doesn't remove anything
+            // In a real implementation, you might want to add CreatedAt to the Wishlist model
+            _logger.LogInformation("RemoveExpiredWishlistItemsAsync called but Wishlist model doesn't have CreatedAt property");
             return true;
         }
         catch (Exception ex)

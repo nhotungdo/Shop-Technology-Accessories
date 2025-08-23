@@ -35,71 +35,51 @@ public class DashboardController : Controller
     {
         try
         {
-            var today = DateTime.Today;
-            var thisMonth = new DateTime(today.Year, today.Month, 1);
-            var lastMonth = thisMonth.AddMonths(-1);
-
-            // Statistics
-            var totalRevenue = await _orderService.GetTotalRevenueAsync();
-            var monthlyRevenue = await _orderService.GetTotalRevenueAsync(thisMonth, today);
-            var lastMonthRevenue = await _orderService.GetTotalRevenueAsync(lastMonth, thisMonth.AddDays(-1));
-
-            var totalOrders = await _orderService.GetOrderCountAsync();
-            var monthlyOrders = await _orderService.GetOrderCountAsync(thisMonth, today);
-            var lastMonthOrders = await _orderService.GetOrderCountAsync(lastMonth, thisMonth.AddDays(-1));
-
+            // Get basic statistics
             var totalProducts = await _context.Products.CountAsync();
-            var lowStockProducts = await _productService.GetLowStockProductsAsync(10);
-            var outOfStockProducts = await _productService.GetOutOfStockProductsAsync();
-
+            var totalOrders = await _context.Orders.CountAsync();
             var totalUsers = await _context.Users.CountAsync();
-            var newUsersThisMonth = await _context.Users
-                .Where(u => u.CreatedAt >= thisMonth)
-                .CountAsync();
+            var totalCategories = await _context.Categories.CountAsync();
 
-            // Recent orders
-            var recentOrders = await _orderService.GetRecentOrdersAsync(5);
-
-            // Top selling products
-            var topProducts = await _context.OrderDetails
-                .Include(od => od.Product)
-                .GroupBy(od => od.ProductId)
-                .Select(g => new
-                {
-                    ProductId = g.Key,
-                    ProductName = g.First().Product.ProductName,
-                    TotalSold = g.Sum(od => od.Quantity),
-                    TotalRevenue = g.Sum(od => od.Quantity * od.Price)
-                })
-                .OrderByDescending(x => x.TotalSold)
+            // Get recent orders with user information
+            var recentOrders = await _context.Orders
+                .Include(o => o.User)
+                .OrderByDescending(o => o.OrderDate)
                 .Take(5)
+                .Select(o => new RecentOrderViewModel
+                {
+                    OrderId = o.OrderId,
+                    UserFullName = o.User.FullName,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    StatusDisplay = GetStatusDisplay(o.Status)
+                })
                 .ToListAsync();
 
-            var viewModel = new AdminDashboardViewModel
-            {
-                TotalRevenue = totalRevenue,
-                MonthlyRevenue = monthlyRevenue,
-                RevenueGrowth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0,
-                
-                TotalOrders = totalOrders,
-                MonthlyOrders = monthlyOrders,
-                OrderGrowth = lastMonthOrders > 0 ? ((monthlyOrders - lastMonthOrders) / lastMonthOrders) * 100 : 0,
-                
-                TotalProducts = totalProducts,
-                LowStockProducts = lowStockProducts.Count,
-                OutOfStockProducts = outOfStockProducts.Count,
-                
-                TotalUsers = totalUsers,
-                NewUsersThisMonth = newUsersThisMonth,
-                
-                RecentOrders = recentOrders,
-                TopSellingProducts = topProducts.Select(p => new TopProductViewModel
+            // Get low stock products
+            var lowStockProducts = await _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.StockQuantity <= 10)
+                .OrderBy(p => p.StockQuantity)
+                .Take(5)
+                .Select(p => new LowStockProductViewModel
                 {
                     ProductId = p.ProductId,
                     ProductName = p.ProductName,
-                    TotalSold = p.TotalSold,
-                    TotalRevenue = p.TotalRevenue
-                }).ToList()
+                    CategoryName = p.Category.CategoryName,
+                    StockQuantity = p.StockQuantity,
+                    Price = p.Price
+                })
+                .ToListAsync();
+
+            var viewModel = new DashboardViewModel
+            {
+                TotalProducts = totalProducts,
+                TotalOrders = totalOrders,
+                TotalUsers = totalUsers,
+                TotalCategories = totalCategories,
+                RecentOrders = recentOrders,
+                LowStockProducts = lowStockProducts
             };
 
             return View(viewModel);
@@ -109,6 +89,19 @@ public class DashboardController : Controller
             _logger.LogError(ex, "Error loading dashboard");
             return View("Error");
         }
+    }
+
+    private string GetStatusDisplay(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Chờ xử lý",
+            "Paid" => "Đã thanh toán",
+            "Shipped" => "Đã giao hàng",
+            "Completed" => "Hoàn thành",
+            "Cancelled" => "Đã hủy",
+            _ => status
+        };
     }
 
     [HttpGet]
@@ -184,37 +177,4 @@ public class DashboardController : Controller
     }
 }
 
-public class AdminDashboardViewModel
-{
-    public decimal TotalRevenue { get; set; }
-    public decimal MonthlyRevenue { get; set; }
-    public decimal RevenueGrowth { get; set; }
-    
-    public int TotalOrders { get; set; }
-    public int MonthlyOrders { get; set; }
-    public decimal OrderGrowth { get; set; }
-    
-    public int TotalProducts { get; set; }
-    public int LowStockProducts { get; set; }
-    public int OutOfStockProducts { get; set; }
-    
-    public int TotalUsers { get; set; }
-    public int NewUsersThisMonth { get; set; }
-    
-    public List<Order> RecentOrders { get; set; } = new();
-    public List<TopProductViewModel> TopSellingProducts { get; set; } = new();
-}
 
-public class TopProductViewModel
-{
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public int TotalSold { get; set; }
-    public decimal TotalRevenue { get; set; }
-}
-
-public class ChartDataViewModel
-{
-    public string Label { get; set; } = string.Empty;
-    public decimal Value { get; set; }
-}

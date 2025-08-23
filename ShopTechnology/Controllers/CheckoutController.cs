@@ -58,7 +58,7 @@ public class CheckoutController : Controller
             var user = await _context.Users.FindAsync(userId.Value);
             var viewModel = new CheckoutViewModel
             {
-                CartItems = cart.CartItems,
+                CartItems = cart.CartItems.ToList(),
                 TotalAmount = cart.CartItems.Sum(ci => ci.Product.Price * ci.Quantity),
                 User = user,
                 ShippingAddress = user?.Address ?? "",
@@ -113,7 +113,7 @@ public class CheckoutController : Controller
                 var promotion = await _context.Promotions
                     .FirstOrDefaultAsync(p => p.Code == model.PromotionCode && p.IsActive);
 
-                if (promotion != null && promotion.StartDate <= DateTime.UtcNow && 
+                if (promotion != null && promotion.StartDate <= DateTime.UtcNow &&
                     promotion.EndDate >= DateTime.UtcNow && promotion.UsedCount < promotion.MaxUsageCount)
                 {
                     if (promotion.DiscountPercentage > 0)
@@ -167,8 +167,9 @@ public class CheckoutController : Controller
 
             _logger.LogInformation("Order created successfully: {OrderId}", order.OrderId);
 
-            return Json(new { 
-                success = true, 
+            return Json(new
+            {
+                success = true,
                 message = "Đặt hàng thành công!",
                 orderId = order.OrderId.ToString()
             });
@@ -230,9 +231,10 @@ public class CheckoutController : Controller
 
             if (orderAmount < promotion.MinimumOrderAmount)
             {
-                return Json(new { 
-                    success = false, 
-                    message = $"Đơn hàng tối thiểu {promotion.MinimumOrderAmount:N0} VNĐ để áp dụng mã này" 
+                return Json(new
+                {
+                    success = false,
+                    message = $"Đơn hàng tối thiểu {promotion.MinimumOrderAmount:N0} VNĐ để áp dụng mã này"
                 });
             }
 
@@ -253,8 +255,9 @@ public class CheckoutController : Controller
 
             var finalAmount = orderAmount - discountAmount;
 
-            return Json(new { 
-                success = true, 
+            return Json(new
+            {
+                success = true,
                 message = $"Áp dụng mã khuyến mãi thành công! Giảm {discountAmount:N0} VNĐ",
                 discountAmount = discountAmount.ToString("N0"),
                 finalAmount = finalAmount.ToString("N0"),

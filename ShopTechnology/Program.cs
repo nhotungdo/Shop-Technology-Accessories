@@ -70,7 +70,11 @@ builder.Services.AddAutoMapper(typeof(Program));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -87,6 +91,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSession();
+
+// Add Error Logging Middleware
+app.UseMiddleware<ErrorLoggingMiddleware>();
 
 // Add Admin Authentication Middleware
 app.UseMiddleware<AdminAuthenticationMiddleware>();

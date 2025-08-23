@@ -41,7 +41,7 @@ public class CartController : Controller
             var cart = await _cartService.GetCartByUserIdAsync(userId.Value);
             var viewModel = new CartViewModel
             {
-                CartItems = cart?.CartItems ?? new List<CartItem>(),
+                CartItems = cart?.CartItems.ToList() ?? new List<CartItem>(),
                 TotalAmount = cart?.CartItems.Sum(ci => ci.Product.Price * ci.Quantity) ?? 0
             };
 

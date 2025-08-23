@@ -189,8 +189,8 @@ public class ReviewService : IReviewService
     {
         return await _context.OrderDetails
             .Include(od => od.Order)
-            .AnyAsync(od => od.ProductId == productId && 
-                           od.Order.UserId == userId && 
+            .AnyAsync(od => od.ProductId == productId &&
+                           od.Order.UserId == userId &&
                            od.Order.Status == "Completed");
     }
 
@@ -231,7 +231,7 @@ public class ReviewService : IReviewService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(r => r.Comment.Contains(searchTerm) || 
+            query = query.Where(r => r.Comment.Contains(searchTerm) ||
                                    r.User.FullName.Contains(searchTerm));
         }
 
@@ -282,6 +282,7 @@ public class ReviewService : IReviewService
                 }
 
                 product.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
         }
         catch (Exception ex)

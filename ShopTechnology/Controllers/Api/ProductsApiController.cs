@@ -31,46 +31,16 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var products = await _productService.GetAllProductsAsync();
+            var result = await _productService.GetProductsAsync(
+                categoryId: categoryId,
+                searchTerm: searchTerm,
+                minPrice: minPrice,
+                maxPrice: maxPrice,
+                sortBy: sortBy,
+                page: 1,
+                pageSize: 1000); // Large page size to get all products
 
-            // Apply filters
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                products = products.Where(p =>
-                    p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true).ToList();
-            }
-
-            if (categoryId.HasValue)
-            {
-                products = products.Where(p => p.CategoryId == categoryId.Value).ToList();
-            }
-
-            if (minPrice.HasValue)
-            {
-                products = products.Where(p => p.Price >= minPrice.Value).ToList();
-            }
-
-            if (maxPrice.HasValue)
-            {
-                products = products.Where(p => p.Price <= maxPrice.Value).ToList();
-            }
-
-            // Apply sorting
-            products = (sortBy.ToLower(), sortOrder.ToLower()) switch
-            {
-                ("name", "asc") => products.OrderBy(p => p.ProductName).ToList(),
-                ("name", "desc") => products.OrderByDescending(p => p.ProductName).ToList(),
-                ("price", "asc") => products.OrderBy(p => p.Price).ToList(),
-                ("price", "desc") => products.OrderByDescending(p => p.Price).ToList(),
-                ("stock", "asc") => products.OrderBy(p => p.StockQuantity).ToList(),
-                ("stock", "desc") => products.OrderByDescending(p => p.StockQuantity).ToList(),
-                ("date", "asc") => products.OrderBy(p => p.CreatedAt).ToList(),
-                ("date", "desc") => products.OrderByDescending(p => p.CreatedAt).ToList(),
-                _ => products.OrderBy(p => p.ProductName).ToList()
-            };
-
-            return Ok(products);
+            return Ok(result.Items);
         }
         catch (Exception)
         {
@@ -146,8 +116,8 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var products = await _productService.GetNewestProductsAsync();
-            return Ok(products.Take(count));
+            var products = await _productService.GetLatestProductsAsync(count);
+            return Ok(products);
         }
         catch (Exception)
         {
@@ -162,8 +132,12 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var products = await _productService.GetProductsByPriceRangeAsync(minPrice, maxPrice);
-            return Ok(products);
+            var result = await _productService.GetProductsAsync(
+                minPrice: minPrice,
+                maxPrice: maxPrice,
+                page: 1,
+                pageSize: 1000);
+            return Ok(result.Items);
         }
         catch (Exception)
         {
@@ -176,9 +150,10 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var totalProducts = await _productService.GetTotalProductsCountAsync();
-            var products = await _productService.GetAllProductsAsync();
-            var averagePrice = products.Any() ? products.Average(p => p.Price) : 0;
+            var result = await _productService.GetProductsAsync(page: 1, pageSize: 1);
+            var totalProducts = result.TotalCount;
+            var products = await _productService.GetProductsAsync(page: 1, pageSize: 1000);
+            var averagePrice = products.Items.Any() ? products.Items.Average(p => p.Price) : 0;
             var totalCategories = await _context.Categories.CountAsync();
 
             return Ok(new

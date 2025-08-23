@@ -23,26 +23,40 @@ namespace ShopTechnology.Controllers
 
         public async Task<IActionResult> Index(int? categoryId, string? searchTerm, decimal? minPrice, decimal? maxPrice)
         {
-            List<ProductDTO> productDtos;
-            var categories = await _context.Categories.ToListAsync();
+            try
+            {
+                List<Product> products;
+                var categories = await _context.Categories.ToListAsync();
 
-            productDtos = !string.IsNullOrEmpty(searchTerm) 
-                ? await _productService.SearchProductsAsync(searchTerm)
-                : categoryId.HasValue 
-                    ? await _productService.GetProductsByCategoryAsync(categoryId.Value)
-                    : minPrice.HasValue && maxPrice.HasValue 
-                        ? await _productService.GetProductsByPriceRangeAsync(minPrice.Value, maxPrice.Value)
-                        : await _productService.GetAllProductsAsync();
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    products = await _productService.SearchProductsAsync(searchTerm);
+                }
+                else if (categoryId.HasValue)
+                {
+                    products = await _productService.GetProductsByCategoryAsync(categoryId.Value);
+                }
+                else
+                {
+                    var pagedResult = await _productService.GetProductsAsync(categoryId, searchTerm, minPrice, maxPrice);
+                    products = pagedResult.Items;
+                }
 
-            var products = _mapper.Map<List<ProductViewModel>>(productDtos);
+                var productViewModels = _mapper.Map<List<ProductViewModel>>(products);
 
-            ViewBag.Categories = categories;
-            ViewBag.SearchTerm = searchTerm;
-            ViewBag.SelectedCategoryId = categoryId;
-            ViewBag.MinPrice = minPrice;
-            ViewBag.MaxPrice = maxPrice;
+                ViewBag.Categories = categories;
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.SelectedCategoryId = categoryId;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
 
-            return View(products);
+                return View(productViewModels);
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                return View("Error");
+            }
         }
 
         public async Task<IActionResult> Details(int id)
@@ -81,32 +95,32 @@ namespace ShopTechnology.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var productDtos = await _productService.SearchProductsAsync(searchTerm);
-            var products = _mapper.Map<List<ProductViewModel>>(productDtos);
+            var products = await _productService.SearchProductsAsync(searchTerm);
+            var productViewModels = _mapper.Map<List<ProductViewModel>>(products);
 
             ViewBag.SearchTerm = searchTerm;
             ViewBag.Categories = await _context.Categories.ToListAsync();
 
-            return View("Index", products);
+            return View("Index", productViewModels);
         }
 
         [HttpPost]
         public async Task<IActionResult> FilterByCategory(int categoryId)
         {
-            var productDtos = await _productService.GetProductsByCategoryAsync(categoryId);
-            var products = _mapper.Map<List<ProductViewModel>>(productDtos);
+            var products = await _productService.GetProductsByCategoryAsync(categoryId);
+            var productViewModels = _mapper.Map<List<ProductViewModel>>(products);
 
             ViewBag.SelectedCategoryId = categoryId;
             ViewBag.Categories = await _context.Categories.ToListAsync();
 
-            return View("Index", products);
+            return View("Index", productViewModels);
         }
 
         [HttpPost]
         public async Task<IActionResult> FilterByPrice(decimal minPrice, decimal maxPrice)
         {
-            var productDtos = await _productService.GetProductsByPriceRangeAsync(minPrice, maxPrice);
-            var products = _mapper.Map<List<ProductViewModel>>(productDtos);
+            var pagedResult = await _productService.GetProductsAsync(null, null, minPrice, maxPrice);
+            var products = _mapper.Map<List<ProductViewModel>>(pagedResult.Items);
 
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
@@ -231,10 +245,10 @@ namespace ShopTechnology.Controllers
                         p.Description,
                         AverageRating = _context.Reviews
                             .Where(r => r.ProductId == p.ProductId)
-                            .Any() 
+                            .Any()
                             ? _context.Reviews
                                 .Where(r => r.ProductId == p.ProductId)
-                                .Average(r => r.Rating) 
+                                .Average(r => r.Rating)
                             : 0,
                         ReviewCount = _context.Reviews
                             .Where(r => r.ProductId == p.ProductId)

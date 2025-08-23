@@ -22,6 +22,11 @@ public class ProductService : IProductService
             .FirstOrDefaultAsync(p => p.ProductId == id);
     }
 
+    public async Task<int> GetProductCountAsync()
+    {
+        return await _context.Products.CountAsync();
+    }
+
     public async Task<PagedResult<Product>> GetProductsAsync(
         int? categoryId = null,
         string? searchTerm = null,
@@ -70,7 +75,7 @@ public class ProductService : IProductService
             "name_asc" => query.OrderBy(p => p.ProductName),
             "name_desc" => query.OrderByDescending(p => p.ProductName),
             "newest" => query.OrderByDescending(p => p.CreatedAt),
-            "rating" => query.OrderByDescending(p => p.Reviews.Average(r => r.Rating)),
+            "rating" => query.OrderByDescending(p => p.Rating),
             _ => query.OrderByDescending(p => p.CreatedAt)
         };
 
@@ -95,7 +100,7 @@ public class ProductService : IProductService
             .Include(p => p.Category)
             .Include(p => p.ProductImages)
             .Where(p => p.StockQuantity > 0)
-            .OrderByDescending(p => p.Reviews.Count)
+            .OrderByDescending(p => p.Rating)
             .ThenByDescending(p => p.CreatedAt)
             .Take(count)
             .ToListAsync();

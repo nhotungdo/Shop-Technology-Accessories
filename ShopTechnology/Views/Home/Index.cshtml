@@ -1,3 +1,4 @@
+@model HomeViewModel
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -43,29 +44,38 @@
             <i class="fas fa-star text-warning"></i> Sản phẩm nổi bật
         </h2>
         <div class="row">
-            @foreach (var product in ViewBag.FeaturedProducts)
+            @if (Model.FeaturedProducts != null && Model.FeaturedProducts.Any())
             {
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName"
-                            style="height: 200px; object-fit: cover;">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@product.ProductName</h5>
-                            <p class="card-text text-muted">@product.CategoryName</p>
-                            <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
-                                </small>
-                            </p>
-                            <div class="mt-auto">
-                                <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
-                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye"></i> Chi tiết
-                                </a>
+                @foreach (var product in Model.FeaturedProducts)
+                {
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <img src="@(product.ProductImages.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")" class="card-img-top" alt="@product.ProductName"
+                                style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@product.ProductName</h5>
+                                <p class="card-text text-muted">@product.Category?.CategoryName</p>
+                                <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
+                                    </small>
+                                </p>
+                                <div class="mt-auto">
+                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
+                                        class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> Chi tiết
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <p class="text-muted">Không có sản phẩm nổi bật</p>
                 </div>
             }
         </div>
@@ -77,28 +87,37 @@
             <i class="fas fa-clock text-info"></i> Sản phẩm mới nhất
         </h2>
         <div class="row">
-            @foreach (var product in ViewBag.NewestProducts)
+            @if (Model.LatestProducts != null && Model.LatestProducts.Any())
             {
-                <div class="col-md-2 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName"
-                            style="height: 150px; object-fit: cover;">
-                        <div class="card-body d-flex flex-column">
-                            <h6 class="card-title">@product.ProductName</h6>
-                            <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
-                                </small>
-                            </p>
-                            <div class="mt-auto">
-                                <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
-                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye"></i> Xem
-                                </a>
+                @foreach (var product in Model.LatestProducts)
+                {
+                    <div class="col-md-2 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <img src="@(product.ProductImages.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")" class="card-img-top" alt="@product.ProductName"
+                                style="height: 150px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">@product.ProductName</h6>
+                                <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
+                                    </small>
+                                </p>
+                                <div class="mt-auto">
+                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
+                                        class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> Xem
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <p class="text-muted">Không có sản phẩm mới</p>
                 </div>
             }
         </div>

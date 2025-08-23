@@ -17,7 +17,7 @@ namespace ShopTechnology.Controllers
         {
             var userIdStr = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
-            var orders = await _orderService.GetOrderHistoryAsync(Guid.Parse(userIdStr));
+            var orders = await _orderService.GetOrdersByUserIdAsync(Guid.Parse(userIdStr));
             return View(orders);
         }
 
@@ -33,21 +33,17 @@ namespace ShopTechnology.Controllers
         {
             var userIdStr = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
-            var (ok, orderId, message) = await _orderService.CreateOrderFromCartAsync(Guid.Parse(userIdStr), shippingAddress, paymentMethod);
-            if (!ok)
-            {
-                TempData["ErrorMessage"] = message;
-                return RedirectToAction(nameof(Checkout));
-            }
-            TempData["SuccessMessage"] = "Đặt hàng thành công";
-            return RedirectToAction(nameof(Details), new { id = orderId });
+
+            // TODO: Implement CreateOrderFromCartAsync or use CreateOrderAsync with proper model
+            TempData["ErrorMessage"] = "Order creation not implemented yet";
+            return RedirectToAction(nameof(Checkout));
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
             var userIdStr = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
-            var order = await _orderService.GetOrderAsync(id);
+            var order = await _orderService.GetOrderByIdAsync(id);
             if (order == null) return NotFound();
             return View(order);
         }

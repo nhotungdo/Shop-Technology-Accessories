@@ -2,19 +2,18 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ShopTechnology.ViewModels;
 
+
 public class LoginViewModel
 {
     [Required(ErrorMessage = "Email là bắt buộc")]
     [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
-
     [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
     [DataType(DataType.Password)]
     [Display(Name = "Mật khẩu")]
     public string Password { get; set; } = string.Empty;
-
-    [Display(Name = "Ghi nhớ đăng nhập")]
+    [Display(Name = "Ghi nhớ tôi")]
     public bool RememberMe { get; set; }
 }
 
@@ -46,6 +45,16 @@ public class RegisterViewModel
     public string? PhoneNumber { get; set; }
 }
 
+public class ForgotPasswordViewModel
+{
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    [Display(Name = "Email")]
+    public string Email { get; set; } = string.Empty;
+}
+
+
+
 public class ProfileViewModel
 {
     [Required(ErrorMessage = "Họ tên là bắt buộc")]
@@ -75,13 +84,7 @@ public class ProfileViewModel
     public string? PostalCode { get; set; }
 }
 
-public class ForgotPasswordViewModel
-{
-    [Required(ErrorMessage = "Email là bắt buộc")]
-    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-    [Display(Name = "Email")]
-    public string Email { get; set; } = string.Empty;
-}
+
 
 public class ResetPasswordViewModel
 {
@@ -123,3 +126,4 @@ public class ChangePasswordViewModel
     [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmNewPassword { get; set; } = string.Empty;
 }
+
