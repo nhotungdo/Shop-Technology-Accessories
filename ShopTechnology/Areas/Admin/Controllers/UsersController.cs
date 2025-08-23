@@ -45,7 +45,7 @@ public class UsersController : Controller
             // Filter by role
             if (!string.IsNullOrWhiteSpace(role))
             {
-                query = query.Where(u => u.Role.RoleName == role);
+                query = query.Where(u => u.Role != null && u.Role.RoleName == role);
             }
 
             // Filter by active status
@@ -363,7 +363,7 @@ public class UsersController : Controller
 
             if (!string.IsNullOrWhiteSpace(role))
             {
-                query = query.Where(u => u.Role.RoleName == role);
+                query = query.Where(u => u.Role != null && u.Role.RoleName == role);
             }
 
             if (isActive.HasValue)
@@ -380,7 +380,7 @@ public class UsersController : Controller
 
             foreach (var user in users)
             {
-                csvContent += $"{user.UserId},{user.FullName},{user.Email},{user.PhoneNumber},{user.Role.RoleName},{user.IsActive},{user.CreatedAt:yyyy-MM-dd HH:mm},{user.LastLoginAt:yyyy-MM-dd HH:mm}\n";
+                csvContent += $"{user.UserId},{user.FullName},{user.Email},{user.PhoneNumber},{user.Role?.RoleName ?? "Unknown"},{user.IsActive},{user.CreatedAt:yyyy-MM-dd HH:mm},{user.LastLoginAt:yyyy-MM-dd HH:mm}\n";
             }
 
             var fileName = $"users_{DateTime.Now:yyyyMMdd_HHmmss}.csv";

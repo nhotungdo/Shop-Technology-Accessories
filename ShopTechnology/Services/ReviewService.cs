@@ -6,19 +6,18 @@ namespace ShopTechnology.Services;
 public class ReviewService : IReviewService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly ILogger<ReviewService> _logger;
 
-    public ReviewService(ShopTechnologyAccessoriesContext context, ILogger<ReviewService> logger)
+    public ReviewService(ShopTechnologyAccessoriesContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task<List<Review>> GetReviewsByProductIdAsync(int productId, int page = 1, int pageSize = 10)
     {
         return await _context.Reviews
             .Include(r => r.User)
-            .Where(r => r.ProductId == productId)
+            .Include(r => r.ReviewImages)
+            .Where(r => r.ProductId == productId && r.IsApproved)
             .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -29,94 +28,52 @@ public class ReviewService : IReviewService
     {
         return await _context.Reviews
             .Include(r => r.User)
-            .Include(r => r.Product)
+            .Include(r => r.ReviewImages)
             .FirstOrDefaultAsync(r => r.ReviewId == reviewId);
     }
 
-    public async Task<Review?> GetUserReviewForProductAsync(Guid userId, int productId)
+    public async Task<Review?> GetUserReviewForProductAsync(int userId, int productId)
     {
         return await _context.Reviews
-            .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == productId);
     }
 
     public async Task<Review> CreateReviewAsync(Review review)
     {
-        review.CreatedAt = DateTime.UtcNow;
-
+        review.CreatedAt = DateTime.Now;
         _context.Reviews.Add(review);
-
-        // Update product rating
-        await UpdateProductRatingAsync(review.ProductId);
-
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Review created for product {ProductId} by user {UserId}", review.ProductId, review.UserId);
         return review;
     }
 
     public async Task<bool> UpdateReviewAsync(Review review)
     {
-        try
-        {
-            var existingReview = await _context.Reviews.FindAsync(review.ReviewId);
-            if (existingReview == null)
-            {
-                return false;
-            }
+        var existingReview = await _context.Reviews.FindAsync(review.ReviewId);
+        if (existingReview == null) return false;
 
-            existingReview.Rating = review.Rating;
-            existingReview.Comment = review.Comment;
-            existingReview.UpdatedAt = DateTime.UtcNow;
+        existingReview.Rating = review.Rating;
+        existingReview.Title = review.Title;
+        existingReview.Comment = review.Comment;
+        existingReview.UpdatedAt = DateTime.Now;
 
-            // Update product rating
-            await UpdateProductRatingAsync(review.ProductId);
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Review updated: {ReviewId}", review.ReviewId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating review: {ReviewId}", review.ReviewId);
-            return false;
-        }
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> DeleteReviewAsync(int reviewId)
     {
-        try
-        {
-            var review = await _context.Reviews.FindAsync(reviewId);
-            if (review == null)
-            {
-                return false;
-            }
+        var review = await _context.Reviews.FindAsync(reviewId);
+        if (review == null) return false;
 
-            var productId = review.ProductId;
-            _context.Reviews.Remove(review);
-
-            // Update product rating
-            await UpdateProductRatingAsync(productId);
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Review deleted: {ReviewId}", reviewId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting review: {ReviewId}", reviewId);
-            return false;
-        }
+        _context.Reviews.Remove(review);
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<List<Review>> GetReviewsByUserIdAsync(Guid userId)
+    public async Task<List<Review>> GetReviewsByUserIdAsync(int userId)
     {
         return await _context.Reviews
             .Include(r => r.Product)
-            .ThenInclude(p => p.ProductImages)
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
@@ -124,33 +81,27 @@ public class ReviewService : IReviewService
 
     public async Task<double> GetAverageRatingForProductAsync(int productId)
     {
-        var reviews = await _context.Reviews
-            .Where(r => r.ProductId == productId)
-            .ToListAsync();
-
-        if (!reviews.Any())
-        {
-            return 0;
-        }
-
-        return reviews.Average(r => r.Rating);
+        var average = await _context.Reviews
+            .Where(r => r.ProductId == productId && r.IsApproved)
+            .AverageAsync(r => (double)r.Rating);
+        return Math.Round(average, 2);
     }
 
     public async Task<int> GetReviewCountForProductAsync(int productId)
     {
         return await _context.Reviews
-            .CountAsync(r => r.ProductId == productId);
+            .CountAsync(r => r.ProductId == productId && r.IsApproved);
     }
 
     public async Task<Dictionary<int, double>> GetAverageRatingsForProductsAsync(List<int> productIds)
     {
         var ratings = await _context.Reviews
-            .Where(r => productIds.Contains(r.ProductId))
+            .Where(r => productIds.Contains(r.ProductId) && r.IsApproved)
             .GroupBy(r => r.ProductId)
-            .Select(g => new { ProductId = g.Key, AverageRating = g.Average(r => r.Rating) })
+            .Select(g => new { ProductId = g.Key, AverageRating = g.Average(r => (double)r.Rating) })
             .ToListAsync();
 
-        return ratings.ToDictionary(r => r.ProductId, r => r.AverageRating);
+        return ratings.ToDictionary(r => r.ProductId, r => Math.Round(r.AverageRating, 2));
     }
 
     public async Task<List<Review>> GetRecentReviewsAsync(int count = 10)
@@ -158,6 +109,7 @@ public class ReviewService : IReviewService
         return await _context.Reviews
             .Include(r => r.User)
             .Include(r => r.Product)
+            .Where(r => r.IsApproved)
             .OrderByDescending(r => r.CreatedAt)
             .Take(count)
             .ToListAsync();
@@ -167,7 +119,7 @@ public class ReviewService : IReviewService
     {
         return await _context.Reviews
             .Include(r => r.User)
-            .Where(r => r.ProductId == productId && r.Rating >= 4)
+            .Where(r => r.ProductId == productId && r.IsApproved)
             .OrderByDescending(r => r.Rating)
             .ThenByDescending(r => r.CreatedAt)
             .Take(count)
@@ -178,23 +130,20 @@ public class ReviewService : IReviewService
     {
         return await _context.Reviews
             .Include(r => r.User)
-            .Where(r => r.ProductId == productId && r.Rating <= 2)
+            .Where(r => r.ProductId == productId && r.IsApproved)
             .OrderBy(r => r.Rating)
             .ThenByDescending(r => r.CreatedAt)
             .Take(count)
             .ToListAsync();
     }
 
-    public async Task<bool> HasUserPurchasedProductAsync(Guid userId, int productId)
+    public async Task<bool> HasUserPurchasedProductAsync(int userId, int productId)
     {
         return await _context.OrderDetails
-            .Include(od => od.Order)
-            .AnyAsync(od => od.ProductId == productId &&
-                           od.Order.UserId == userId &&
-                           od.Order.Status == "Completed");
+            .AnyAsync(od => od.Order.UserId == userId && od.ProductId == productId);
     }
 
-    public async Task<bool> HasUserReviewedProductAsync(Guid userId, int productId)
+    public async Task<bool> HasUserReviewedProductAsync(int userId, int productId)
     {
         return await _context.Reviews
             .AnyAsync(r => r.UserId == userId && r.ProductId == productId);
@@ -203,7 +152,7 @@ public class ReviewService : IReviewService
     public async Task<Dictionary<int, int>> GetRatingDistributionAsync(int productId)
     {
         var distribution = await _context.Reviews
-            .Where(r => r.ProductId == productId)
+            .Where(r => r.ProductId == productId && r.IsApproved)
             .GroupBy(r => r.Rating)
             .Select(g => new { Rating = g.Key, Count = g.Count() })
             .ToListAsync();
@@ -213,7 +162,6 @@ public class ReviewService : IReviewService
         {
             result[i] = distribution.FirstOrDefault(d => d.Rating == i)?.Count ?? 0;
         }
-
         return result;
     }
 
@@ -222,17 +170,12 @@ public class ReviewService : IReviewService
         var query = _context.Reviews
             .Include(r => r.User)
             .Include(r => r.Product)
-            .AsQueryable();
+            .Where(r => r.IsApproved && 
+                       (r.Title.Contains(searchTerm) || r.Comment.Contains(searchTerm)));
 
         if (productId.HasValue)
         {
             query = query.Where(r => r.ProductId == productId.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            query = query.Where(r => r.Comment.Contains(searchTerm) ||
-                                   r.User.FullName.Contains(searchTerm));
         }
 
         return await query
@@ -240,73 +183,37 @@ public class ReviewService : IReviewService
             .ToListAsync();
     }
 
-    public async Task<bool> ValidateReviewAsync(Guid userId, int productId)
+    public async Task<bool> ValidateReviewAsync(int userId, int productId)
     {
-        // Check if user has purchased the product
+        // Kiểm tra xem user đã mua sản phẩm chưa
         var hasPurchased = await HasUserPurchasedProductAsync(userId, productId);
-        if (!hasPurchased)
-        {
-            return false;
-        }
+        if (!hasPurchased) return false;
 
-        // Check if user has already reviewed the product
+        // Kiểm tra xem user đã review sản phẩm chưa
         var hasReviewed = await HasUserReviewedProductAsync(userId, productId);
-        if (hasReviewed)
-        {
-            return false;
-        }
+        if (hasReviewed) return false;
 
         return true;
     }
 
-    private async Task UpdateProductRatingAsync(int productId)
-    {
-        try
-        {
-            var reviews = await _context.Reviews
-                .Where(r => r.ProductId == productId)
-                .ToListAsync();
-
-            var product = await _context.Products.FindAsync(productId);
-            if (product != null)
-            {
-                if (reviews.Any())
-                {
-                    product.Rating = reviews.Average(r => r.Rating);
-                    product.ReviewCount = reviews.Count;
-                }
-                else
-                {
-                    product.Rating = 0;
-                    product.ReviewCount = 0;
-                }
-
-                product.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating product rating for product {ProductId}", productId);
-        }
-    }
-
     public async Task<int> GetTotalReviewsCountAsync()
     {
-        return await _context.Reviews.CountAsync();
+        return await _context.Reviews.CountAsync(r => r.IsApproved);
     }
 
     public async Task<double> GetOverallAverageRatingAsync()
     {
-        var reviews = await _context.Reviews.ToListAsync();
-        return reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+        var average = await _context.Reviews
+            .Where(r => r.IsApproved)
+            .AverageAsync(r => (double)r.Rating);
+        return Math.Round(average, 2);
     }
 
     public async Task<List<Review>> GetReviewsByRatingAsync(int productId, int rating, int page = 1, int pageSize = 10)
     {
         return await _context.Reviews
             .Include(r => r.User)
-            .Where(r => r.ProductId == productId && r.Rating == rating)
+            .Where(r => r.ProductId == productId && r.Rating == rating && r.IsApproved)
             .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

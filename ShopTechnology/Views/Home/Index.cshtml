@@ -1,3 +1,4 @@
+@using ShopTechnology.Models
 @model HomeViewModel
 @{
     ViewData["Title"] = "Trang chủ";
@@ -50,11 +51,11 @@
                 {
                     <div class="col-md-3 mb-4">
                         <div class="card h-100 shadow-sm">
-                            <img src="@(product.ProductImages.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")" class="card-img-top" alt="@product.ProductName"
-                                style="height: 200px; object-fit: cover;">
+                            <img src="@(product.ProductImages?.FirstOrDefault()?.ImageUrl ?? "/img/best-tech-accessories.png")"
+                                class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@product.ProductName</h5>
-                                <p class="card-text text-muted">@product.Category?.CategoryName</p>
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text text-muted">@product.Category?.Name</p>
                                 <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
                                 <p class="card-text">
                                     <small class="text-muted">
@@ -93,10 +94,10 @@
                 {
                     <div class="col-md-2 mb-4">
                         <div class="card h-100 shadow-sm">
-                            <img src="@(product.ProductImages.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")" class="card-img-top" alt="@product.ProductName"
-                                style="height: 150px; object-fit: cover;">
+                            <img src="@(product.ProductImages?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
+                                class="card-img-top" alt="@product.Name" style="height: 150px; object-fit: cover;">
                             <div class="card-body d-flex flex-column">
-                                <h6 class="card-title">@product.ProductName</h6>
+                                <h6 class="card-title">@product.Name</h6>
                                 <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
                                 <p class="card-text">
                                     <small class="text-muted">
@@ -129,56 +130,76 @@
             <i class="fas fa-th-large text-success"></i> Danh mục sản phẩm
         </h2>
         <div class="row">
-            <div class="col-md-2 mb-3">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-charging-station fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">Sạc</h5>
-                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="1"
-                            class="btn btn-outline-primary btn-sm">Xem sản phẩm</a>
+            @if (Model.Categories != null && Model.Categories.Any())
+            {
+                @foreach (var category in Model.Categories.Take(5))
+                {
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="fas fa-th-large fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">@category.Name</h5>
+                                <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@category.CategoryId"
+                                    class="btn btn-outline-primary btn-sm">Xem sản phẩm</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Fallback categories -->
+                <div class="col-md-2 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-charging-station fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Sạc</h5>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="1"
+                                class="btn btn-outline-primary btn-sm">Xem sản phẩm</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-headphones fa-3x text-info mb-3"></i>
-                        <h5 class="card-title">Tai nghe</h5>
-                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="2"
-                            class="btn btn-outline-info btn-sm">Xem sản phẩm</a>
+                <div class="col-md-2 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-headphones fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Tai nghe</h5>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="2"
+                                class="btn btn-outline-info btn-sm">Xem sản phẩm</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">Ốp lưng</h5>
-                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="3"
-                            class="btn btn-outline-success btn-sm">Xem sản phẩm</a>
+                <div class="col-md-2 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Ốp lưng</h5>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="3"
+                                class="btn btn-outline-success btn-sm">Xem sản phẩm</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-keyboard fa-3x text-warning mb-3"></i>
-                        <h5 class="card-title">Bàn phím</h5>
-                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="4"
-                            class="btn btn-outline-warning btn-sm">Xem sản phẩm</a>
+                <div class="col-md-2 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-keyboard fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Bàn phím</h5>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="4"
+                                class="btn btn-outline-warning btn-sm">Xem sản phẩm</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-mouse fa-3x text-danger mb-3"></i>
-                        <h5 class="card-title">Chuột</h5>
-                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="5"
-                            class="btn btn-outline-danger btn-sm">Xem sản phẩm</a>
+                <div class="col-md-2 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-mouse fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">Chuột</h5>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="5"
+                                class="btn btn-outline-danger btn-sm">Xem sản phẩm</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </section>
 </div>

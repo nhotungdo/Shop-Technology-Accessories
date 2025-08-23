@@ -1,17 +1,14 @@
 using ShopTechnology.Models;
 
-namespace ShopTechnology.Services;
-
-public interface IOrderService
+namespace ShopTechnology.Services
 {
-    Task<Order?> GetOrderByIdAsync(Guid orderId);
-    Task<List<Order>> GetOrdersByUserIdAsync(Guid userId);
-    Task<List<Order>> GetAllOrdersAsync();
-    Task<Order> CreateOrderAsync(CreateOrderViewModel model);
-    Task<bool> UpdateOrderStatusAsync(Guid orderId, string newStatus);
-    Task<bool> CancelOrderAsync(Guid orderId);
-    Task<List<Order>> GetOrdersByStatusAsync(string status);
-    Task<decimal> GetTotalRevenueAsync(DateTime? startDate = null, DateTime? endDate = null);
-    Task<int> GetOrderCountAsync(DateTime? startDate = null, DateTime? endDate = null);
-    Task<List<Order>> GetRecentOrdersAsync(int count = 10);
+    public interface IOrderService
+    {
+        Task<Order?> GetOrderByIdAsync(int orderId);
+        Task<Order?> GetOrderByNumberAsync(string orderNumber);
+        Task<List<Order>> GetOrdersByUserIdAsync(int userId);
+        Task<Order> CreateOrderAsync(Order order);
+        Task<bool> UpdateOrderStatusAsync(int orderId, string status);
+        Task<bool> UpdatePaymentStatusAsync(int orderId, string status);
+    }
 }

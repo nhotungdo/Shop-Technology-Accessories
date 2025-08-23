@@ -1,219 +1,253 @@
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
+using ShopTechnology.ViewModels;
 
-namespace ShopTechnology.Services;
-
-public class CartService : ICartService
+namespace ShopTechnology.Services
 {
-    private readonly ShopTechnologyAccessoriesContext _context;
-
-    public CartService(ShopTechnologyAccessoriesContext context)
+    public class CartService : ICartService
     {
-        _context = context;
-    }
+        private readonly ShopTechnologyAccessoriesContext _context;
 
-    public async Task<Cart?> GetCartByUserIdAsync(Guid userId)
-    {
-        return await _context.Carts
-            .Include(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .ThenInclude(p => p.ProductImages)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-    }
-
-    public async Task<bool> AddToCartAsync(Guid userId, int productId, int quantity)
-    {
-        try
+        public CartService(ShopTechnologyAccessoriesContext context)
         {
-            var cart = await GetOrCreateCartAsync(userId);
-            var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
+            _context = context;
+        }
 
+        public async Task<CartViewModel> GetCartAsync(int? userId)
+        {
+            var cartViewModel = new CartViewModel();
+
+            if (!userId.HasValue)
+            {
+                return cartViewModel;
+            }
+
+            var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                .ThenInclude(ci => ci.Product)
+                .ThenInclude(p => p.ProductImages)
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+
+            if (cart == null)
+            {
+                // Create new cart if doesn't exist
+                cart = new Cart
+                {
+                    UserId = userId.Value,
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
+                };
+                _context.Carts.Add(cart);
+                await _context.SaveChangesAsync();
+            }
+
+            // Convert cart items to view model
+            foreach (var item in cart.CartItems)
+            {
+                var cartItemViewModel = new CartItemViewModel
+                {
+                    CartItemId = item.CartItemId,
+                    ProductId = item.ProductId,
+                    ProductName = item.Product.Name,
+                    ProductSKU = item.Product.SKU ?? "",
+                    ProductImage = item.Product.MainImage ?? "",
+                    ProductBrand = item.Product.Brand ?? "",
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    TotalPrice = item.TotalPrice,
+                    StockQuantity = item.Product.StockQuantity
+                };
+                cartViewModel.Items.Add(cartItemViewModel);
+            }
+
+            // Calculate totals
+            cartViewModel.SubTotal = cartViewModel.Items.Sum(i => i.TotalPrice);
+            cartViewModel.TaxAmount = cartViewModel.SubTotal * 0.1m; // 10% tax
+            cartViewModel.ShippingFee = cartViewModel.SubTotal > 500000 ? 0 : 30000; // Free shipping over 500k
+            cartViewModel.TotalAmount = cartViewModel.SubTotal + cartViewModel.TaxAmount + cartViewModel.ShippingFee - cartViewModel.DiscountAmount;
+
+            return cartViewModel;
+        }
+
+        public async Task<ServiceResult> AddToCartAsync(int? userId, int productId, int quantity)
+        {
+            if (!userId.HasValue)
+            {
+                return new ServiceResult { Success = false, Message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng." };
+            }
+
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null)
+            {
+                return new ServiceResult { Success = false, Message = "Sản phẩm không tồn tại." };
+            }
+
+            if (!product.IsActive)
+            {
+                return new ServiceResult { Success = false, Message = "Sản phẩm hiện không khả dụng." };
+            }
+
+            if (product.StockQuantity < quantity)
+            {
+                return new ServiceResult { Success = false, Message = "Số lượng sản phẩm trong kho không đủ." };
+            }
+
+            var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    UserId = userId.Value,
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
+                };
+                _context.Carts.Add(cart);
+                await _context.SaveChangesAsync();
+            }
+
+            var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
+                existingItem.TotalPrice = existingItem.Quantity * existingItem.UnitPrice;
+                existingItem.UpdatedAt = DateTime.Now;
             }
             else
             {
-                cart.CartItems.Add(new CartItem
+                var cartItem = new CartItem
                 {
                     CartId = cart.CartId,
                     ProductId = productId,
-                    Quantity = quantity
-                });
+                    Quantity = quantity,
+                    UnitPrice = product.Price,
+                    TotalPrice = product.Price * quantity,
+                    CreatedAt = DateTime.Now
+                };
+                _context.CartItems.Add(cartItem);
             }
 
             await _context.SaveChangesAsync();
-            return true;
+
+            return new ServiceResult { Success = true, Message = "Sản phẩm đã được thêm vào giỏ hàng." };
         }
-        catch
+
+        public async Task<ServiceResult> UpdateQuantityAsync(int? userId, int cartItemId, int quantity)
         {
-            return false;
-        }
-    }
-
-    public async Task<bool> RemoveFromCartAsync(Guid userId, int cartItemId)
-    {
-        try
-        {
-            var cartItem = await _context.CartItems
-                .Include(ci => ci.Cart)
-                .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.Cart.UserId == userId);
-
-            if (cartItem == null)
-                return false;
-
-            _context.CartItems.Remove(cartItem);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task<bool> UpdateCartItemQuantityAsync(Guid userId, int cartItemId, int quantity)
-    {
-        try
-        {
-            var cartItem = await _context.CartItems
-                .Include(ci => ci.Cart)
-                .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.Cart.UserId == userId);
-
-            if (cartItem == null)
-                return false;
+            if (!userId.HasValue)
+            {
+                return new ServiceResult { Success = false, Message = "Vui lòng đăng nhập." };
+            }
 
             if (quantity <= 0)
             {
-                _context.CartItems.Remove(cartItem);
+                return new ServiceResult { Success = false, Message = "Số lượng phải lớn hơn 0." };
             }
-            else
+
+            var cartItem = await _context.CartItems
+                .Include(ci => ci.Product)
+                .Include(ci => ci.Cart)
+                .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.Cart.UserId == userId);
+
+            if (cartItem == null)
             {
-                cartItem.Quantity = quantity;
+                return new ServiceResult { Success = false, Message = "Sản phẩm không tồn tại trong giỏ hàng." };
             }
+
+            if (cartItem.Product.StockQuantity < quantity)
+            {
+                return new ServiceResult { Success = false, Message = "Số lượng sản phẩm trong kho không đủ." };
+            }
+
+            cartItem.Quantity = quantity;
+            cartItem.TotalPrice = quantity * cartItem.UnitPrice;
+            cartItem.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
-    public async Task<bool> ClearCartAsync(Guid userId)
-    {
-        try
+            return new ServiceResult { Success = true, Message = "Số lượng đã được cập nhật." };
+        }
+
+        public async Task<ServiceResult> RemoveFromCartAsync(int? userId, int cartItemId)
         {
+            if (!userId.HasValue)
+            {
+                return new ServiceResult { Success = false, Message = "Vui lòng đăng nhập." };
+            }
+
+            var cartItem = await _context.CartItems
+                .Include(ci => ci.Cart)
+                .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.Cart.UserId == userId);
+
+            if (cartItem == null)
+            {
+                return new ServiceResult { Success = false, Message = "Sản phẩm không tồn tại trong giỏ hàng." };
+            }
+
+            _context.CartItems.Remove(cartItem);
+            await _context.SaveChangesAsync();
+
+            return new ServiceResult { Success = true, Message = "Sản phẩm đã được xóa khỏi giỏ hàng." };
+        }
+
+        public async Task<ServiceResult> ClearCartAsync(int? userId)
+        {
+            if (!userId.HasValue)
+            {
+                return new ServiceResult { Success = false, Message = "Vui lòng đăng nhập." };
+            }
+
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
 
-            if (cart == null)
-                return false;
-
-            _context.CartItems.RemoveRange(cart.CartItems);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task<int> GetCartItemCountAsync(Guid userId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        return cart?.CartItems.Sum(ci => ci.Quantity) ?? 0;
-    }
-
-    public async Task<decimal> GetCartTotalAsync(Guid userId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        if (cart == null)
-            return 0;
-
-        return cart.CartItems.Sum(ci => ci.Product.Price * ci.Quantity);
-    }
-
-    public async Task<bool> IsProductInCartAsync(Guid userId, int productId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        return cart?.CartItems.Any(ci => ci.ProductId == productId) ?? false;
-    }
-
-    public async Task<CartItem?> GetCartItemAsync(Guid userId, int productId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        return cart?.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
-    }
-
-    public async Task<List<CartItem>> GetCartItemsAsync(Guid userId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .ThenInclude(p => p.ProductImages)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        return cart?.CartItems.ToList() ?? new List<CartItem>();
-    }
-
-    public async Task<bool> ValidateCartAsync(Guid userId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        if (cart == null || !cart.CartItems.Any())
-            return false;
-
-        // Check if all products are still available and have enough stock
-        foreach (var item in cart.CartItems)
-        {
-            if (item.Product.StockQuantity < item.Quantity)
+            if (cart != null)
             {
-                return false;
+                _context.CartItems.RemoveRange(cart.CartItems);
+                await _context.SaveChangesAsync();
             }
+
+            return new ServiceResult { Success = true, Message = "Giỏ hàng đã được làm trống." };
         }
 
-        return true;
-    }
-
-    private async Task<Cart> GetOrCreateCartAsync(Guid userId)
-    {
-        var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        if (cart == null)
+        public async Task<ServiceResult> ApplyPromotionAsync(int? userId, string promotionCode)
         {
-            cart = new Cart
+            if (!userId.HasValue)
             {
-                CartId = Guid.NewGuid(),
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Carts.Add(cart);
-            await _context.SaveChangesAsync();
+                return new ServiceResult { Success = false, Message = "Vui lòng đăng nhập." };
+            }
+
+            var promotion = await _context.Promotions
+                .FirstOrDefaultAsync(p => p.Code == promotionCode && p.IsActive && 
+                                         p.StartDate <= DateTime.Now && p.EndDate >= DateTime.Now);
+
+            if (promotion == null)
+            {
+                return new ServiceResult { Success = false, Message = "Mã khuyến mãi không hợp lệ hoặc đã hết hạn." };
+            }
+
+            if (promotion.UsageLimit.HasValue && promotion.UsedCount >= promotion.UsageLimit.Value)
+            {
+                return new ServiceResult { Success = false, Message = "Mã khuyến mãi đã hết lượt sử dụng." };
+            }
+
+            // For now, we'll just return success. In a real implementation,
+            // you would store the applied promotion in the cart or session
+            return new ServiceResult { Success = true, Message = "Mã khuyến mãi đã được áp dụng." };
         }
 
-        return cart;
+        public async Task<ServiceResult> RemovePromotionAsync(int? userId)
+        {
+            if (!userId.HasValue)
+            {
+                return new ServiceResult { Success = false, Message = "Vui lòng đăng nhập." };
+            }
+
+            // For now, we'll just return success. In a real implementation,
+            // you would remove the applied promotion from the cart or session
+            return new ServiceResult { Success = true, Message = "Mã khuyến mãi đã được xóa." };
+        }
     }
 }

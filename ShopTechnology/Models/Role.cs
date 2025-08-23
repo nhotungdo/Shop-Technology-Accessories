@@ -1,13 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace ShopTechnology.Models;
-
-public partial class Role
+namespace ShopTechnology.Models
 {
-    public int RoleId { get; set; }
+    public class Role
+    {
+        [Key]
+        public int RoleId { get; set; }
 
-    public string RoleName { get; set; } = null!;
+        [Required]
+        [StringLength(50)]
+        public string Name { get; set; }
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+        [StringLength(255)]
+        public string? Description { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public bool IsActive { get; set; } = true;
+
+        // Navigation properties
+        public virtual ICollection<UserRole> UserRoles { get; set; }
+    }
 }

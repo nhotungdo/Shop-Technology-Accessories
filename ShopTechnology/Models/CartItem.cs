@@ -1,19 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ShopTechnology.Models;
-
-public partial class CartItem
+namespace ShopTechnology.Models
 {
-    public int CartItemId { get; set; }
+    public class CartItem
+    {
+        [Key]
+        public int CartItemId { get; set; }
 
-    public Guid CartId { get; set; }
+        public int CartId { get; set; }
 
-    public int ProductId { get; set; }
+        public int ProductId { get; set; }
 
-    public int Quantity { get; set; }
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int Quantity { get; set; }
 
-    public virtual Cart Cart { get; set; } = null!;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal UnitPrice { get; set; }
 
-    public virtual Product Product { get; set; } = null!;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalPrice { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+
+        // Navigation properties
+        public virtual Cart Cart { get; set; }
+        public virtual Product Product { get; set; }
+    }
 }

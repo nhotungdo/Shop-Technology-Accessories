@@ -6,213 +6,126 @@ namespace ShopTechnology.Services;
 public class PromotionService : IPromotionService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly ILogger<PromotionService> _logger;
 
-    public PromotionService(ShopTechnologyAccessoriesContext context, ILogger<PromotionService> logger)
+    public PromotionService(ShopTechnologyAccessoriesContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task<List<Promotion>> GetAllPromotionsAsync()
     {
         return await _context.Promotions
+            .Where(p => p.IsActive && p.EndDate > DateTime.Now)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
 
     public async Task<Promotion?> GetPromotionByIdAsync(int id)
     {
-        return await _context.Promotions.FindAsync(id);
+        return await _context.Promotions
+            .Include(p => p.ProductPromotions)
+            .ThenInclude(pp => pp.Product)
+            .FirstOrDefaultAsync(p => p.PromotionId == id);
     }
 
     public async Task<Promotion?> GetPromotionByCodeAsync(string code)
     {
         return await _context.Promotions
-            .FirstOrDefaultAsync(p => p.Code == code);
+            .Include(p => p.ProductPromotions)
+            .ThenInclude(pp => pp.Product)
+            .FirstOrDefaultAsync(p => p.Code == code && p.IsActive && p.EndDate > DateTime.Now);
     }
 
     public async Task<Promotion> CreatePromotionAsync(Promotion promotion)
     {
-        promotion.CreatedAt = DateTime.UtcNow;
-        promotion.IsActive = true;
-
+        promotion.CreatedAt = DateTime.Now;
         _context.Promotions.Add(promotion);
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Promotion created: {Code}", promotion.Code);
         return promotion;
     }
 
     public async Task<bool> UpdatePromotionAsync(Promotion promotion)
     {
-        try
-        {
-            var existingPromotion = await _context.Promotions.FindAsync(promotion.PromotionId);
-            if (existingPromotion == null)
-            {
-                return false;
-            }
+        var existingPromotion = await _context.Promotions.FindAsync(promotion.PromotionId);
+        if (existingPromotion == null) return false;
 
-            existingPromotion.Name = promotion.Name;
-            existingPromotion.Description = promotion.Description;
-            existingPromotion.DiscountAmount = promotion.DiscountAmount;
-            existingPromotion.DiscountPercentage = promotion.DiscountPercentage;
-            existingPromotion.MinimumOrderAmount = promotion.MinimumOrderAmount;
-            existingPromotion.MaxUsageCount = promotion.MaxUsageCount;
-            existingPromotion.StartDate = promotion.StartDate;
-            existingPromotion.EndDate = promotion.EndDate;
-            existingPromotion.IsActive = promotion.IsActive;
-            existingPromotion.UpdatedAt = DateTime.UtcNow;
+        existingPromotion.Name = promotion.Name;
+        existingPromotion.Description = promotion.Description;
+        existingPromotion.Code = promotion.Code;
+        existingPromotion.DiscountType = promotion.DiscountType;
+        existingPromotion.DiscountValue = promotion.DiscountValue;
+        existingPromotion.MinimumOrderAmount = promotion.MinimumOrderAmount;
+        existingPromotion.MaximumDiscountAmount = promotion.MaximumDiscountAmount;
+        existingPromotion.UsageLimit = promotion.UsageLimit;
+        existingPromotion.StartDate = promotion.StartDate;
+        existingPromotion.EndDate = promotion.EndDate;
+        existingPromotion.IsActive = promotion.IsActive;
+        existingPromotion.IsPublic = promotion.IsPublic;
+        existingPromotion.ImageUrl = promotion.ImageUrl;
+        existingPromotion.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Promotion updated: {Code}", promotion.Code);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating promotion: {PromotionId}", promotion.PromotionId);
-            return false;
-        }
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> DeletePromotionAsync(int id)
     {
-        try
-        {
-            var promotion = await _context.Promotions.FindAsync(id);
-            if (promotion == null)
-            {
-                return false;
-            }
+        var promotion = await _context.Promotions.FindAsync(id);
+        if (promotion == null) return false;
 
-            _context.Promotions.Remove(promotion);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Promotion deleted: {Code}", promotion.Code);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting promotion: {PromotionId}", id);
-            return false;
-        }
+        _context.Promotions.Remove(promotion);
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> ValidatePromotionAsync(string code, decimal orderAmount)
     {
-        try
-        {
-            var promotion = await _context.Promotions
-                .FirstOrDefaultAsync(p => p.Code == code && p.IsActive);
-
-            if (promotion == null)
-            {
-                return false;
-            }
-
-            // Check if promotion is within valid date range
-            if (promotion.StartDate > DateTime.UtcNow || promotion.EndDate < DateTime.UtcNow)
-            {
-                return false;
-            }
-
-            // Check minimum order amount
-            if (orderAmount < promotion.MinimumOrderAmount)
-            {
-                return false;
-            }
-
-            // Check usage limit
-            if (promotion.UsedCount >= promotion.MaxUsageCount)
-            {
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating promotion: {Code}", code);
-            return false;
-        }
+        return await ValidatePromotionCodeAsync(code, orderAmount);
     }
 
     public async Task<decimal> CalculateDiscountAsync(string code, decimal orderAmount)
     {
-        try
-        {
-            var promotion = await _context.Promotions
-                .FirstOrDefaultAsync(p => p.Code == code && p.IsActive);
+        var promotion = await GetPromotionByCodeAsync(code);
+        if (promotion == null) return 0;
 
-            if (promotion == null)
-            {
-                return 0;
-            }
-
-            if (!await ValidatePromotionAsync(code, orderAmount))
-            {
-                return 0;
-            }
-
-            decimal discountAmount = 0;
-
-            if (promotion.DiscountPercentage > 0)
-            {
-                discountAmount = orderAmount * (promotion.DiscountPercentage / 100);
-            }
-            else
-            {
-                discountAmount = promotion.DiscountAmount;
-            }
-
-            // Ensure discount doesn't exceed order amount
-            if (discountAmount > orderAmount)
-            {
-                discountAmount = orderAmount;
-            }
-
-            return discountAmount;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating discount for promotion: {Code}", code);
+        if (!await ValidatePromotionCodeAsync(code, orderAmount))
             return 0;
+
+        decimal discount = 0;
+
+        if (promotion.DiscountType == "Percentage")
+        {
+            discount = orderAmount * (promotion.DiscountValue / 100);
         }
+        else if (promotion.DiscountType == "FixedAmount")
+        {
+            discount = promotion.DiscountValue;
+        }
+
+        // Kiểm tra giới hạn tối đa
+        if (promotion.MaximumDiscountAmount.HasValue && discount > promotion.MaximumDiscountAmount.Value)
+        {
+            discount = promotion.MaximumDiscountAmount.Value;
+        }
+
+        // Đảm bảo discount không vượt quá order amount
+        if (discount > orderAmount)
+        {
+            discount = orderAmount;
+        }
+
+        return discount;
     }
 
     public async Task<bool> UsePromotionAsync(string code)
     {
-        try
-        {
-            var promotion = await _context.Promotions
-                .FirstOrDefaultAsync(p => p.Code == code && p.IsActive);
-
-            if (promotion == null)
-            {
-                return false;
-            }
-
-            promotion.UsedCount++;
-            promotion.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Promotion used: {Code}, UsedCount: {UsedCount}", promotion.Code, promotion.UsedCount);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error using promotion: {Code}", code);
-            return false;
-        }
+        return await IncrementUsageCountAsync(code);
     }
 
     public async Task<List<Promotion>> GetActivePromotionsAsync()
     {
         return await _context.Promotions
-            .Where(p => p.IsActive && p.StartDate <= DateTime.UtcNow && p.EndDate >= DateTime.UtcNow)
+            .Where(p => p.IsActive && p.IsPublic && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
@@ -220,42 +133,27 @@ public class PromotionService : IPromotionService
     public async Task<List<Promotion>> GetExpiredPromotionsAsync()
     {
         return await _context.Promotions
-            .Where(p => p.EndDate < DateTime.UtcNow)
-            .OrderByDescending(p => p.EndDate)
+            .Where(p => p.EndDate < DateTime.Now)
             .ToListAsync();
     }
 
     public async Task<List<Promotion>> GetUpcomingPromotionsAsync()
     {
         return await _context.Promotions
-            .Where(p => p.StartDate > DateTime.UtcNow)
+            .Where(p => p.IsActive && p.StartDate > DateTime.Now)
             .OrderBy(p => p.StartDate)
             .ToListAsync();
     }
 
     public async Task<bool> TogglePromotionStatusAsync(int id)
     {
-        try
-        {
-            var promotion = await _context.Promotions.FindAsync(id);
-            if (promotion == null)
-            {
-                return false;
-            }
+        var promotion = await _context.Promotions.FindAsync(id);
+        if (promotion == null) return false;
 
-            promotion.IsActive = !promotion.IsActive;
-            promotion.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Promotion status toggled: {Code} -> {IsActive}", promotion.Code, promotion.IsActive);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling promotion status: {PromotionId}", id);
-            return false;
-        }
+        promotion.IsActive = !promotion.IsActive;
+        promotion.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<int> GetTotalPromotionsCountAsync()
@@ -266,33 +164,79 @@ public class PromotionService : IPromotionService
     public async Task<int> GetActivePromotionsCountAsync()
     {
         return await _context.Promotions
-            .CountAsync(p => p.IsActive && p.StartDate <= DateTime.UtcNow && p.EndDate >= DateTime.UtcNow);
+            .CountAsync(p => p.IsActive && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now);
     }
 
     public async Task<decimal> GetTotalDiscountUsedAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
-        try
-        {
-            // This would need to be calculated from order history
-            // For now, return 0 as we don't have this data in the current schema
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating total discount used");
-            return 0;
-        }
+        var query = _context.Orders.AsQueryable();
+
+        if (startDate.HasValue)
+            query = query.Where(o => o.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(o => o.CreatedAt <= endDate.Value);
+
+        return await query.SumAsync(o => o.DiscountAmount);
     }
 
     public async Task<bool> IsCodeUniqueAsync(string code, int? excludeId = null)
     {
-        var query = _context.Promotions.AsQueryable();
-        
-        if (excludeId.HasValue)
-        {
-            query = query.Where(p => p.PromotionId != excludeId.Value);
-        }
+        var query = _context.Promotions.Where(p => p.Code == code);
 
-        return !await query.AnyAsync(p => p.Code == code);
+        if (excludeId.HasValue)
+            query = query.Where(p => p.PromotionId != excludeId.Value);
+
+        return !await query.AnyAsync();
+    }
+
+    public async Task<List<Promotion>> GetPromotionsByProductIdAsync(int productId)
+    {
+        return await _context.Promotions
+            .Include(p => p.ProductPromotions)
+            .Where(p => p.IsActive && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now &&
+                       p.ProductPromotions.Any(pp => pp.ProductId == productId))
+            .ToListAsync();
+    }
+
+    public async Task<bool> ValidatePromotionCodeAsync(string code, decimal orderAmount)
+    {
+        var promotion = await GetPromotionByCodeAsync(code);
+        if (promotion == null) return false;
+
+        // Kiểm tra thời gian hiệu lực
+        if (promotion.StartDate > DateTime.Now || promotion.EndDate < DateTime.Now)
+            return false;
+
+        // Kiểm tra số lần sử dụng
+        if (promotion.UsageLimit.HasValue && promotion.UsedCount >= promotion.UsageLimit.Value)
+            return false;
+
+        // Kiểm tra giá trị đơn hàng tối thiểu
+        if (promotion.MinimumOrderAmount.HasValue && orderAmount < promotion.MinimumOrderAmount.Value)
+            return false;
+
+        return true;
+    }
+
+    public async Task<bool> IncrementUsageCountAsync(string code)
+    {
+        var promotion = await GetPromotionByCodeAsync(code);
+        if (promotion == null) return false;
+
+        promotion.UsedCount++;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeactivateExpiredPromotionsAsync()
+    {
+        var expiredPromotions = await GetExpiredPromotionsAsync();
+        foreach (var promotion in expiredPromotions)
+        {
+            promotion.IsActive = false;
+        }
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

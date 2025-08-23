@@ -24,31 +24,39 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
         _configuration = configuration;
     }
 
-    public virtual DbSet<Cart> Carts { get; set; }
+    // User Management
+    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<UserRole> UserRoles { get; set; }
 
+    // Product Management
+    public virtual DbSet<Category> Categories { get; set; }
+    public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<ProductImage> ProductImages { get; set; }
+    public virtual DbSet<Review> Reviews { get; set; }
+    public virtual DbSet<ReviewImage> ReviewImages { get; set; }
+
+    // Shopping Cart
+    public virtual DbSet<Cart> Carts { get; set; }
     public virtual DbSet<CartItem> CartItems { get; set; }
 
-    public virtual DbSet<Category> Categories { get; set; }
-
+    // Orders and Payments
     public virtual DbSet<Order> Orders { get; set; }
-
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
-
+    public virtual DbSet<OrderHistory> OrderHistories { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
 
-    public virtual DbSet<Product> Products { get; set; }
+    // Promotions and Marketing
+    public virtual DbSet<Promotion> Promotions { get; set; }
+    public virtual DbSet<ProductPromotion> ProductPromotions { get; set; }
+    public virtual DbSet<Banner> Banners { get; set; }
 
-    public virtual DbSet<ProductImage> ProductImages { get; set; }
-
-    public virtual DbSet<Role> Roles { get; set; }
-
-    public virtual DbSet<User> Users { get; set; }
-
+    // User Features
     public virtual DbSet<Wishlist> Wishlists { get; set; }
-    public virtual DbSet<Promotion> Promotions { get; set; } = null!;
-    public virtual DbSet<Review> Reviews { get; set; } = null!;
 
-    public virtual DbSet<PasswordReset> PasswordResets { get; set; } = null!;
+    // Content Management
+    public virtual DbSet<Contact> Contacts { get; set; }
+    public virtual DbSet<FAQ> FAQs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -70,205 +78,271 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Cart>(entity =>
+        // User Management
+        modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.CartId).HasName("PK__Carts__51BCD7B736EAC6BB");
-
-            entity.Property(e => e.CartId).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Carts)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK_Carts_Users");
-        });
-
-        modelBuilder.Entity<CartItem>(entity =>
-        {
-            entity.HasKey(e => e.CartItemId).HasName("PK__CartItem__488B0B0A452E7A86");
-
-            entity.Property(e => e.Quantity).HasDefaultValue(1);
-
-            entity.HasOne(d => d.Cart).WithMany(p => p.CartItems)
-                .HasForeignKey(d => d.CartId)
-                .HasConstraintName("FK_CartItems_Carts");
-
-            entity.HasOne(d => d.Product).WithMany(p => p.CartItems)
-                .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CartItems_Products");
-        });
-
-        modelBuilder.Entity<Category>(entity =>
-        {
-            entity.HasKey(e => e.CategoryId).HasName("PK__Categori__19093A0B4854A86E");
-
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E099EC3A7D").IsUnique();
-
-            entity.Property(e => e.CategoryName).HasMaxLength(100);
-        });
-
-        modelBuilder.Entity<Order>(entity =>
-        {
-            entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BCF895EE85C");
-
-            entity.Property(e => e.OrderId).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.OrderDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasDefaultValue("Pending");
-            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
-
-            entity.HasOne(d => d.Payment).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.PaymentId)
-                .HasConstraintName("FK_Orders_Payments");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Orders_Users");
-        });
-
-        modelBuilder.Entity<OrderDetail>(entity =>
-        {
-            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D36C1E34E8E2");
-
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-
-            entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
-                .HasForeignKey(d => d.OrderId)
-                .HasConstraintName("FK_OrderDetails_Orders");
-
-            entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
-                .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrderDetails_Products");
-        });
-
-        modelBuilder.Entity<Payment>(entity =>
-        {
-            entity.HasKey(e => e.PaymentId).HasName("PK__Payments__9B556A38D4D9584D");
-
-            entity.Property(e => e.PaymentId).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Method).HasMaxLength(50);
-            entity.Property(e => e.PaymentDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasDefaultValue("Pending");
-        });
-
-        modelBuilder.Entity<Product>(entity =>
-        {
-            entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6CDD444E005");
-
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.ProductName).HasMaxLength(255);
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Category).WithMany(p => p.Products)
-                .HasForeignKey(d => d.CategoryId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Products_Categories");
-        });
-
-        modelBuilder.Entity<ProductImage>(entity =>
-        {
-            entity.HasKey(e => e.ImageId).HasName("PK__ProductI__7516F70CD7CF1BD1");
-
-            entity.Property(e => e.ImageUrl).HasMaxLength(500);
-
-            entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
-                .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK_ProductImages_Products");
+            entity.HasKey(e => e.UserId);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.FullName).HasMaxLength(100);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            entity.Property(e => e.Password).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1AD271E2C1");
-
-            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B6160CA6B4CE0").IsUnique();
-
-            entity.Property(e => e.RoleName).HasMaxLength(50);
-        });
-
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C58B397CF");
-
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D1053400C552B4").IsUnique();
-
-            entity.Property(e => e.UserId).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Email).HasMaxLength(255);
-            entity.Property(e => e.FullName).HasMaxLength(100);
-            entity.Property(e => e.PasswordHash).HasMaxLength(255);
-            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
-                .HasForeignKey(d => d.RoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Users_Roles");
-        });
-
-        modelBuilder.Entity<Wishlist>(entity =>
-        {
-            entity.HasIndex(e => e.ProductId, "IX_Wishlists_ProductId");
-
-            entity.HasIndex(e => e.UserId, "IX_Wishlists_UserId");
-
-            entity.HasOne(d => d.Product).WithMany(p => p.Wishlists).HasForeignKey(d => d.ProductId);
-
-            entity.HasOne(d => d.User).WithMany(p => p.Wishlists).HasForeignKey(d => d.UserId);
-        });
-
-        modelBuilder.Entity<Promotion>(entity =>
-        {
-            entity.HasKey(e => e.PromotionId).HasName("PK_Promotions");
-
-            entity.HasIndex(e => e.Code, "UQ_Promotions_Code").IsUnique();
-
-            entity.Property(e => e.Code).HasMaxLength(20);
-            entity.Property(e => e.Name).HasMaxLength(100);
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.DiscountPercentage).HasColumnType("decimal(5,2)");
-            entity.Property(e => e.MinimumOrderAmount).HasColumnType("decimal(18,2)");
+            entity.HasKey(e => e.RoleId);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.HasKey(e => e.UserRoleId);
+            entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
+                .HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
+                .HasForeignKey(d => d.RoleId);
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        // Category Management
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.HasKey(e => e.CategoryId);
+            entity.HasIndex(e => e.Slug).IsUnique();
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Slug).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.ParentCategory).WithMany(p => p.SubCategories)
+                .HasForeignKey(d => d.ParentCategoryId);
+        });
+
+        // Product Management
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(e => e.ProductId);
+            entity.HasIndex(e => e.Slug).IsUnique();
+            entity.HasIndex(e => e.SKU).IsUnique();
+            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.SKU).HasMaxLength(50);
+            entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.OriginalPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.AverageRating).HasColumnType("decimal(3,2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Category).WithMany(p => p.Products)
+                .HasForeignKey(d => d.CategoryId);
+        });
+
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasKey(e => e.ProductImageId);
+            entity.Property(e => e.ImageUrl).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
+                .HasForeignKey(d => d.ProductId);
         });
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => e.ReviewId).HasName("PK_Reviews");
-
+            entity.HasKey(e => e.ReviewId);
+            entity.Property(e => e.Rating).HasRange(1, 5);
             entity.Property(e => e.Comment).HasMaxLength(1000);
+            entity.Property(e => e.Title).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
-            entity.HasOne(d => d.Product).WithMany().HasForeignKey(d => d.ProductId);
+            
+            entity.HasOne(d => d.Product).WithMany(p => p.Reviews)
+                .HasForeignKey(d => d.ProductId);
+            entity.HasOne(d => d.User).WithMany(p => p.Reviews)
+                .HasForeignKey(d => d.UserId);
         });
 
-        modelBuilder.Entity<PasswordReset>(entity =>
+        modelBuilder.Entity<ReviewImage>(entity =>
         {
-            entity.HasKey(e => e.PasswordResetId).HasName("PK_PasswordResets");
-
-            entity.Property(e => e.Email).HasMaxLength(255);
-            entity.Property(e => e.Token).HasMaxLength(255);
+            entity.HasKey(e => e.ReviewImageId);
+            entity.Property(e => e.ImageUrl).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Review).WithMany(p => p.ReviewImages)
+                .HasForeignKey(d => d.ReviewId);
+        });
 
-            entity.HasIndex(e => new { e.Email, e.Token });
+        // Shopping Cart
+        modelBuilder.Entity<Cart>(entity =>
+        {
+            entity.HasKey(e => e.CartId);
+            entity.Property(e => e.SessionId).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.User).WithMany(p => p.Carts)
+                .HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.HasKey(e => e.CartItemId);
+            entity.Property(e => e.Quantity).HasDefaultValue(1);
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Cart).WithMany(p => p.CartItems)
+                .HasForeignKey(d => d.CartId);
+            entity.HasOne(d => d.Product).WithMany(p => p.CartItems)
+                .HasForeignKey(d => d.ProductId);
+        });
+
+        // Orders and Payments
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.OrderId);
+            entity.HasIndex(e => e.OrderNumber).IsUnique();
+            entity.Property(e => e.OrderNumber).HasMaxLength(50);
+            entity.Property(e => e.CustomerName).HasMaxLength(100);
+            entity.Property(e => e.CustomerEmail).HasMaxLength(150);
+            entity.Property(e => e.CustomerPhone).HasMaxLength(20);
+            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
+            entity.Property(e => e.OrderStatus).HasMaxLength(50).HasDefaultValue("Pending");
+            entity.Property(e => e.PaymentStatus).HasMaxLength(50).HasDefaultValue("Pending");
+            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+            entity.Property(e => e.TrackingNumber).HasMaxLength(100);
+            entity.Property(e => e.ShippingMethod).HasMaxLength(100);
+            entity.Property(e => e.SubTotal).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TaxAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.ShippingFee).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.User).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<OrderDetail>(entity =>
+        {
+            entity.HasKey(e => e.OrderDetailId);
+            entity.Property(e => e.ProductName).HasMaxLength(200);
+            entity.Property(e => e.ProductSKU).HasMaxLength(100);
+            entity.Property(e => e.Quantity).HasDefaultValue(1);
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.ProductImage).HasMaxLength(255);
+            entity.Property(e => e.ProductBrand).HasMaxLength(100);
+            
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.OrderId);
+            entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.ProductId);
+        });
+
+        modelBuilder.Entity<OrderHistory>(entity =>
+        {
+            entity.HasKey(e => e.OrderHistoryId);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderHistories)
+                .HasForeignKey(d => d.OrderId);
+            entity.HasOne(d => d.UpdatedByUser).WithMany()
+                .HasForeignKey(d => d.UpdatedByUserId);
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.PaymentId);
+            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+            entity.Property(e => e.PaymentProvider).HasMaxLength(100);
+            entity.Property(e => e.TransactionId).HasMaxLength(100);
+            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.ErrorMessage).HasMaxLength(500);
+            entity.Property(e => e.PaymentUrl).HasMaxLength(255);
+            entity.Property(e => e.CallbackData).HasMaxLength(500);
+            entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Order).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.OrderId);
+        });
+
+        // Promotions and Marketing
+        modelBuilder.Entity<Promotion>(entity =>
+        {
+            entity.HasKey(e => e.PromotionId);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.DiscountType).HasMaxLength(20).HasDefaultValue("Percentage");
+            entity.Property(e => e.DiscountValue).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.MinimumOrderAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.MaximumDiscountAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.ImageUrl).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        modelBuilder.Entity<ProductPromotion>(entity =>
+        {
+            entity.HasKey(e => e.ProductPromotionId);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductPromotions)
+                .HasForeignKey(d => d.ProductId);
+            entity.HasOne(d => d.Promotion).WithMany(p => p.ProductPromotions)
+                .HasForeignKey(d => d.PromotionId);
+        });
+
+        modelBuilder.Entity<Banner>(entity =>
+        {
+            entity.HasKey(e => e.BannerId);
+            entity.Property(e => e.Title).HasMaxLength(100);
+            entity.Property(e => e.ImageUrl).HasMaxLength(255);
+            entity.Property(e => e.LinkUrl).HasMaxLength(255);
+            entity.Property(e => e.Position).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        // User Features
+        modelBuilder.Entity<Wishlist>(entity =>
+        {
+            entity.HasKey(e => e.WishlistId);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.User).WithMany(p => p.Wishlists)
+                .HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.Product).WithMany(p => p.Wishlists)
+                .HasForeignKey(d => d.ProductId);
+        });
+
+        // Content Management
+        modelBuilder.Entity<Contact>(entity =>
+        {
+            entity.HasKey(e => e.ContactId);
+            entity.Property(e => e.FullName).HasMaxLength(100);
+            entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            entity.Property(e => e.Subject).HasMaxLength(200);
+            entity.Property(e => e.Message).HasMaxLength(1000);
+            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("New");
+            entity.Property(e => e.ReplyMessage).HasMaxLength(1000);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            
+            entity.HasOne(d => d.RepliedByUser).WithMany()
+                .HasForeignKey(d => d.RepliedByUserId);
+        });
+
+        modelBuilder.Entity<FAQ>(entity =>
+        {
+            entity.HasKey(e => e.FAQId);
+            entity.Property(e => e.Question).HasMaxLength(200);
+            entity.Property(e => e.Answer).HasMaxLength(2000);
+            entity.Property(e => e.Category).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
         });
 
         OnModelCreatingPartial(modelBuilder);

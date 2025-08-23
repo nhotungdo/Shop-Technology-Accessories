@@ -3,221 +3,266 @@ using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using ShopTechnology.Services;
 using ShopTechnology.ViewModels;
-using System.Diagnostics;
 
-namespace ShopTechnology.Controllers;
-
-public class HomeController : Controller
+namespace ShopTechnology.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-    private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly IProductService _productService;
-    private readonly ICategoryService _categoryService;
-
-    public HomeController(
-        ILogger<HomeController> logger,
-        ShopTechnologyAccessoriesContext context,
-        IProductService productService,
-        ICategoryService categoryService)
+    public class HomeController : Controller
     {
-        _logger = logger;
-        _context = context;
-        _productService = productService;
-        _categoryService = categoryService;
-    }
+        private readonly ShopTechnologyAccessoriesContext _context;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IBannerService _bannerService;
 
-    public async Task<IActionResult> Index()
-    {
-        try
+        public HomeController(
+            ShopTechnologyAccessoriesContext context,
+            IProductService productService,
+            ICategoryService categoryService,
+            IBannerService bannerService)
         {
-            var featuredProducts = await _productService.GetFeaturedProductsAsync(8);
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            var latestProducts = await _productService.GetLatestProductsAsync(6);
+            _context = context;
+            _productService = productService;
+            _categoryService = categoryService;
+            _bannerService = bannerService;
+        }
 
+        public async Task<IActionResult> Index()
+        {
             var viewModel = new HomeViewModel
             {
-                FeaturedProducts = featuredProducts,
-                Categories = categories,
-                LatestProducts = latestProducts
+                FeaturedProducts = await _productService.GetFeaturedProductsAsync(8),
+                LatestProducts = await _productService.GetNewProductsAsync(8),
+                NewProducts = await _productService.GetNewProductsAsync(8),
+                HotProducts = await _productService.GetHotProductsAsync(8),
+                Categories = await _categoryService.GetFeaturedCategoriesAsync(6),
+                Banners = await _bannerService.GetActiveBannersAsync("Homepage")
             };
 
             return View(viewModel);
         }
-        catch (Exception ex)
+
+        public async Task<IActionResult> About()
         {
-            _logger.LogError(ex, "Error loading home page");
-            return View("Error");
+            return View();
         }
-    }
 
-    public async Task<IActionResult> Products(int? categoryId, string? searchTerm,
-        decimal? minPrice, decimal? maxPrice, string? sortBy, int page = 1)
-    {
-        try
+        public async Task<IActionResult> Contact()
         {
-            const int pageSize = 12;
+            return View();
+        }
 
-            var products = await _productService.GetProductsAsync(
-                categoryId, searchTerm, minPrice, maxPrice, sortBy, page, pageSize);
-
-            var categories = await _categoryService.GetAllCategoriesAsync();
-
-            var viewModel = new ProductListViewModel
+        [HttpPost]
+        public async Task<IActionResult> Contact(Contact contact)
+        {
+            if (ModelState.IsValid)
             {
-                Products = products.Items,
-                Categories = categories,
-                CurrentCategoryId = categoryId,
-                SearchTerm = searchTerm,
+                contact.CreatedAt = DateTime.Now;
+                contact.Status = "New";
+                
+                _context.Contacts.Add(contact);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Cảm ơn bạn đã liên hệ với chúng tôi. Chúng tôi sẽ phản hồi sớm nhất có thể!";
+                return RedirectToAction(nameof(Contact));
+            }
+
+            return View(contact);
+        }
+
+        public async Task<IActionResult> FAQ()
+        {
+            var faqs = await _context.FAQs
+                .Where(f => f.IsActive)
+                .OrderBy(f => f.DisplayOrder)
+                .ThenBy(f => f.Category)
+                .ToListAsync();
+
+            return View(faqs);
+        }
+
+        public async Task<IActionResult> Search(string q, string category, string brand, 
+            decimal? minPrice, decimal? maxPrice, string sortBy = "name", int page = 1)
+        {
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.IsActive);
+
+            // Search by keyword
+            if (!string.IsNullOrEmpty(q))
+            {
+                query = query.Where(p => p.Name.Contains(q) || 
+                                        p.Description.Contains(q) || 
+                                        p.Brand.Contains(q) ||
+                                        p.SKU.Contains(q));
+            }
+
+            // Filter by category
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(p => p.Category.Slug == category);
+            }
+
+            // Filter by brand
+            if (!string.IsNullOrEmpty(brand))
+            {
+                query = query.Where(p => p.Brand == brand);
+            }
+
+            // Filter by price range
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            // Sort
+            query = sortBy switch
+            {
+                "price_asc" => query.OrderBy(p => p.Price),
+                "price_desc" => query.OrderByDescending(p => p.Price),
+                "newest" => query.OrderByDescending(p => p.CreatedAt),
+                "popular" => query.OrderByDescending(p => p.ViewCount),
+                "rating" => query.OrderByDescending(p => p.AverageRating),
+                _ => query.OrderBy(p => p.Name)
+            };
+
+            // Pagination
+            int pageSize = 12;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var viewModel = new SearchViewModel
+            {
+                Products = products,
+                SearchTerm = q,
+                Category = category,
+                Brand = brand,
                 MinPrice = minPrice,
                 MaxPrice = maxPrice,
                 SortBy = sortBy,
                 CurrentPage = page,
-                TotalPages = (int)Math.Ceiling(products.TotalCount / (double)pageSize),
-                TotalCount = products.TotalCount
+                TotalPages = totalPages,
+                TotalItems = totalItems,
+                Categories = await _categoryService.GetAllCategoriesAsync(),
+                Brands = await _productService.GetAllBrandsAsync()
             };
 
             return View(viewModel);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading products page");
-            return View("Error");
-        }
-    }
 
-    public async Task<IActionResult> ProductDetail(int id)
-    {
-        try
+        public async Task<IActionResult> Category(string slug, string sortBy = "name", int page = 1)
         {
-            var product = await _productService.GetProductByIdAsync(id);
+            var category = await _context.Categories
+                .Include(c => c.SubCategories)
+                .FirstOrDefaultAsync(c => c.Slug == slug && c.IsActive);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.IsActive && (p.CategoryId == category.CategoryId || 
+                                          p.Category.ParentCategoryId == category.CategoryId));
+
+            // Sort
+            query = sortBy switch
+            {
+                "price_asc" => query.OrderBy(p => p.Price),
+                "price_desc" => query.OrderByDescending(p => p.Price),
+                "newest" => query.OrderByDescending(p => p.CreatedAt),
+                "popular" => query.OrderByDescending(p => p.ViewCount),
+                "rating" => query.OrderByDescending(p => p.AverageRating),
+                _ => query.OrderBy(p => p.Name)
+            };
+
+            // Pagination
+            int pageSize = 12;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var viewModel = new CategoryViewModel
+            {
+                Category = category,
+                Products = products,
+                SortBy = sortBy,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                TotalItems = totalItems
+            };
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> Product(string slug)
+        {
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages.OrderBy(pi => pi.DisplayOrder))
+                .Include(p => p.Reviews.Where(r => r.IsApproved).OrderByDescending(r => r.CreatedAt))
+                .ThenInclude(r => r.User)
+                .Include(p => p.Reviews.Where(r => r.IsApproved))
+                .ThenInclude(r => r.ReviewImages)
+                .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
+
             if (product == null)
             {
                 return NotFound();
             }
 
-            var relatedProducts = await _productService.GetRelatedProductsAsync(id, 4);
-            var reviews = await _context.Reviews
-                .Include(r => r.User)
-                .Where(r => r.ProductId == id)
-                .OrderByDescending(r => r.CreatedAt)
-                .Take(10)
+            // Increment view count
+            product.ViewCount++;
+            await _context.SaveChangesAsync();
+
+            // Get related products
+            var relatedProducts = await _context.Products
+                .Include(p => p.ProductImages)
+                .Where(p => p.IsActive && 
+                           p.CategoryId == product.CategoryId && 
+                           p.ProductId != product.ProductId)
+                .OrderByDescending(p => p.ViewCount)
+                .Take(4)
                 .ToListAsync();
 
             var viewModel = new ProductDetailViewModel
             {
                 Product = product,
-                RelatedProducts = relatedProducts,
-                Reviews = reviews
+                RelatedProducts = relatedProducts
             };
 
             return View(viewModel);
         }
-        catch (Exception ex)
+
+        public async Task<IActionResult> Compare(int[] productIds)
         {
-            _logger.LogError(ex, "Error loading product detail for ID: {ProductId}", id);
-            return View("Error");
-        }
-    }
-
-    public async Task<IActionResult> About()
-    {
-        return View();
-    }
-
-    public async Task<IActionResult> Contact()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Contact(ContactViewModel model)
-    {
-        if (ModelState.IsValid)
-        {
-            // TODO: Implement contact form submission
-            TempData["SuccessMessage"] = "Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.";
-            return RedirectToAction(nameof(Contact));
-        }
-        return View(model);
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View();
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Search(string q, int page = 1)
-    {
-        if (string.IsNullOrWhiteSpace(q))
-        {
-            return RedirectToAction(nameof(Products));
-        }
-
-        const int pageSize = 12;
-        var products = await _productService.GetProductsAsync(null, q, null, null, null, page, pageSize);
-
-        var viewModel = new SearchViewModel
-        {
-            SearchTerm = q,
-            Products = products.Items,
-            CurrentPage = page,
-            TotalPages = (int)Math.Ceiling(products.TotalCount / (double)pageSize),
-            TotalCount = products.TotalCount
-        };
-
-        return View(viewModel);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Category(int id, int page = 1)
-    {
-        const int pageSize = 12;
-        var products = await _productService.GetProductsAsync(id, null, null, null, null, page, pageSize);
-        var category = await _categoryService.GetCategoryByIdAsync(id);
-
-        if (category == null)
-        {
-            return NotFound();
-        }
-
-        var viewModel = new CategoryViewModel
-        {
-            Category = category,
-            Products = products.Items,
-            CurrentPage = page,
-            TotalPages = (int)Math.Ceiling(products.TotalCount / (double)pageSize),
-            TotalCount = products.TotalCount
-        };
-
-        return View(viewModel);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> TestDatabase()
-    {
-        try
-        {
-            var productCount = await _context.Products.CountAsync();
-            var categoryCount = await _context.Categories.CountAsync();
-
-            return Json(new
+            if (productIds == null || productIds.Length == 0)
             {
-                success = true,
-                message = "Database connection successful",
-                productCount = productCount,
-                categoryCount = categoryCount
-            });
-        }
-        catch (Exception ex)
-        {
-            return Json(new
-            {
-                success = false,
-                message = "Database connection failed",
-                error = ex.Message
-            });
+                return RedirectToAction(nameof(Index));
+            }
+
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => productIds.Contains(p.ProductId) && p.IsActive)
+                .ToListAsync();
+
+            return View(products);
         }
     }
 }

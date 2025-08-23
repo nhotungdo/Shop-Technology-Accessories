@@ -1,58 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ShopTechnology.Models;
-
-public partial class User
+namespace ShopTechnology.Models
 {
-    public Guid UserId { get; set; }
+    public class User
+    {
+        [Key]
+        public int UserId { get; set; }
 
-    [Required]
-    [StringLength(100)]
-    public string FullName { get; set; } = null!;
+        [Required]
+        [StringLength(100)]
+        public string FullName { get; set; }
 
-    [Required]
-    [EmailAddress]
-    [StringLength(255)]
-    public string Email { get; set; } = null!;
+        [Required]
+        [EmailAddress]
+        [StringLength(150)]
+        public string Email { get; set; }
 
-    [Required]
-    [StringLength(255)]
-    public string PasswordHash { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string PhoneNumber { get; set; }
 
-    [StringLength(20)]
-    public string? PhoneNumber { get; set; }
+        [Required]
+        [StringLength(255)]
+        public string Password { get; set; }
 
-    [StringLength(255)]
-    public string? Address { get; set; }
+        [StringLength(255)]
+        public string? Address { get; set; }
 
-    [StringLength(100)]
-    public string? City { get; set; }
+        [StringLength(100)]
+        public string? City { get; set; }
 
-    [StringLength(20)]
-    public string? PostalCode { get; set; }
+        [StringLength(100)]
+        public string? Province { get; set; }
 
-    [StringLength(255)]
-    public string? Avatar { get; set; }
+        [StringLength(20)]
+        public string? PostalCode { get; set; }
 
-    public bool IsEmailVerified { get; set; } = false;
+        public DateTime DateOfBirth { get; set; }
 
-    public bool IsActive { get; set; } = true;
+        public string? Avatar { get; set; }
 
-    public DateTime? LastLoginAt { get; set; }
+        public bool IsEmailVerified { get; set; } = false;
 
-    public int RoleId { get; set; }
+        public bool IsPhoneVerified { get; set; } = false;
 
-    public DateTime CreatedAt { get; set; }
+        public string? EmailVerificationToken { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
+        public DateTime? EmailVerificationExpiry { get; set; }
 
-    // Navigation properties
-    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-    public virtual Role Role { get; set; } = null!;
-    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-    public virtual ICollection<PasswordReset> PasswordResets { get; set; } = new List<PasswordReset>();
+        public string? PasswordResetToken { get; set; }
+
+        public DateTime? PasswordResetExpiry { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedAt { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        public string? SocialLoginProvider { get; set; } // Google, Facebook, etc.
+
+        public string? SocialLoginId { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Review> Reviews { get; set; }
+        public virtual ICollection<Wishlist> Wishlists { get; set; }
+        public virtual ICollection<Cart> Carts { get; set; }
+        public virtual ICollection<UserRole> UserRoles { get; set; }
+    }
 }

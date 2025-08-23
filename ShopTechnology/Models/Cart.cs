@@ -1,17 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace ShopTechnology.Models;
-
-public partial class Cart
+namespace ShopTechnology.Models
 {
-    public Guid CartId { get; set; }
+    public class Cart
+    {
+        [Key]
+        public int CartId { get; set; }
 
-    public Guid UserId { get; set; }
+        public int? UserId { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+        [StringLength(100)]
+        public string? SessionId { get; set; }
 
-    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public virtual User User { get; set; } = null!;
+        public DateTime? UpdatedAt { get; set; }
+
+        public DateTime? ExpiresAt { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        // Navigation properties
+        public virtual User? User { get; set; }
+        public virtual ICollection<CartItem> CartItems { get; set; }
+    }
 }

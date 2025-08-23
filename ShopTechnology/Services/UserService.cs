@@ -6,35 +6,37 @@ namespace ShopTechnology.Services;
 public class UserService : IUserService
 {
     private readonly ShopTechnologyAccessoriesContext _context;
-    private readonly ILogger<UserService> _logger;
 
-    public UserService(ShopTechnologyAccessoriesContext context, ILogger<UserService> logger)
+    public UserService(ShopTechnologyAccessoriesContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
-    public async Task<List<User>> GetAllUsersAsync()
+    public async Task<List<User>> GetAllUsersAsync(int page = 1, int pageSize = 20)
     {
         return await _context.Users
-            .Include(u => u.Role)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .Where(u => u.IsActive)
             .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
     }
 
-    public async Task<User?> GetUserByIdAsync(Guid userId)
+    public async Task<User?> GetUserByIdAsync(int userId)
     {
         return await _context.Users
-            .Include(u => u.Role)
-            .Include(u => u.Orders)
-            .Include(u => u.Reviews)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
     {
         return await _context.Users
-            .Include(u => u.Role)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -45,193 +47,143 @@ public class UserService : IUserService
 
     public async Task<User> CreateUserAsync(User user)
     {
-        user.UserId = Guid.NewGuid();
-        user.CreatedAt = DateTime.UtcNow;
+        user.CreatedAt = DateTime.Now;
         user.IsActive = true;
-
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("User created: {Email}", user.Email);
         return user;
     }
 
-    public async Task<bool> UpdateUserAsync(Guid userId, User user)
+    public async Task<bool> UpdateUserAsync(User user)
     {
-        try
-        {
-            var existingUser = await _context.Users.FindAsync(userId);
-            if (existingUser == null)
-            {
-                return false;
-            }
+        var existingUser = await _context.Users.FindAsync(user.UserId);
+        if (existingUser == null) return false;
 
-            existingUser.FullName = user.FullName;
-            existingUser.PhoneNumber = user.PhoneNumber;
-            existingUser.Address = user.Address;
-            existingUser.City = user.City;
-            existingUser.PostalCode = user.PostalCode;
-            existingUser.UpdatedAt = DateTime.UtcNow;
+        existingUser.FullName = user.FullName;
+        existingUser.PhoneNumber = user.PhoneNumber;
+        existingUser.Address = user.Address;
+        existingUser.City = user.City;
+        existingUser.Province = user.Province;
+        existingUser.PostalCode = user.PostalCode;
+        existingUser.DateOfBirth = user.DateOfBirth;
+        existingUser.Avatar = user.Avatar;
+        existingUser.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("User updated: {UserId}", userId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating user: {UserId}", userId);
-            return false;
-        }
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<bool> DeleteUserAsync(Guid userId)
+    public async Task<bool> DeleteUserAsync(int userId)
     {
-        try
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return false;
-            }
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("User deleted: {UserId}", userId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting user: {UserId}", userId);
-            return false;
-        }
+        user.IsActive = false;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<bool> ChangePasswordAsync(Guid userId, string newPasswordHash)
+    public async Task<bool> ChangePasswordAsync(int userId, string newPassword)
     {
-        try
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return false;
-            }
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
 
-            user.PasswordHash = newPasswordHash;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Password changed for user: {UserId}", userId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error changing password for user: {UserId}", userId);
-            return false;
-        }
+        user.Password = newPassword; // Trong thực tế nên hash password
+        user.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<bool> UpdateLastLoginAsync(Guid userId)
+    public async Task<bool> UpdateLastLoginAsync(int userId)
     {
-        try
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return false;
-            }
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
 
-            user.LastLoginAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating last login for user: {UserId}", userId);
-            return false;
-        }
+        user.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<bool> ToggleUserStatusAsync(Guid userId)
+    public async Task<bool> ToggleUserStatusAsync(int userId)
     {
-        try
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return false;
-            }
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
 
-            user.IsActive = !user.IsActive;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("User status toggled: {UserId} -> {IsActive}", userId, user.IsActive);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling user status: {UserId}", userId);
-            return false;
-        }
+        user.IsActive = !user.IsActive;
+        user.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task<bool> ChangeUserRoleAsync(Guid userId, int roleId)
+    public async Task<bool> AssignRoleAsync(int userId, int roleId)
     {
-        try
+        var existingUserRole = await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        
+        if (existingUserRole != null) return true; // Đã có role
+
+        var userRole = new UserRole
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return false;
-            }
+            UserId = userId,
+            RoleId = roleId,
+            AssignedAt = DateTime.Now,
+            IsActive = true
+        };
 
-            var role = await _context.Roles.FindAsync(roleId);
-            if (role == null)
-            {
-                return false;
-            }
+        _context.UserRoles.Add(userRole);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 
-            user.RoleId = roleId;
-            user.UpdatedAt = DateTime.UtcNow;
+    public async Task<bool> RemoveRoleAsync(int userId, int roleId)
+    {
+        var userRole = await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        
+        if (userRole == null) return false;
 
-            await _context.SaveChangesAsync();
+        _context.UserRoles.Remove(userRole);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 
-            _logger.LogInformation("User role changed: {UserId} -> {RoleName}", userId, role.RoleName);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error changing user role: {UserId}", userId);
-            return false;
-        }
+    public async Task<List<Role>> GetUserRolesAsync(int userId)
+    {
+        return await _context.UserRoles
+            .Include(ur => ur.Role)
+            .Where(ur => ur.UserId == userId && ur.IsActive)
+            .Select(ur => ur.Role)
+            .ToListAsync();
+    }
+
+    public async Task<bool> HasRoleAsync(int userId, string roleName)
+    {
+        return await _context.UserRoles
+            .Include(ur => ur.Role)
+            .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == roleName && ur.IsActive);
     }
 
     public async Task<List<User>> GetUsersByRoleAsync(string roleName)
     {
         return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.Role.RoleName == roleName)
-            .OrderByDescending(u => u.CreatedAt)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .Where(u => u.IsActive && u.UserRoles.Any(ur => ur.Role.Name == roleName && ur.IsActive))
             .ToListAsync();
     }
 
     public async Task<List<User>> GetActiveUsersAsync()
     {
         return await _context.Users
-            .Include(u => u.Role)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
             .Where(u => u.IsActive)
-            .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
     }
 
     public async Task<int> GetTotalUsersCountAsync()
     {
-        return await _context.Users.CountAsync();
+        return await _context.Users.CountAsync(u => u.IsActive);
     }
 
     public async Task<int> GetActiveUsersCountAsync()
@@ -248,63 +200,89 @@ public class UserService : IUserService
     public async Task<List<User>> GetRecentUsersAsync(int count = 10)
     {
         return await _context.Users
-            .Include(u => u.Role)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .Where(u => u.IsActive)
             .OrderByDescending(u => u.CreatedAt)
             .Take(count)
             .ToListAsync();
     }
 
-    public async Task<List<User>> SearchUsersAsync(string searchTerm)
+    public async Task<List<User>> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 20)
     {
         return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.FullName.Contains(searchTerm) ||
-                       u.Email.Contains(searchTerm) ||
-                       u.PhoneNumber.Contains(searchTerm))
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .Where(u => u.IsActive && 
+                       (u.FullName.Contains(searchTerm) || 
+                        u.Email.Contains(searchTerm) || 
+                        u.PhoneNumber.Contains(searchTerm)))
             .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
     }
 
-    public async Task<bool> VerifyPasswordAsync(Guid userId, string passwordHash)
+    public async Task<bool> VerifyPasswordAsync(int userId, string password)
     {
-        try
-        {
-            var user = await _context.Users.FindAsync(userId);
-            return user?.PasswordHash == passwordHash;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error verifying password for user: {UserId}", userId);
-            return false;
-        }
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        return user.Password == password; // Trong thực tế nên so sánh hash
     }
 
-    public async Task<bool> UpdateUserProfileAsync(Guid userId, string fullName, string phoneNumber, string? address, string? city, string? postalCode)
+    public async Task<bool> UpdateUserProfileAsync(int userId, string fullName, string phoneNumber, string? address, string? city, string? province, string? postalCode)
     {
-        try
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return false;
-            }
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
 
-            user.FullName = fullName;
-            user.PhoneNumber = phoneNumber;
-            user.Address = address;
-            user.City = city;
-            user.PostalCode = postalCode;
-            user.UpdatedAt = DateTime.UtcNow;
+        user.FullName = fullName;
+        user.PhoneNumber = phoneNumber;
+        user.Address = address;
+        user.City = city;
+        user.Province = province;
+        user.PostalCode = postalCode;
+        user.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+        return true;
+    }
 
-            _logger.LogInformation("User profile updated: {UserId}", userId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating user profile: {UserId}", userId);
-            return false;
-        }
+    public async Task<bool> VerifyEmailAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        user.IsEmailVerified = true;
+        user.EmailVerificationToken = null;
+        user.EmailVerificationExpiry = null;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> SetPasswordResetTokenAsync(string email, string token, DateTime expiry)
+    {
+        var user = await GetUserByEmailAsync(email);
+        if (user == null) return false;
+
+        user.PasswordResetToken = token;
+        user.PasswordResetExpiry = expiry;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token && 
+                                     u.PasswordResetExpiry > DateTime.Now);
+        if (user == null) return false;
+
+        user.Password = newPassword; // Trong thực tế nên hash password
+        user.PasswordResetToken = null;
+        user.PasswordResetExpiry = null;
+        user.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

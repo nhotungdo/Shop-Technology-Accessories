@@ -1,19 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ShopTechnology.Models;
-
-public partial class Payment
+namespace ShopTechnology.Models
 {
-    public Guid PaymentId { get; set; }
+    public class Payment
+    {
+        [Key]
+        public int PaymentId { get; set; }
 
-    public string Method { get; set; } = null!;
+        public int OrderId { get; set; }
 
-    public decimal Amount { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string PaymentMethod { get; set; } // CreditCard, BankTransfer, EWallet, etc.
 
-    public DateTime PaymentDate { get; set; }
+        [StringLength(100)]
+        public string? PaymentProvider { get; set; } // PayPal, Stripe, Momo, ZaloPay, etc.
 
-    public string Status { get; set; } = null!;
+        [StringLength(100)]
+        public string? TransactionId { get; set; }
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Amount { get; set; }
+
+        [StringLength(50)]
+        public string Status { get; set; } = "Pending"; // Pending, Success, Failed, Refunded
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+
+        [StringLength(500)]
+        public string? ErrorMessage { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? ProcessedAt { get; set; }
+
+        [StringLength(255)]
+        public string? PaymentUrl { get; set; }
+
+        [StringLength(500)]
+        public string? CallbackData { get; set; }
+
+        // Navigation properties
+        public virtual Order Order { get; set; }
+    }
 }

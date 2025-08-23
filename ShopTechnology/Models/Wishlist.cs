@@ -1,17 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace ShopTechnology.Models;
-
-public partial class Wishlist
+namespace ShopTechnology.Models
 {
-    public int Id { get; set; }
+    public class Wishlist
+    {
+        [Key]
+        public int WishlistId { get; set; }
 
-    public Guid UserId { get; set; }
+        public int UserId { get; set; }
 
-    public int ProductId { get; set; }
+        public int ProductId { get; set; }
 
-    public virtual Product Product { get; set; } = null!;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public virtual User User { get; set; } = null!;
+        // Navigation properties
+        public virtual User User { get; set; }
+        public virtual Product Product { get; set; }
+    }
 }
