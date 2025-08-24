@@ -41,18 +41,39 @@ public class DashboardController : Controller
             var totalUsers = await _context.Users.CountAsync();
             var totalCategories = await _context.Categories.CountAsync();
 
+            // Get revenue statistics
+            var today = DateTime.Today;
+            var thisWeek = today.AddDays(-7);
+            var thisMonth = today.AddMonths(-1);
+
+            var todayRevenue = await _orderService.GetTotalRevenueAsync(today, today.AddDays(1));
+            var weekRevenue = await _orderService.GetTotalRevenueAsync(thisWeek, today.AddDays(1));
+            var monthRevenue = await _orderService.GetTotalRevenueAsync(thisMonth, today.AddDays(1));
+
+            // Get order statistics
+            var todayOrders = await _orderService.GetOrderCountAsync(today, today.AddDays(1));
+            var weekOrders = await _orderService.GetOrderCountAsync(thisWeek, today.AddDays(1));
+            var monthOrders = await _orderService.GetOrderCountAsync(thisMonth, today.AddDays(1));
+
+            // Get new users statistics
+            var todayUsers = await _context.Users.CountAsync(u => u.CreatedAt >= today);
+            var weekUsers = await _context.Users.CountAsync(u => u.CreatedAt >= thisWeek);
+            var monthUsers = await _context.Users.CountAsync(u => u.CreatedAt >= thisMonth);
+
             // Get recent orders with user information
             var recentOrders = await _context.Orders
                 .Include(o => o.User)
                 .OrderByDescending(o => o.CreatedAt)
-                .Take(5)
+                .Take(10)
                 .Select(o => new RecentOrderViewModel
                 {
                     OrderId = o.OrderId,
+                    OrderNumber = o.OrderNumber,
                     UserFullName = o.User.FullName,
                     TotalAmount = o.TotalAmount,
                     Status = o.OrderStatus,
-                    StatusDisplay = GetStatusDisplay(o.OrderStatus)
+                    StatusDisplay = GetStatusDisplay(o.OrderStatus),
+                    CreatedAt = o.CreatedAt
                 })
                 .ToListAsync();
 
@@ -61,7 +82,7 @@ public class DashboardController : Controller
                 .Include(p => p.Category)
                 .Where(p => p.StockQuantity <= 10)
                 .OrderBy(p => p.StockQuantity)
-                .Take(5)
+                .Take(10)
                 .Select(p => new LowStockProductViewModel
                 {
                     ProductId = p.ProductId,
@@ -72,14 +93,47 @@ public class DashboardController : Controller
                 })
                 .ToListAsync();
 
+            // Get top selling products
+            var topSellingProducts = await _context.OrderDetails
+                .GroupBy(od => od.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    TotalSold = g.Sum(od => od.Quantity)
+                })
+                .OrderByDescending(x => x.TotalSold)
+                .Take(5)
+                .Join(_context.Products, x => x.ProductId, p => p.ProductId, (x, p) => new TopSellingProductViewModel
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.Name,
+                    TotalSold = x.TotalSold,
+                    Price = p.Price
+                })
+                .ToListAsync();
+
+            // Get pending orders count
+            var pendingOrders = await _context.Orders.CountAsync(o => o.OrderStatus == "Pending");
+
             var viewModel = new DashboardViewModel
             {
                 TotalProducts = totalProducts,
                 TotalOrders = totalOrders,
                 TotalUsers = totalUsers,
                 TotalCategories = totalCategories,
+                TodayRevenue = todayRevenue,
+                WeekRevenue = weekRevenue,
+                MonthRevenue = monthRevenue,
+                TodayOrders = todayOrders,
+                WeekOrders = weekOrders,
+                MonthOrders = monthOrders,
+                TodayUsers = todayUsers,
+                WeekUsers = weekUsers,
+                MonthUsers = monthUsers,
+                PendingOrders = pendingOrders,
                 RecentOrders = recentOrders,
-                LowStockProducts = lowStockProducts
+                LowStockProducts = lowStockProducts,
+                TopSellingProducts = topSellingProducts
             };
 
             return View(viewModel);

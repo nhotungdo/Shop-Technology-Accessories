@@ -360,5 +360,259 @@ namespace ShopTechnology.Controllers
                 .Replace("+", "-")
                 .Substring(0, 22);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> DebugLogin(string email, string password)
+        {
+            try
+            {
+                // First check if database exists and has any users
+                var totalUsers = await _context.Users.CountAsync();
+                var totalRoles = await _context.Roles.CountAsync();
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User not found",
+                        totalUsers = totalUsers,
+                        totalRoles = totalRoles,
+                        suggestion = "Try creating users first with /Account/CreateDefaultUsers"
+                    });
+                }
+
+                var hashedPassword = HashPassword(password);
+                var isPasswordCorrect = user.Password == hashedPassword;
+
+                return Json(new
+                {
+                    success = true,
+                    userFound = true,
+                    userEmail = user.Email,
+                    userPasswordHash = user.Password,
+                    inputPasswordHash = hashedPassword,
+                    isPasswordCorrect = isPasswordCorrect,
+                    message = isPasswordCorrect ? "Password is correct" : "Password is incorrect",
+                    totalUsers = totalUsers,
+                    totalRoles = totalRoles
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckDatabase()
+        {
+            try
+            {
+                var totalUsers = await _context.Users.CountAsync();
+                var totalRoles = await _context.Roles.CountAsync();
+                var totalProducts = await _context.Products.CountAsync();
+                var totalCategories = await _context.Categories.CountAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    totalUsers = totalUsers,
+                    totalRoles = totalRoles,
+                    totalProducts = totalProducts,
+                    totalCategories = totalCategories,
+                    message = "Database connection successful"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FixPasswords()
+        {
+            try
+            {
+                // Get all users with plain text passwords
+                var users = await _context.Users.ToListAsync();
+                var updatedCount = 0;
+
+                foreach (var user in users)
+                {
+                    // Check if password is not already hashed (simple check)
+                    if (!user.Password.Contains("=") && user.Password.Length < 50)
+                    {
+                        var originalPassword = user.Password;
+                        user.Password = HashPassword(originalPassword);
+                        user.UpdatedAt = DateTime.Now;
+                        updatedCount++;
+                    }
+                }
+
+                if (updatedCount > 0)
+                {
+                    await _context.SaveChangesAsync();
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    updatedCount = updatedCount,
+                    message = $"Đã cập nhật {updatedCount} tài khoản với mật khẩu hash"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TestLogin(string email, string password)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                var hashedPassword = HashPassword(password);
+                var isPasswordCorrect = user.Password == hashedPassword;
+
+                return Json(new
+                {
+                    success = true,
+                    userFound = true,
+                    userEmail = user.Email,
+                    userPasswordHash = user.Password,
+                    inputPasswordHash = hashedPassword,
+                    isPasswordCorrect = isPasswordCorrect,
+                    message = isPasswordCorrect ? "Password is correct" : "Password is incorrect"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateDefaultUsers()
+        {
+            try
+            {
+                // Ensure database is created
+                await _context.Database.EnsureCreatedAsync();
+
+                // Check if roles exist, if not create them
+                if (!await _context.Roles.AnyAsync())
+                {
+                    var roles = new List<Role>
+                    {
+                        new Role { Name = "Admin", CreatedAt = DateTime.Now },
+                        new Role { Name = "Customer", CreatedAt = DateTime.Now }
+                    };
+                    _context.Roles.AddRange(roles);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Check if admin user exists
+                var adminEmail = "admin@shoptech.com";
+                var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
+
+                if (adminUser == null)
+                {
+                    // Create admin user
+                    adminUser = new User
+                    {
+                        FullName = "Admin",
+                        Email = adminEmail,
+                        PhoneNumber = "0123456789",
+                        Password = HashPassword("admin123"),
+                        DateOfBirth = new DateTime(1990, 1, 1),
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.Users.Add(adminUser);
+                    await _context.SaveChangesAsync();
+
+                    // Assign admin role
+                    var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+                    if (adminRole != null)
+                    {
+                        var userRole = new UserRole
+                        {
+                            UserId = adminUser.UserId,
+                            RoleId = adminRole.RoleId,
+                            AssignedAt = DateTime.Now
+                        };
+                        _context.UserRoles.Add(userRole);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                // Check if customer user exists
+                var customerEmail = "customer@shoptech.com";
+                var customerUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == customerEmail);
+
+                if (customerUser == null)
+                {
+                    // Create customer user
+                    customerUser = new User
+                    {
+                        FullName = "Customer",
+                        Email = customerEmail,
+                        PhoneNumber = "0987654321",
+                        Password = HashPassword("customer123"),
+                        DateOfBirth = new DateTime(1995, 1, 1),
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.Users.Add(customerUser);
+                    await _context.SaveChangesAsync();
+
+                    // Assign customer role
+                    var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
+                    if (customerRole != null)
+                    {
+                        var userRole = new UserRole
+                        {
+                            UserId = customerUser.UserId,
+                            RoleId = customerRole.RoleId,
+                            AssignedAt = DateTime.Now
+                        };
+                        _context.UserRoles.Add(userRole);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                var userCount = await _context.Users.CountAsync();
+                var roleCount = await _context.Roles.CountAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Default users created successfully",
+                    userCount = userCount,
+                    roleCount = roleCount,
+                    adminEmail = adminEmail,
+                    adminPassword = "admin123",
+                    customerEmail = customerEmail,
+                    customerPassword = "customer123"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    message = "Failed to create default users"
+                });
+            }
+        }
     }
 }

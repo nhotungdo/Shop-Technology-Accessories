@@ -8,17 +8,39 @@ public class DashboardViewModel
     public int TotalOrders { get; set; }
     public int TotalUsers { get; set; }
     public int TotalCategories { get; set; }
+    
+    // Revenue statistics
+    public decimal TodayRevenue { get; set; }
+    public decimal WeekRevenue { get; set; }
+    public decimal MonthRevenue { get; set; }
+    
+    // Order statistics
+    public int TodayOrders { get; set; }
+    public int WeekOrders { get; set; }
+    public int MonthOrders { get; set; }
+    
+    // User statistics
+    public int TodayUsers { get; set; }
+    public int WeekUsers { get; set; }
+    public int MonthUsers { get; set; }
+    
+    // Pending orders
+    public int PendingOrders { get; set; }
+    
     public List<RecentOrderViewModel> RecentOrders { get; set; } = new();
     public List<LowStockProductViewModel> LowStockProducts { get; set; } = new();
+    public List<TopSellingProductViewModel> TopSellingProducts { get; set; } = new();
 }
 
 public class RecentOrderViewModel
 {
     public int OrderId { get; set; }
+    public string OrderNumber { get; set; } = string.Empty;
     public string UserFullName { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = string.Empty;
     public string StatusDisplay { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }
 
 public class LowStockProductViewModel
@@ -27,6 +49,14 @@ public class LowStockProductViewModel
     public string ProductName { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
     public int StockQuantity { get; set; }
+    public decimal Price { get; set; }
+}
+
+public class TopSellingProductViewModel
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public int TotalSold { get; set; }
     public decimal Price { get; set; }
 }
 
