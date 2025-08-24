@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using ShopTechnology.Services;
 using ShopTechnology.ViewModels;
+using AutoMapper;
 
 namespace ShopTechnology.Controllers
 {
@@ -12,17 +13,20 @@ namespace ShopTechnology.Controllers
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IBannerService _bannerService;
+        private readonly IMapper _mapper;
 
         public HomeController(
             ShopTechnologyAccessoriesContext context,
             IProductService productService,
             ICategoryService categoryService,
-            IBannerService bannerService)
+            IBannerService bannerService,
+            IMapper mapper)
         {
             _context = context;
             _productService = productService;
             _categoryService = categoryService;
             _bannerService = bannerService;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> Index()
@@ -57,7 +61,7 @@ namespace ShopTechnology.Controllers
             {
                 contact.CreatedAt = DateTime.Now;
                 contact.Status = "New";
-                
+
                 _context.Contacts.Add(contact);
                 await _context.SaveChangesAsync();
 
@@ -71,7 +75,7 @@ namespace ShopTechnology.Controllers
         public async Task<IActionResult> FAQ()
         {
             var faqs = await _context.FAQs
-                .Where(f => f.IsActive)
+                .Where(f => true /* f.IsActive - removed because column doesn't exist */)
                 .OrderBy(f => f.DisplayOrder)
                 .ThenBy(f => f.Category)
                 .ToListAsync();
@@ -79,19 +83,19 @@ namespace ShopTechnology.Controllers
             return View(faqs);
         }
 
-        public async Task<IActionResult> Search(string q, string category, string brand, 
+        public async Task<IActionResult> Search(string q, string category, string brand,
             decimal? minPrice, decimal? maxPrice, string sortBy = "name", int page = 1)
         {
             var query = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
-                .Where(p => p.IsActive);
+                .AsQueryable();
 
             // Search by keyword
             if (!string.IsNullOrEmpty(q))
             {
-                query = query.Where(p => p.Name.Contains(q) || 
-                                        p.Description.Contains(q) || 
+                query = query.Where(p => p.Name.Contains(q) ||
+                                        p.Description.Contains(q) ||
                                         p.Brand.Contains(q) ||
                                         p.SKU.Contains(q));
             }
@@ -142,7 +146,7 @@ namespace ShopTechnology.Controllers
 
             var viewModel = new SearchViewModel
             {
-                Products = products,
+                Products = _mapper.Map<List<ProductViewModel>>(products),
                 SearchTerm = q,
                 Category = category,
                 Brand = brand,
@@ -152,7 +156,7 @@ namespace ShopTechnology.Controllers
                 CurrentPage = page,
                 TotalPages = totalPages,
                 TotalItems = totalItems,
-                Categories = await _categoryService.GetAllCategoriesAsync(),
+                Categories = (await _categoryService.GetAllCategoriesAsync()).Select(c => c.Name).ToList(),
                 Brands = await _productService.GetAllBrandsAsync()
             };
 
@@ -163,7 +167,7 @@ namespace ShopTechnology.Controllers
         {
             var category = await _context.Categories
                 .Include(c => c.SubCategories)
-                .FirstOrDefaultAsync(c => c.Slug == slug && c.IsActive);
+                .FirstOrDefaultAsync(c => c.Slug == slug && true /* c.IsActive - removed because column doesn't exist */);
 
             if (category == null)
             {
@@ -173,8 +177,8 @@ namespace ShopTechnology.Controllers
             var query = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
-                .Where(p => p.IsActive && (p.CategoryId == category.CategoryId || 
-                                          p.Category.ParentCategoryId == category.CategoryId));
+                .Where(p => (p.CategoryId == category.CategoryId ||
+                            p.Category.ParentCategoryId == category.CategoryId));
 
             // Sort
             query = sortBy switch
@@ -200,7 +204,7 @@ namespace ShopTechnology.Controllers
             var viewModel = new CategoryViewModel
             {
                 Category = category,
-                Products = products,
+                Products = _mapper.Map<List<ProductViewModel>>(products),
                 SortBy = sortBy,
                 CurrentPage = page,
                 TotalPages = totalPages,
@@ -219,7 +223,7 @@ namespace ShopTechnology.Controllers
                 .ThenInclude(r => r.User)
                 .Include(p => p.Reviews.Where(r => r.IsApproved))
                 .ThenInclude(r => r.ReviewImages)
-                .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
+                .FirstOrDefaultAsync(p => p.Slug == slug);
 
             if (product == null)
             {
@@ -233,8 +237,7 @@ namespace ShopTechnology.Controllers
             // Get related products
             var relatedProducts = await _context.Products
                 .Include(p => p.ProductImages)
-                .Where(p => p.IsActive && 
-                           p.CategoryId == product.CategoryId && 
+                .Where(p => p.CategoryId == product.CategoryId &&
                            p.ProductId != product.ProductId)
                 .OrderByDescending(p => p.ViewCount)
                 .Take(4)
@@ -243,7 +246,7 @@ namespace ShopTechnology.Controllers
             var viewModel = new ProductDetailViewModel
             {
                 Product = product,
-                RelatedProducts = relatedProducts
+                RelatedProducts = _mapper.Map<List<ProductViewModel>>(relatedProducts)
             };
 
             return View(viewModel);
@@ -259,7 +262,7 @@ namespace ShopTechnology.Controllers
             var products = await _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
-                .Where(p => productIds.Contains(p.ProductId) && p.IsActive)
+                .Where(p => productIds.Contains(p.ProductId))
                 .ToListAsync();
 
             return View(products);

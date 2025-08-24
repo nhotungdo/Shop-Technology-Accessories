@@ -26,7 +26,7 @@ namespace ShopTechnology.Services
                 .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.Product)
                 .ThenInclude(p => p.ProductImages)
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+                .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
 
             if (cart == null)
             {
@@ -34,8 +34,8 @@ namespace ShopTechnology.Services
                 cart = new Cart
                 {
                     UserId = userId.Value,
-                    CreatedAt = DateTime.Now,
-                    IsActive = true
+                    CreatedAt = DateTime.Now
+                    // IsActive = true - removed because column doesn't exist
                 };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
@@ -82,10 +82,10 @@ namespace ShopTechnology.Services
                 return new ServiceResult { Success = false, Message = "Sản phẩm không tồn tại." };
             }
 
-            if (!product.IsActive)
-            {
-                return new ServiceResult { Success = false, Message = "Sản phẩm hiện không khả dụng." };
-            }
+            // if (!product.IsActive)
+            // {
+            //     return new ServiceResult { Success = false, Message = "Sản phẩm hiện không khả dụng." };
+            // }
 
             if (product.StockQuantity < quantity)
             {
@@ -94,15 +94,15 @@ namespace ShopTechnology.Services
 
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+                .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
 
             if (cart == null)
             {
                 cart = new Cart
                 {
                     UserId = userId.Value,
-                    CreatedAt = DateTime.Now,
-                    IsActive = true
+                    CreatedAt = DateTime.Now
+                    // IsActive = true - removed because column doesn't exist
                 };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
@@ -201,7 +201,7 @@ namespace ShopTechnology.Services
 
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+                .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
 
             if (cart != null)
             {
@@ -220,7 +220,7 @@ namespace ShopTechnology.Services
             }
 
             var promotion = await _context.Promotions
-                .FirstOrDefaultAsync(p => p.Code == promotionCode && p.IsActive && 
+                .FirstOrDefaultAsync(p => p.Code == promotionCode && true /* p.IsActive - removed because column doesn't exist */ &&
                                          p.StartDate <= DateTime.Now && p.EndDate >= DateTime.Now);
 
             if (promotion == null)

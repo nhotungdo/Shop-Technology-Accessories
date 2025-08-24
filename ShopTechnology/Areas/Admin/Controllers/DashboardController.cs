@@ -44,15 +44,15 @@ public class DashboardController : Controller
             // Get recent orders with user information
             var recentOrders = await _context.Orders
                 .Include(o => o.User)
-                .OrderByDescending(o => o.OrderDate)
+                .OrderByDescending(o => o.CreatedAt)
                 .Take(5)
                 .Select(o => new RecentOrderViewModel
                 {
                     OrderId = o.OrderId,
                     UserFullName = o.User.FullName,
                     TotalAmount = o.TotalAmount,
-                    Status = o.Status,
-                    StatusDisplay = GetStatusDisplay(o.Status)
+                    Status = o.OrderStatus,
+                    StatusDisplay = GetStatusDisplay(o.OrderStatus)
                 })
                 .ToListAsync();
 
@@ -65,8 +65,8 @@ public class DashboardController : Controller
                 .Select(p => new LowStockProductViewModel
                 {
                     ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    CategoryName = p.Category.CategoryName,
+                    ProductName = p.Name,
+                    CategoryName = p.Category.Name,
                     StockQuantity = p.StockQuantity,
                     Price = p.Price
                 })

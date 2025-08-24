@@ -57,13 +57,12 @@ namespace ShopTechnology.Models
 
         public DateTime? UpdatedAt { get; set; }
 
-        public bool IsActive { get; set; } = true;
-
         public string? SocialLoginProvider { get; set; } // Google, Facebook, etc.
 
         public string? SocialLoginId { get; set; }
 
         // Navigation properties
+        // Note: Role access through UserRoles collection instead of direct Role property
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<Wishlist> Wishlists { get; set; }

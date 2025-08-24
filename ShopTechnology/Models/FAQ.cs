@@ -20,8 +20,6 @@ namespace ShopTechnology.Models
 
         public int DisplayOrder { get; set; } = 0;
 
-        public bool IsActive { get; set; } = true;
-
         public bool IsFeatured { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

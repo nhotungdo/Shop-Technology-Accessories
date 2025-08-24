@@ -31,7 +31,7 @@ public class OrdersController : Controller
             const int pageSize = 20;
             var query = _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.Payment)
+                .Include(o => o.Payments)
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
                 .AsQueryable();
@@ -39,23 +39,23 @@ public class OrdersController : Controller
             // Filter by status
             if (!string.IsNullOrEmpty(status))
             {
-                query = query.Where(o => o.Status == status);
+                query = query.Where(o => o.OrderStatus == status);
             }
 
             // Filter by date range
             if (startDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate >= startDate.Value);
+                query = query.Where(o => o.CreatedAt >= startDate.Value);
             }
 
             if (endDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate <= endDate.Value);
+                query = query.Where(o => o.CreatedAt <= endDate.Value);
             }
 
             var totalCount = await query.CountAsync();
             var orders = await query
-                .OrderByDescending(o => o.OrderDate)
+                .OrderByDescending(o => o.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -76,7 +76,7 @@ public class OrdersController : Controller
         }
     }
 
-    public async Task<IActionResult> Details(Guid id)
+    public async Task<IActionResult> Details(int id)
     {
         try
         {
@@ -96,7 +96,7 @@ public class OrdersController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateStatus(Guid orderId, string newStatus)
+    public async Task<IActionResult> UpdateStatus(int orderId, string newStatus)
     {
         try
         {
@@ -121,7 +121,7 @@ public class OrdersController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> CancelOrder(Guid orderId)
+    public async Task<IActionResult> CancelOrder(int orderId)
     {
         try
         {
@@ -216,14 +216,14 @@ public class OrdersController : Controller
                 TotalRevenue = totalRevenue,
                 MonthlyRevenue = monthlyRevenue,
                 RevenueGrowth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0,
-                
+
                 TotalOrders = totalOrders,
                 MonthlyOrders = monthlyOrders,
                 OrderGrowth = lastMonthOrders > 0 ? ((monthlyOrders - lastMonthOrders) / lastMonthOrders) * 100 : 0,
-                
-                PendingOrders = pendingOrders.Count,
-                CompletedOrders = completedOrders.Count,
-                CancelledOrders = cancelledOrders.Count
+
+                PendingOrders = pendingOrders.Count(),
+                CompletedOrders = completedOrders.Count(),
+                CancelledOrders = cancelledOrders.Count()
             };
 
             return View(viewModel);
@@ -242,36 +242,37 @@ public class OrdersController : Controller
         {
             var query = _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.Payment)
+                .Include(o => o.Payments)
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(status))
             {
-                query = query.Where(o => o.Status == status);
+                query = query.Where(o => o.OrderStatus == status);
             }
 
             if (startDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate >= startDate.Value);
+                query = query.Where(o => o.CreatedAt >= startDate.Value);
             }
 
             if (endDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate <= endDate.Value);
+                query = query.Where(o => o.CreatedAt <= endDate.Value);
             }
 
             var orders = await query
-                .OrderByDescending(o => o.OrderDate)
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
             // Generate CSV content
             var csvContent = "Order ID,User,Order Date,Status,Total Amount,Payment Method,Shipping Address\n";
-            
+
             foreach (var order in orders)
             {
-                csvContent += $"{order.OrderId},{order.User?.FullName},{order.OrderDate:yyyy-MM-dd HH:mm},{order.Status},{order.TotalAmount:N0},{order.Payment?.Method},{order.ShippingAddress}\n";
+                var paymentMethod = order.Payments?.FirstOrDefault()?.PaymentMethod ?? "N/A";
+                csvContent += $"{order.OrderId},{order.User?.FullName},{order.CreatedAt:yyyy-MM-dd HH:mm},{order.OrderStatus},{order.TotalAmount:N0},{paymentMethod},{order.ShippingAddress}\n";
             }
 
             var fileName = $"orders_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
@@ -293,11 +294,11 @@ public class OrderReportViewModel
     public decimal TotalRevenue { get; set; }
     public decimal MonthlyRevenue { get; set; }
     public decimal RevenueGrowth { get; set; }
-    
+
     public int TotalOrders { get; set; }
     public int MonthlyOrders { get; set; }
     public decimal OrderGrowth { get; set; }
-    
+
     public int PendingOrders { get; set; }
     public int CompletedOrders { get; set; }
     public int CancelledOrders { get; set; }

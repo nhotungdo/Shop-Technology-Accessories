@@ -109,7 +109,7 @@ public class WishlistService : IWishlistService
     {
         // Lấy cart của user
         var cart = await _context.Carts
-            .FirstOrDefaultAsync(c => c.UserId == userId && c.IsActive);
+            .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
 
         if (cart == null)
         {
@@ -117,7 +117,7 @@ public class WishlistService : IWishlistService
             {
                 UserId = userId,
                 CreatedAt = DateTime.Now,
-                IsActive = true
+                                    // IsActive = true - removed because column doesn't exist
             };
             _context.Carts.Add(cart);
             await _context.SaveChangesAsync();

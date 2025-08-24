@@ -40,7 +40,7 @@ namespace ShopTechnology.Controllers
                 var user = await _context.Users
                     .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == hashedPassword && u.IsActive);
+                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == hashedPassword);
 
                 if (user != null)
                 {
@@ -63,7 +63,7 @@ namespace ShopTechnology.Controllers
                         ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
                     };
 
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity), authProperties);
 
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -112,8 +112,7 @@ namespace ShopTechnology.Controllers
                     PhoneNumber = model.PhoneNumber,
                     Password = HashPassword(model.Password),
                     DateOfBirth = model.DateOfBirth,
-                    CreatedAt = DateTime.Now,
-                    IsActive = true
+                    CreatedAt = DateTime.Now
                 };
 
                 _context.Users.Add(user);
@@ -127,8 +126,7 @@ namespace ShopTechnology.Controllers
                     {
                         UserId = user.UserId,
                         RoleId = customerRole.RoleId,
-                        AssignedAt = DateTime.Now,
-                        IsActive = true
+                        AssignedAt = DateTime.Now
                     };
                     _context.UserRoles.Add(userRole);
                     await _context.SaveChangesAsync();
@@ -162,7 +160,7 @@ namespace ShopTechnology.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email && u.IsActive);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
                 if (user != null)
                 {
                     var token = GeneratePasswordResetToken();
@@ -170,7 +168,7 @@ namespace ShopTechnology.Controllers
                     user.PasswordResetExpiry = DateTime.Now.AddHours(24);
                     await _context.SaveChangesAsync();
 
-                    var resetLink = Url.Action("ResetPassword", "Account", 
+                    var resetLink = Url.Action("ResetPassword", "Account",
                         new { email = user.Email, token = token }, Request.Scheme);
 
                     await _emailService.SendPasswordResetEmailAsync(user.Email, user.FullName, resetLink);
@@ -190,9 +188,9 @@ namespace ShopTechnology.Controllers
         [HttpGet]
         public async Task<IActionResult> ResetPassword(string email, string token)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => 
-                u.Email == email && 
-                u.PasswordResetToken == token && 
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Email == email &&
+                u.PasswordResetToken == token &&
                 u.PasswordResetExpiry > DateTime.Now);
 
             if (user == null)
@@ -215,9 +213,9 @@ namespace ShopTechnology.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => 
-                    u.Email == model.Email && 
-                    u.PasswordResetToken == model.Token && 
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.Email == model.Email &&
+                    u.PasswordResetToken == model.Token &&
                     u.PasswordResetExpiry > DateTime.Now);
 
                 if (user != null)

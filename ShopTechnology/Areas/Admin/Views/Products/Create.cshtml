@@ -9,7 +9,7 @@
 	<div class="row g-3">
 		<div class="col-md-6">
 			<label class="form-label">Tên sản phẩm</label>
-			<input asp-for="ProductName" class="form-control" />
+			<input asp-for="Name" class="form-control" />
 		</div>
 		<div class="col-md-3">
 			<label class="form-label">Giá</label>
@@ -21,7 +21,8 @@
 		</div>
 		<div class="col-md-12">
 			<label class="form-label">Danh mục</label>
-			<select asp-for="CategoryId" class="form-select" asp-items="@(new SelectList(ViewBag.Categories, "CategoryId", "CategoryName"))"></select>
+			<select asp-for="CategoryId" class="form-select"
+				asp-items="@(new SelectList(ViewBag.Categories, "CategoryId", "CategoryName"))"></select>
 		</div>
 		<div class="col-md-12">
 			<label class="form-label">Mô tả</label>

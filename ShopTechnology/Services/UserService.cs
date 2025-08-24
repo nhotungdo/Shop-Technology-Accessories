@@ -17,7 +17,7 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .Where(u => u.IsActive)
+            .Where(u => true /* u.IsActive - removed because column doesn't exist */)
             .OrderByDescending(u => u.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -48,7 +48,7 @@ public class UserService : IUserService
     public async Task<User> CreateUserAsync(User user)
     {
         user.CreatedAt = DateTime.Now;
-        user.IsActive = true;
+        // user.IsActive - removed because column doesn't exist = true;
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return user;
@@ -78,7 +78,7 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
 
-        user.IsActive = false;
+        // user.IsActive - removed because column doesn't exist = false;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -109,7 +109,7 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
 
-        user.IsActive = !user.IsActive;
+        // user.IsActive - removed because column doesn't exist = !// user.IsActive - removed because column doesn't exist;
         user.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         return true;
@@ -119,15 +119,15 @@ public class UserService : IUserService
     {
         var existingUserRole = await _context.UserRoles
             .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
-        
+
         if (existingUserRole != null) return true; // Đã có role
 
         var userRole = new UserRole
         {
             UserId = userId,
             RoleId = roleId,
-            AssignedAt = DateTime.Now,
-            IsActive = true
+            AssignedAt = DateTime.Now
+            // IsActive removed - column doesn't exist in database
         };
 
         _context.UserRoles.Add(userRole);
@@ -139,7 +139,7 @@ public class UserService : IUserService
     {
         var userRole = await _context.UserRoles
             .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
-        
+
         if (userRole == null) return false;
 
         _context.UserRoles.Remove(userRole);
@@ -151,7 +151,7 @@ public class UserService : IUserService
     {
         return await _context.UserRoles
             .Include(ur => ur.Role)
-            .Where(ur => ur.UserId == userId && ur.IsActive)
+            .Where(ur => ur.UserId == userId && true /* ur.IsActive - removed because column doesn't exist */)
             .Select(ur => ur.Role)
             .ToListAsync();
     }
@@ -160,7 +160,7 @@ public class UserService : IUserService
     {
         return await _context.UserRoles
             .Include(ur => ur.Role)
-            .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == roleName && ur.IsActive);
+            .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == roleName && true /* ur.IsActive - removed because column doesn't exist */);
     }
 
     public async Task<List<User>> GetUsersByRoleAsync(string roleName)
@@ -168,7 +168,7 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .Where(u => u.IsActive && u.UserRoles.Any(ur => ur.Role.Name == roleName && ur.IsActive))
+            .Where(u => true /* u.IsActive - removed because column doesn't exist */ && u.UserRoles.Any(ur => ur.Role.Name == roleName && true /* ur.IsActive - removed because column doesn't exist */))
             .ToListAsync();
     }
 
@@ -177,18 +177,18 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .Where(u => u.IsActive)
+            .Where(u => true /* u.IsActive - removed because column doesn't exist */)
             .ToListAsync();
     }
 
     public async Task<int> GetTotalUsersCountAsync()
     {
-        return await _context.Users.CountAsync(u => u.IsActive);
+        return await _context.Users.CountAsync(u => true /* u.IsActive - removed because column doesn't exist */);
     }
 
     public async Task<int> GetActiveUsersCountAsync()
     {
-        return await _context.Users.CountAsync(u => u.IsActive);
+        return await _context.Users.CountAsync(u => true /* u.IsActive - removed because column doesn't exist */);
     }
 
     public async Task<int> GetNewUsersCountAsync(DateTime startDate, DateTime endDate)
@@ -202,7 +202,7 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .Where(u => u.IsActive)
+            .Where(u => true /* u.IsActive - removed because column doesn't exist */)
             .OrderByDescending(u => u.CreatedAt)
             .Take(count)
             .ToListAsync();
@@ -213,9 +213,9 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .Where(u => u.IsActive && 
-                       (u.FullName.Contains(searchTerm) || 
-                        u.Email.Contains(searchTerm) || 
+            .Where(u => true /* u.IsActive - removed because column doesn't exist */ &&
+                       (u.FullName.Contains(searchTerm) ||
+                        u.Email.Contains(searchTerm) ||
                         u.PhoneNumber.Contains(searchTerm)))
             .OrderByDescending(u => u.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -274,7 +274,7 @@ public class UserService : IUserService
     public async Task<bool> ResetPasswordAsync(string token, string newPassword)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.PasswordResetToken == token && 
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token &&
                                      u.PasswordResetExpiry > DateTime.Now);
         if (user == null) return false;
 

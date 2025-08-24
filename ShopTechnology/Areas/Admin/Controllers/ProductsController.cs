@@ -91,7 +91,7 @@ public class ProductsController : Controller
         {
             _logger.LogError(ex, "Error creating product");
             ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi tạo sản phẩm.");
-            
+
             var categories = await _categoryService.GetAllCategoriesAsync();
             ViewBag.Categories = categories;
             return View(product);
@@ -139,7 +139,7 @@ public class ProductsController : Controller
                 }
 
                 existingProduct.CategoryId = product.CategoryId;
-                existingProduct.ProductName = product.ProductName;
+                existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
                 existingProduct.Price = product.Price;
                 existingProduct.StockQuantity = product.StockQuantity;
@@ -159,7 +159,7 @@ public class ProductsController : Controller
         {
             _logger.LogError(ex, "Error updating product with ID: {ProductId}", id);
             ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi cập nhật sản phẩm.");
-            
+
             var categories = await _categoryService.GetAllCategoriesAsync();
             ViewBag.Categories = categories;
             return View(product);

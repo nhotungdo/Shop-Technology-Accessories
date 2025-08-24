@@ -12,9 +12,6 @@ namespace ShopTechnology.Models
         [StringLength(100)]
         public string Name { get; set; }
 
-        [StringLength(500)]
-        public string? Description { get; set; }
-
         [StringLength(50)]
         public string? Code { get; set; }
 
@@ -37,8 +34,6 @@ namespace ShopTechnology.Models
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
-
-        public bool IsActive { get; set; } = true;
 
         public bool IsPublic { get; set; } = true;
 

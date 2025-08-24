@@ -10,5 +10,11 @@ namespace ShopTechnology.Services
         Task<Order> CreateOrderAsync(Order order);
         Task<bool> UpdateOrderStatusAsync(int orderId, string status);
         Task<bool> UpdatePaymentStatusAsync(int orderId, string status);
+        Task<decimal> GetTotalRevenueAsync();
+        Task<decimal> GetTotalRevenueAsync(DateTime startDate, DateTime endDate);
+        Task<int> GetOrderCountAsync();
+        Task<int> GetOrderCountAsync(DateTime startDate, DateTime endDate);
+        Task<List<Order>> GetOrdersByStatusAsync(string status);
+        Task<bool> CancelOrderAsync(int orderId);
     }
 }

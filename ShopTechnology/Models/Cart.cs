@@ -18,8 +18,6 @@ namespace ShopTechnology.Models
 
         public DateTime? ExpiresAt { get; set; }
 
-        public bool IsActive { get; set; } = true;
-
         // Navigation properties
         public virtual User? User { get; set; }
         public virtual ICollection<CartItem> CartItems { get; set; }

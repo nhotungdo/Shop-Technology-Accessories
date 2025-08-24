@@ -13,8 +13,6 @@ namespace ShopTechnology.Models
 
         public DateTime AssignedAt { get; set; } = DateTime.Now;
 
-        public bool IsActive { get; set; } = true;
-
         // Navigation properties
         public virtual User User { get; set; }
         public virtual Role Role { get; set; }

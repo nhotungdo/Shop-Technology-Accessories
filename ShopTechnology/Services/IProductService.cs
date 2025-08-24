@@ -1,4 +1,5 @@
 using ShopTechnology.Models;
+using ShopTechnology.ViewModels;
 
 namespace ShopTechnology.Services
 {
@@ -15,5 +16,10 @@ namespace ShopTechnology.Services
         Task<List<Product>> GetRelatedProductsAsync(int productId, int count = 4);
         Task UpdateProductViewCountAsync(int productId);
         Task UpdateProductRatingAsync(int productId);
+        Task<List<Product>> GetProductsAsync(int page = 1, int pageSize = 12);
+        Task<PaginatedResult<Product>> GetProductsAsync(int? categoryId, string? searchTerm, decimal? minPrice, decimal? maxPrice, string? sortBy, int page = 1, int pageSize = 12);
+        Task<Product?> GetProductByIdAsync(int productId);
+        Task<List<Product>> GetLowStockProductsAsync(int threshold = 10);
+        Task<List<Product>> GetOutOfStockProductsAsync();
     }
 }

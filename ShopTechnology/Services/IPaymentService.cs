@@ -1,3 +1,4 @@
+using ShopTechnology.Models;
 using ShopTechnology.Services;
 
 namespace ShopTechnology.Services

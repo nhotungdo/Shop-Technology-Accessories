@@ -63,10 +63,10 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             // Sử dụng connection string với retry logic
-            var connectionString = _configuration?.GetConnectionString("DefaultConnection") 
+            var connectionString = _configuration?.GetConnectionString("DefaultConnection")
                 ?? "Data Source=NHOTUNG\\SQLEXPRESS;Database=ShopTechnologyAccessories;User Id=sa;Password=123;TrustServerCertificate=true;Trusted_Connection=SSPI;Encrypt=false;";
-            
-            optionsBuilder.UseSqlServer(connectionString, options => 
+
+            optionsBuilder.UseSqlServer(connectionString, options =>
             {
                 options.EnableRetryOnFailure(
                     maxRetryCount: 3,
@@ -116,7 +116,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Slug).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.ParentCategory).WithMany(p => p.SubCategories)
                 .HasForeignKey(d => d.ParentCategoryId);
         });
@@ -133,7 +133,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.OriginalPrice).HasColumnType("decimal(18,2)");
             entity.Property(e => e.AverageRating).HasColumnType("decimal(3,2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId);
         });
@@ -143,7 +143,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.HasKey(e => e.ProductImageId);
             entity.Property(e => e.ImageUrl).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductId);
         });
@@ -151,11 +151,11 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
         modelBuilder.Entity<Review>(entity =>
         {
             entity.HasKey(e => e.ReviewId);
-            entity.Property(e => e.Rating).HasRange(1, 5);
+            entity.Property(e => e.Rating).HasAnnotation("Range", "1,5");
             entity.Property(e => e.Comment).HasMaxLength(1000);
             entity.Property(e => e.Title).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Product).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.ProductId);
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
@@ -167,7 +167,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.HasKey(e => e.ReviewImageId);
             entity.Property(e => e.ImageUrl).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Review).WithMany(p => p.ReviewImages)
                 .HasForeignKey(d => d.ReviewId);
         });
@@ -178,7 +178,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.HasKey(e => e.CartId);
             entity.Property(e => e.SessionId).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.User).WithMany(p => p.Carts)
                 .HasForeignKey(d => d.UserId);
         });
@@ -190,7 +190,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Cart).WithMany(p => p.CartItems)
                 .HasForeignKey(d => d.CartId);
             entity.HasOne(d => d.Product).WithMany(p => p.CartItems)
@@ -218,7 +218,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.User).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.UserId);
         });
@@ -233,7 +233,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)");
             entity.Property(e => e.ProductImage).HasMaxLength(255);
             entity.Property(e => e.ProductBrand).HasMaxLength(100);
-            
+
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId);
             entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
@@ -246,7 +246,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Order).WithMany(p => p.OrderHistories)
                 .HasForeignKey(d => d.OrderId);
             entity.HasOne(d => d.UpdatedByUser).WithMany()
@@ -260,13 +260,12 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.PaymentProvider).HasMaxLength(100);
             entity.Property(e => e.TransactionId).HasMaxLength(100);
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
-            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.ErrorMessage).HasMaxLength(500);
             entity.Property(e => e.PaymentUrl).HasMaxLength(255);
             entity.Property(e => e.CallbackData).HasMaxLength(500);
             entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Order).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.OrderId);
         });
@@ -290,7 +289,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
         {
             entity.HasKey(e => e.ProductPromotionId);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.Product).WithMany(p => p.ProductPromotions)
                 .HasForeignKey(d => d.ProductId);
             entity.HasOne(d => d.Promotion).WithMany(p => p.ProductPromotions)
@@ -312,7 +311,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
         {
             entity.HasKey(e => e.WishlistId);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.User).WithMany(p => p.Wishlists)
                 .HasForeignKey(d => d.UserId);
             entity.HasOne(d => d.Product).WithMany(p => p.Wishlists)
@@ -331,7 +330,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("New");
             entity.Property(e => e.ReplyMessage).HasMaxLength(1000);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            
+
             entity.HasOne(d => d.RepliedByUser).WithMany()
                 .HasForeignKey(d => d.RepliedByUserId);
         });
