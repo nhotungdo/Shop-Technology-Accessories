@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace ShopTechnology.Middleware;
 
@@ -18,14 +19,19 @@ public class AdminAuthenticationMiddleware
         // Kiểm tra nếu đang truy cập Admin area
         if (path != null && path.StartsWith("/admin"))
         {
-            var userId = context.Session.GetString("UserId");
-            var userRole = context.Session.GetString("UserRole");
-
-            // Nếu chưa đăng nhập hoặc không phải Admin
-            if (string.IsNullOrEmpty(userId) || userRole != "Admin")
+            // Kiểm tra xem user đã đăng nhập chưa
+            if (!context.User.Identity.IsAuthenticated)
             {
                 // Redirect về trang login chính
                 context.Response.Redirect("/Account/Login");
+                return;
+            }
+
+            // Kiểm tra xem user có phải là Admin không
+            if (!context.User.IsInRole("Admin"))
+            {
+                // Redirect về trang chủ với thông báo lỗi
+                context.Response.Redirect("/?error=access_denied");
                 return;
             }
         }

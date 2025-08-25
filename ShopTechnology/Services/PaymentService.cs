@@ -29,7 +29,7 @@ namespace ShopTechnology.Services
 
             // For demo purposes, we'll assume all payments are successful
             payment.Status = "Success";
-            payment.ProcessedAt = DateTime.Now;
+            payment.UpdatedAt = DateTime.Now;
             payment.PaymentProvider = GetPaymentProvider(paymentMethod);
 
             // Update order payment status
@@ -64,7 +64,7 @@ namespace ShopTechnology.Services
             await Task.Delay(1000);
 
             payment.Status = "Refunded";
-            payment.ProcessedAt = DateTime.Now;
+            payment.UpdatedAt = DateTime.Now;
 
             // Update order payment status
             if (payment.Order != null)

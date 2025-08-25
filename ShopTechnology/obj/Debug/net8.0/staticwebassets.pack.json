@@ -33,6 +33,10 @@
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\user-profile.css",
+      "PackagePath": "staticwebassets\\css\\user-profile.css"
+    },
+    {
       "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\favicon.ico",
       "PackagePath": "staticwebassets\\favicon.ico"
     },

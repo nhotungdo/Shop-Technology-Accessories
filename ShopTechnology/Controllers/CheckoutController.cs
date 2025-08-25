@@ -230,7 +230,7 @@ namespace ShopTechnology.Controllers
                 // Update payment status
                 payment.Status = "Failed";
                 payment.ErrorMessage = paymentResult.Message;
-                payment.ProcessedAt = DateTime.Now;
+                payment.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
 
                 TempData["ErrorMessage"] = paymentResult.Message;

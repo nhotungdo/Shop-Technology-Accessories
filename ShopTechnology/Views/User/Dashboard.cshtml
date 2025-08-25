@@ -1,0 +1,214 @@
+@model ShopTechnology.Controllers.UserDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - " + Model.User.FullName;
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<!-- Welcome Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="stat-value mb-2">Xin chào, @Model.User.FullName!</h2>
+                    <p class="stat-label mb-0">Đây là trang quản lý tài khoản của bạn. Bạn có thể xem đơn hàng, quản lý
+                        giỏ hàng và cập nhật thông tin cá nhân.</p>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card primary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Tổng đơn hàng</p>
+                    <h3 class="stat-value">@Model.TotalOrders</h3>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card success">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Tổng chi tiêu</p>
+                    <h3 class="stat-value">@Model.TotalSpent.ToString("N0") ₫</h3>
+                </div>
+                <div class="stat-icon success">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card warning">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Sản phẩm trong giỏ</p>
+                    <h3 class="stat-value">@Model.CartItemCount</h3>
+                </div>
+                <div class="stat-icon warning">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card info">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Sản phẩm yêu thích</p>
+                    <h3 class="stat-value">@Model.WishlistCount</h3>
+                </div>
+                <div class="stat-icon info">
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Orders -->
+    <div class="col-lg-8 mb-4">
+        <div class="table-card">
+            <div class="table-header">
+                <h5 class="table-title">
+                    <i class="fas fa-history me-2"></i>Đơn hàng gần đây
+                </h5>
+            </div>
+            <div class="table-responsive">
+                @if (Model.RecentOrders.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td><strong>@order.OrderNumber</strong></td>
+                                    <td>@order.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td><strong>@order.TotalAmount.ToString("N0") ₫</strong></td>
+                                    <td>
+                                        <span
+                                            class="status-badge @(order.OrderStatus == "Completed" ? "completed" : order.OrderStatus == "Processing" ? "pending" : "cancelled")">
+                                            @order.OrderStatus
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Order" asp-action="Details" asp-route-id="@order.OrderId"
+                                            class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="p-3 text-center">
+                        <a asp-controller="User" asp-action="Orders" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>Xem tất cả đơn hàng
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có đơn hàng nào</h5>
+                        <p class="text-muted">Hãy bắt đầu mua sắm để xem đơn hàng của bạn ở đây!</p>
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Mua sắm ngay
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Recommended Products -->
+    <div class="col-lg-4 mb-4">
+        <!-- Quick Actions -->
+        <div class="stat-card mb-4">
+            <h5 class="stat-label mb-3">
+                <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+            </h5>
+            <div class="d-grid gap-2">
+                <a asp-controller="Cart" asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-shopping-cart me-2"></i>Giỏ hàng
+                </a>
+                <a asp-controller="User" asp-action="Wishlist" class="btn btn-primary">
+                    <i class="fas fa-heart me-2"></i>Danh sách yêu thích
+                </a>
+                <a asp-controller="User" asp-action="Orders" class="btn btn-primary">
+                    <i class="fas fa-list me-2"></i>Lịch sử đơn hàng
+                </a>
+                <a asp-controller="User" asp-action="Profile" class="btn btn-primary">
+                    <i class="fas fa-user-edit me-2"></i>Cập nhật hồ sơ
+                </a>
+            </div>
+        </div>
+
+        <!-- Recommended Products -->
+        <div class="stat-card">
+            <h5 class="stat-label mb-3">
+                <i class="fas fa-star me-2"></i>Sản phẩm đề xuất
+            </h5>
+            @if (Model.RecommendedProducts.Any())
+            {
+                @foreach (var product in Model.RecommendedProducts.Take(3))
+                {
+                    <div class="product-card mb-3">
+                        <div class="d-flex align-items-center p-3">
+                            <img src="@(product.ImageUrls.FirstOrDefault() ?? product.MainImage ?? "/img/best-tech-accessories.png")"
+                                class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="@product.Name">
+                            <div class="flex-grow-1">
+                                <h6 class="product-title mb-1">@product.Name</h6>
+                                <p class="product-price mb-0">@product.Price.ToString("N0") ₫</p>
+                            </div>
+                            <div>
+                                <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
+                                    class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="text-center mt-3">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-arrow-right me-2"></i>Xem thêm sản phẩm
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-star fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">Không có sản phẩm đề xuất</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

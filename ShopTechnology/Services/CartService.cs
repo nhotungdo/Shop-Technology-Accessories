@@ -26,7 +26,7 @@ namespace ShopTechnology.Services
                 .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.Product)
                 .ThenInclude(p => p.ProductImages)
-                .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
@@ -94,7 +94,7 @@ namespace ShopTechnology.Services
 
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
@@ -201,7 +201,7 @@ namespace ShopTechnology.Services
 
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId && true /* c.IsActive - removed because column doesn't exist */);
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart != null)
             {
@@ -220,7 +220,7 @@ namespace ShopTechnology.Services
             }
 
             var promotion = await _context.Promotions
-                .FirstOrDefaultAsync(p => p.Code == promotionCode && true /* p.IsActive - removed because column doesn't exist */ &&
+                .FirstOrDefaultAsync(p => p.Code == promotionCode && p.IsActive &&
                                          p.StartDate <= DateTime.Now && p.EndDate >= DateTime.Now);
 
             if (promotion == null)

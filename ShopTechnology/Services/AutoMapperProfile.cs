@@ -58,7 +58,7 @@ public class AutoMapperProfile : Profile
 
         // User mappings
         CreateMap<User, UserDTO>()
-            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.UserRoles != null && src.UserRoles.Any() ? src.UserRoles.First().Role.Name : string.Empty));
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty));
 
         CreateMap<CreateUserDTO, User>()
             .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password)); // Will be hashed in service

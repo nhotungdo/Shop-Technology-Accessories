@@ -27,6 +27,8 @@ namespace ShopTechnology.Models
         [StringLength(50)]
         public string? Position { get; set; } // Homepage, Category, Product, etc.
 
+        public bool IsActive { get; set; } = true;
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }

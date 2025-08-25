@@ -2,103 +2,96 @@
 
 @{
     ViewData["Title"] = "Admin Dashboard";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-            <p class="mb-0">Tổng quan hoạt động cửa hàng</p>
+<!-- Welcome Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="stat-value mb-2">Chào mừng trở lại!</h2>
+                    <p class="stat-label mb-0">Tổng quan hoạt động cửa hàng Shop Technology</p>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <!-- Revenue Statistics -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card primary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Doanh thu hôm nay</p>
+                    <h3 class="stat-value">@Model.TodayRevenue.ToString("C0")</h3>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> Tuần: @Model.WeekRevenue.ToString("C0")
+                    </div>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <!-- Revenue Statistics -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Doanh thu hôm nay
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TodayRevenue.ToString("C0")</div>
-                            <div class="text-xs text-muted">
-                                Tuần: @Model.WeekRevenue.ToString("C0") | Tháng: @Model.MonthRevenue.ToString("C0")
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card success">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Đơn hàng hôm nay</p>
+                    <h3 class="stat-value">@Model.TodayOrders</h3>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> Tuần: @Model.WeekOrders
                     </div>
+                </div>
+                <div class="stat-icon success">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Đơn hàng hôm nay
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TodayOrders</div>
-                            <div class="text-xs text-muted">
-                                Tuần: @Model.WeekOrders | Tháng: @Model.MonthOrders
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
-                        </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card warning">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Người dùng mới</p>
+                    <h3 class="stat-value">@Model.TodayUsers</h3>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> Tuần: @Model.WeekUsers
                     </div>
+                </div>
+                <div class="stat-icon warning">
+                    <i class="fas fa-users"></i>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Người dùng mới
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TodayUsers</div>
-                            <div class="text-xs text-muted">
-                                Tuần: @Model.WeekUsers | Tháng: @Model.MonthUsers
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card danger">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label">Đơn hàng chờ xử lý</p>
+                    <h3 class="stat-value">@Model.PendingOrders</h3>
+                    <div class="stat-change">
+                        Tổng: @Model.TotalOrders đơn hàng
                     </div>
+                </div>
+                <div class="stat-icon danger">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Đơn hàng chờ xử lý
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingOrders</div>
-                            <div class="text-xs text-muted">
-                                Tổng: @Model.TotalOrders đơn hàng
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div>
     </div>
 
     <!-- Additional Statistics -->

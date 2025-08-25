@@ -31,6 +31,13 @@ namespace ShopTechnology.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Kiểm tra thông báo lỗi từ query string
+            var error = Request.Query["error"].ToString();
+            if (error == "access_denied")
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền truy cập vào trang quản trị. Chỉ Admin mới có thể truy cập.";
+            }
+
             var viewModel = new HomeViewModel
             {
                 FeaturedProducts = await _productService.GetFeaturedProductsAsync(8),
@@ -75,7 +82,7 @@ namespace ShopTechnology.Controllers
         public async Task<IActionResult> FAQ()
         {
             var faqs = await _context.FAQs
-                .Where(f => true /* f.IsActive - removed because column doesn't exist */)
+                .Where(f => f.IsActive)
                 .OrderBy(f => f.DisplayOrder)
                 .ThenBy(f => f.Category)
                 .ToListAsync();
@@ -167,7 +174,7 @@ namespace ShopTechnology.Controllers
         {
             var category = await _context.Categories
                 .Include(c => c.SubCategories)
-                .FirstOrDefaultAsync(c => c.Slug == slug && true /* c.IsActive - removed because column doesn't exist */);
+                .FirstOrDefaultAsync(c => c.Slug == slug && c.IsActive);
 
             if (category == null)
             {

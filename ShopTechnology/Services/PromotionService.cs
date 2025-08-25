@@ -15,7 +15,7 @@ public class PromotionService : IPromotionService
     public async Task<List<Promotion>> GetAllPromotionsAsync()
     {
         return await _context.Promotions
-            .Where(p => true /* p.IsActive - removed because column doesn't exist */ && p.EndDate > DateTime.Now)
+            .Where(p => p.IsActive && p.EndDate > DateTime.Now)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
@@ -33,7 +33,7 @@ public class PromotionService : IPromotionService
         return await _context.Promotions
             .Include(p => p.ProductPromotions)
             .ThenInclude(pp => pp.Product)
-            .FirstOrDefaultAsync(p => p.Code == code && true /* p.IsActive - removed because column doesn't exist */ && p.EndDate > DateTime.Now);
+            .FirstOrDefaultAsync(p => p.Code == code && p.IsActive && p.EndDate > DateTime.Now);
     }
 
     public async Task<Promotion> CreatePromotionAsync(Promotion promotion)
@@ -82,6 +82,9 @@ public class PromotionService : IPromotionService
         return await ValidatePromotionCodeAsync(code, orderAmount);
     }
 
+
+ 
+
     public async Task<decimal> CalculateDiscountAsync(string code, decimal orderAmount)
     {
         var promotion = await GetPromotionByCodeAsync(code);
@@ -124,7 +127,7 @@ public class PromotionService : IPromotionService
     public async Task<List<Promotion>> GetActivePromotionsAsync()
     {
         return await _context.Promotions
-            .Where(p => true /* p.IsActive - removed because column doesn't exist */ && p.IsPublic && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now)
+            .Where(p => p.IsActive && p.IsPublic && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
@@ -139,7 +142,7 @@ public class PromotionService : IPromotionService
     public async Task<List<Promotion>> GetUpcomingPromotionsAsync()
     {
         return await _context.Promotions
-            .Where(p => true /* p.IsActive - removed because column doesn't exist */ && p.StartDate > DateTime.Now)
+            .Where(p => p.IsActive && p.StartDate > DateTime.Now)
             .OrderBy(p => p.StartDate)
             .ToListAsync();
     }
@@ -163,7 +166,7 @@ public class PromotionService : IPromotionService
     public async Task<int> GetActivePromotionsCountAsync()
     {
         return await _context.Promotions
-            .CountAsync(p => true /* p.IsActive - removed because column doesn't exist */ && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now);
+            .CountAsync(p => p.IsActive && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now);
     }
 
     public async Task<decimal> GetTotalDiscountUsedAsync(DateTime? startDate = null, DateTime? endDate = null)
@@ -193,7 +196,7 @@ public class PromotionService : IPromotionService
     {
         return await _context.Promotions
             .Include(p => p.ProductPromotions)
-            .Where(p => true /* p.IsActive - removed because column doesn't exist */ && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now &&
+            .Where(p => p.IsActive && p.StartDate <= DateTime.Now && p.EndDate > DateTime.Now &&
                        p.ProductPromotions.Any(pp => pp.ProductId == productId))
             .ToListAsync();
     }

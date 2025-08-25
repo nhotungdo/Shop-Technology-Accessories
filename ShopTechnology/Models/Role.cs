@@ -13,7 +13,7 @@ namespace ShopTechnology.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        // Navigation properties
-        public virtual ICollection<UserRole> UserRoles { get; set; }
+        // Navigation properties - removed to avoid conflict
+        // public virtual ICollection<User> Users { get; set; }
     }
 }

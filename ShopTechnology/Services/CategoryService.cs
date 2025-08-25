@@ -15,7 +15,7 @@ namespace ShopTechnology.Services
         public async Task<List<Category>> GetAllCategoriesAsync()
         {
             return await _context.Categories
-                .Where(c => true /* c.IsActive - removed because column doesn't exist */)
+                .Where(c => c.IsActive)
                 .OrderBy(c => c.DisplayOrder)
                 .ThenBy(c => c.Name)
                 .ToListAsync();
@@ -24,7 +24,7 @@ namespace ShopTechnology.Services
         public async Task<List<Category>> GetFeaturedCategoriesAsync(int count)
         {
             return await _context.Categories
-                .Where(c => true /* c.IsActive - removed because column doesn't exist */ && c.IsFeatured)
+                .Where(c => c.IsActive && c.IsFeatured)
                 .OrderBy(c => c.DisplayOrder)
                 .Take(count)
                 .ToListAsync();
@@ -34,13 +34,13 @@ namespace ShopTechnology.Services
         {
             return await _context.Categories
                 .Include(c => c.SubCategories)
-                .FirstOrDefaultAsync(c => c.Slug == slug && true /* c.IsActive - removed because column doesn't exist */);
+                .FirstOrDefaultAsync(c => c.Slug == slug && c.IsActive);
         }
 
         public async Task<List<Category>> GetSubCategoriesAsync(int parentCategoryId)
         {
             return await _context.Categories
-                .Where(c => c.ParentCategoryId == parentCategoryId && true /* c.IsActive - removed because column doesn't exist */)
+                .Where(c => c.ParentCategoryId == parentCategoryId && c.IsActive)
                 .OrderBy(c => c.DisplayOrder)
                 .ThenBy(c => c.Name)
                 .ToListAsync();

@@ -259,12 +259,25 @@ dotnet restore
 
 ### 🗄️ **Step 2: Database Setup**
 
+#### Option A: Automatic Setup (Recommended)
+```bash
+# Run the database setup script
+setup-database.bat
+```
+
+This will:
+- Start LocalDB if not running
+- Create the database with all tables
+- Insert sample data (categories, products, users)
+- Create indexes and stored procedures
+
+#### Option B: Manual Setup
 ```bash
 # Update connection string in appsettings.json
 # Then run migrations
 dotnet ef database update
 
-# Or run the SQL script
+# Or run the SQL script manually
 # Execute: db/Demo1_ShopTechnologyAccessories.sql
 ```
 
@@ -314,8 +327,9 @@ dotnet run
 
 | Role | Email | Password |
 |------|-------|----------|
-| 👑 **Admin** | `admin@shoptech.com` | `123456` |
-| 👤 **Customer** | `customer@shoptech.com` | `123456` |
+| 👑 **Admin** | `admin@shoptech.com` | `admin123` |
+| 👤 **Customer** | `customer@shoptech.com` | `customer123` |
+| 👤 **Demo User** | `donhotung2004@gmail.com` | `Donhotung2004` |
 
 ---
 

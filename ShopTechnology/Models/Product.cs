@@ -37,7 +37,7 @@ namespace ShopTechnology.Models
         [StringLength(255)]
         public string? MainImage { get; set; }
 
-        // public bool IsActive { get; set; } = true; // Commented out - not in database
+        public bool IsActive { get; set; } = true;
 
         public bool IsFeatured { get; set; } = false;
 

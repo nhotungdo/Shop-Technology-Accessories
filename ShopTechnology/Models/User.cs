@@ -9,6 +9,9 @@ namespace ShopTechnology.Models
         public int UserId { get; set; }
 
         [Required]
+        public int RoleId { get; set; }
+
+        [Required]
         [StringLength(100)]
         public string FullName { get; set; }
 
@@ -61,12 +64,14 @@ namespace ShopTechnology.Models
 
         public string? SocialLoginId { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
         // Navigation properties
-        // Note: Role access through UserRoles collection instead of direct Role property
+        [ForeignKey("RoleId")]
+        public virtual Role Role { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<Wishlist> Wishlists { get; set; }
         public virtual ICollection<Cart> Carts { get; set; }
-        public virtual ICollection<UserRole> UserRoles { get; set; }
     }
 }

@@ -13,14 +13,6 @@ namespace ShopTechnology.Models
         [StringLength(255)]
         public string ImageUrl { get; set; }
 
-        [StringLength(255)]
-        public string? ThumbnailUrl { get; set; }
-
-        [StringLength(100)]
-        public string? AltText { get; set; }
-
-        public int DisplayOrder { get; set; } = 0;
-
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties

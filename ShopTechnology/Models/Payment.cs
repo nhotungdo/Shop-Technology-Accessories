@@ -27,11 +27,14 @@ namespace ShopTechnology.Models
         public string Status { get; set; } = "Pending"; // Pending, Success, Failed, Refunded
 
         [StringLength(500)]
+        public string? Description { get; set; }
+
+        [StringLength(500)]
         public string? ErrorMessage { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        public DateTime? ProcessedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         [StringLength(255)]
         public string? PaymentUrl { get; set; }

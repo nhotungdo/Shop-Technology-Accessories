@@ -15,9 +15,8 @@ public class UserService : IUserService
     public async Task<List<User>> GetAllUsersAsync(int page = 1, int pageSize = 20)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .Where(u => true /* u.IsActive - removed because column doesn't exist */)
+            .Include(u => u.Role)
+            .Where(u => u.IsActive)
             .OrderByDescending(u => u.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -27,16 +26,14 @@ public class UserService : IUserService
     public async Task<User?> GetUserByIdAsync(int userId)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
+            .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
+            .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -109,7 +106,7 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
 
-        // user.IsActive - removed because column doesn't exist = !// user.IsActive - removed because column doesn't exist;
+        user.IsActive = !user.IsActive;
         user.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         return true;
@@ -117,78 +114,69 @@ public class UserService : IUserService
 
     public async Task<bool> AssignRoleAsync(int userId, int roleId)
     {
-        var existingUserRole = await _context.UserRoles
-            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
 
-        if (existingUserRole != null) return true; // Đã có role
-
-        var userRole = new UserRole
-        {
-            UserId = userId,
-            RoleId = roleId,
-            AssignedAt = DateTime.Now
-            // IsActive removed - column doesn't exist in database
-        };
-
-        _context.UserRoles.Add(userRole);
+        user.RoleId = roleId;
+        user.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> RemoveRoleAsync(int userId, int roleId)
     {
-        var userRole = await _context.UserRoles
-            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || user.RoleId != roleId) return false;
 
-        if (userRole == null) return false;
-
-        _context.UserRoles.Remove(userRole);
+        // Set to default role (assuming role 1 is default)
+        user.RoleId = 1;
+        user.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<List<Role>> GetUserRolesAsync(int userId)
+    public async Task<Role?> GetUserRoleAsync(int userId)
     {
-        return await _context.UserRoles
-            .Include(ur => ur.Role)
-            .Where(ur => ur.UserId == userId && true /* ur.IsActive - removed because column doesn't exist */)
-            .Select(ur => ur.Role)
-            .ToListAsync();
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+
+        return user?.Role;
     }
 
     public async Task<bool> HasRoleAsync(int userId, string roleName)
     {
-        return await _context.UserRoles
-            .Include(ur => ur.Role)
-            .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == roleName && true /* ur.IsActive - removed because column doesn't exist */);
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+        
+        return user?.Role?.Name == roleName;
     }
 
     public async Task<List<User>> GetUsersByRoleAsync(string roleName)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .Where(u => true /* u.IsActive - removed because column doesn't exist */ && u.UserRoles.Any(ur => ur.Role.Name == roleName && true /* ur.IsActive - removed because column doesn't exist */))
+            .Include(u => u.Role)
+            .Where(u => u.IsActive && u.Role.Name == roleName)
             .ToListAsync();
     }
 
     public async Task<List<User>> GetActiveUsersAsync()
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .Where(u => true /* u.IsActive - removed because column doesn't exist */)
+            .Include(u => u.Role)
+            .Where(u => u.IsActive)
             .ToListAsync();
     }
 
     public async Task<int> GetTotalUsersCountAsync()
     {
-        return await _context.Users.CountAsync(u => true /* u.IsActive - removed because column doesn't exist */);
+        return await _context.Users.CountAsync(u => u.IsActive);
     }
 
     public async Task<int> GetActiveUsersCountAsync()
     {
-        return await _context.Users.CountAsync(u => true /* u.IsActive - removed because column doesn't exist */);
+        return await _context.Users.CountAsync(u => u.IsActive);
     }
 
     public async Task<int> GetNewUsersCountAsync(DateTime startDate, DateTime endDate)
@@ -200,9 +188,8 @@ public class UserService : IUserService
     public async Task<List<User>> GetRecentUsersAsync(int count = 10)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .Where(u => true /* u.IsActive - removed because column doesn't exist */)
+            .Include(u => u.Role)
+            .Where(u => u.IsActive)
             .OrderByDescending(u => u.CreatedAt)
             .Take(count)
             .ToListAsync();
@@ -211,9 +198,8 @@ public class UserService : IUserService
     public async Task<List<User>> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 20)
     {
         return await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .Where(u => true /* u.IsActive - removed because column doesn't exist */ &&
+            .Include(u => u.Role)
+            .Where(u => u.IsActive &&
                        (u.FullName.Contains(searchTerm) ||
                         u.Email.Contains(searchTerm) ||
                         u.PhoneNumber.Contains(searchTerm)))

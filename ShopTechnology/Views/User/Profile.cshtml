@@ -1,0 +1,95 @@
+@model ShopTechnology.Models.User
+@{
+    ViewData["Title"] = "Hồ sơ - " + Model.FullName;
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="user-avatar mx-auto" style="width: 120px; height: 120px; font-size: 3rem;">
+                                @Model.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                            <h5 class="mt-3">@Model.FullName</h5>
+                            <span class="badge bg-@(Model.RoleId == 1 ? "danger" : "success")">
+                                @Model.Role.Name
+                            </span>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Họ và tên:</label>
+                                    <p class="form-control-plaintext">@Model.FullName</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Email:</label>
+                                    <p class="form-control-plaintext">@Model.Email</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Số điện thoại:</label>
+                                    <p class="form-control-plaintext">@Model.PhoneNumber</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Ngày sinh:</label>
+                                    <p class="form-control-plaintext">@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Địa chỉ:</label>
+                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Address) ? "Chưa cập nhật" : Model.Address)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Thành phố:</label>
+                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.City) ? "Chưa cập nhật" : Model.City)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Tỉnh/Thành:</label>
+                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Province) ? "Chưa cập nhật" : Model.Province)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Mã bưu điện:</label>
+                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.PostalCode) ? "Chưa cập nhật" : Model.PostalCode)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Ngày tham gia:</label>
+                                    <p class="form-control-plaintext">@Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Trạng thái:</label>
+                                    <p class="form-control-plaintext">
+                                        <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                                            @(Model.IsActive ? "Hoạt động" : "Không hoạt động")
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="d-flex gap-2">
+                                        <a asp-controller="Account" asp-action="Profile" class="btn btn-primary">
+                                            <i class="fas fa-edit"></i> Cập nhật thông tin
+                                        </a>
+                                        <a asp-controller="Account" asp-action="ChangePassword" class="btn btn-warning">
+                                            <i class="fas fa-key"></i> Đổi mật khẩu
+                                        </a>
+                                        <a asp-controller="User" asp-action="Dashboard" class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

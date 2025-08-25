@@ -16,7 +16,7 @@ public interface IUserService
     Task<bool> ToggleUserStatusAsync(int userId);
     Task<bool> AssignRoleAsync(int userId, int roleId);
     Task<bool> RemoveRoleAsync(int userId, int roleId);
-    Task<List<Role>> GetUserRolesAsync(int userId);
+    Task<Role?> GetUserRoleAsync(int userId);
     Task<bool> HasRoleAsync(int userId, string roleName);
     Task<List<User>> GetUsersByRoleAsync(string roleName);
     Task<List<User>> GetActiveUsersAsync();

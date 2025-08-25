@@ -16,23 +16,21 @@ namespace ShopTechnology.Models
         [StringLength(150)]
         public string Email { get; set; }
 
-        [Required]
         [StringLength(20)]
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
 
+        [Required]
         [StringLength(200)]
-        public string? Subject { get; set; }
+        public string Subject { get; set; }
 
         [Required]
         [StringLength(1000)]
         public string Message { get; set; }
 
         [StringLength(50)]
-        public string Status { get; set; } = "New"; // New, Read, Replied, Closed
+        public string Status { get; set; } = "New"; // New, Replied, Closed
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime? ReadAt { get; set; }
 
         public DateTime? RepliedAt { get; set; }
 

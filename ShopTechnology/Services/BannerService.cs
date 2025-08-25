@@ -15,10 +15,9 @@ namespace ShopTechnology.Services
         public async Task<List<Banner>> GetActiveBannersAsync(string position)
         {
             return await _context.Banners
-                .Where(b => true /* b.IsActive - removed because column doesn't exist */ && 
-                           b.Position == position &&
-                           b.StartDate <= DateTime.Now && 
-                           b.EndDate >= DateTime.Now)
+                            .Where(b => b.IsActive && b.Position == position &&
+                        b.StartDate <= DateTime.Now && 
+                        b.EndDate >= DateTime.Now)
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
         }

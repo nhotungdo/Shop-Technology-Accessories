@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - Shop Technology Accessories</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/user-profile.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
@@ -47,21 +48,33 @@
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto">
-                        @if (Context.Session.GetString("UserId") != null)
+                        @if (User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user"></i> @Context.Session.GetString("UserName")
+                                    <i class="fas fa-user"></i> @User.Identity.Name
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="fas fa-user-circle"></i> Hồ sơ</a></li>
+                                    <li><h6 class="dropdown-header">Xin chào, @User.Identity.Name!</h6></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="User" asp-action="Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    }
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</a></li>
                                     <li><a class="dropdown-item" asp-controller="Cart" asp-action="Index"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Wishlist" asp-action="Index"><i class="fas fa-heart"></i> Yêu thích</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Wishlist" asp-action="Index"><i class="fas fa-heart"></i> Danh sách yêu thích</a></li>
                                     <li><a class="dropdown-item" asp-controller="Order" asp-action="History"><i class="fas fa-history"></i> Lịch sử đặt hàng</a></li>
-                                    @if (Context.Session.GetString("UserRole") == "Admin")
+                                    @if (User.IsInRole("Admin"))
                                     {
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><i class="fas fa-cog"></i> Quản trị</a></li>
+                                        <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><i class="fas fa-cog"></i> Quản trị hệ thống</a></li>
                                     }
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>

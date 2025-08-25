@@ -109,11 +109,32 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Ensure database is created
+// Verify database connection
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ShopTechnologyAccessoriesContext>();
-    context.Database.EnsureCreated();
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ShopTechnologyAccessoriesContext>();
+        var canConnect = await context.Database.CanConnectAsync();
+        if (canConnect)
+        {
+            Console.WriteLine("Database connection successful.");
+        }
+        else
+        {
+            Console.WriteLine("Warning: Cannot connect to database. Please run setup-database.bat first.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database connection error: {ex.Message}");
+        Console.WriteLine("Please ensure the database is set up by running setup-database.bat");
+        
+        if (!app.Environment.IsDevelopment())
+        {
+            throw; // Re-throw in production
+        }
+    }
 }
 
 app.Run();

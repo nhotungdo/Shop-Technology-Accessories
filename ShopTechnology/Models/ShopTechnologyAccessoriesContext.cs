@@ -27,7 +27,6 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
     // User Management
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Role> Roles { get; set; }
-    public virtual DbSet<UserRole> UserRoles { get; set; }
 
     // Product Management
     public virtual DbSet<Category> Categories { get; set; }
@@ -62,9 +61,9 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            // Sử dụng connection string với retry logic
+            // Try to get connection string from configuration, fallback to LocalDB
             var connectionString = _configuration?.GetConnectionString("DefaultConnection")
-                ?? "Data Source=NHOTUNG\\SQLEXPRESS;Database=ShopTechnologyAccessories;User Id=sa;Password=123;TrustServerCertificate=true;Trusted_Connection=SSPI;Encrypt=false;";
+                ?? "Data Source=(localdb)\\MSSQLLocalDB;Database=ShopTechnologyAccessories;Trusted_Connection=true;TrustServerCertificate=true;";
 
             optionsBuilder.UseSqlServer(connectionString, options =>
             {
@@ -88,6 +87,10 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Role).WithMany()
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -98,15 +101,7 @@ public partial class ShopTechnologyAccessoriesContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
         });
 
-        modelBuilder.Entity<UserRole>(entity =>
-        {
-            entity.HasKey(e => e.UserRoleId);
-            entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
-                .HasForeignKey(d => d.UserId);
-            entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
-                .HasForeignKey(d => d.RoleId);
-            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(getdate())");
-        });
+
 
         // Category Management
         modelBuilder.Entity<Category>(entity =>

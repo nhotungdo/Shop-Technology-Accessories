@@ -38,23 +38,27 @@ namespace ShopTechnology.Controllers
             {
                 var hashedPassword = HashPassword(model.Password);
                 var user = await _context.Users
-                    .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == hashedPassword);
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == hashedPassword && u.IsActive);
 
                 if (user != null)
                 {
+                    // Debug: Log thông tin user và role
+                    Console.WriteLine($"User found: {user.Email}");
+                    Console.WriteLine($"User Role: {user.Role?.Name ?? "NULL"}");
+                    Console.WriteLine($"User RoleId: {user.RoleId}");
+                    Console.WriteLine($"User IsActive: {user.IsActive}");
+
+                    // Tạo claims cho người dùng
                     var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                         new Claim(ClaimTypes.Name, user.FullName),
-                        new Claim(ClaimTypes.Email, user.Email)
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, user.Role?.Name ?? "User"),
+                        new Claim("RoleId", user.RoleId.ToString()),
+                        new Claim("UserId", user.UserId.ToString())
                     };
-
-                    foreach (var userRole in user.UserRoles)
-                    {
-                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
-                    }
 
                     var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                     var authProperties = new AuthenticationProperties
@@ -66,12 +70,39 @@ namespace ShopTechnology.Controllers
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity), authProperties);
 
+                    // Lưu thông tin vào session để tương thích với layout hiện tại
+                    HttpContext.Session.SetString("UserId", user.UserId.ToString());
+                    HttpContext.Session.SetString("UserName", user.FullName);
+                    HttpContext.Session.SetString("UserEmail", user.Email);
+                    HttpContext.Session.SetString("UserRole", user.Role?.Name ?? "User");
+                    HttpContext.Session.SetString("RoleId", user.RoleId.ToString());
+
+                    // Chuyển hướng dựa trên vai trò
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);
                     }
 
-                    return RedirectToAction("Index", "Home");
+                    // Debug: Log logic chuyển hướng
+                    Console.WriteLine($"Checking role redirect for: {user.Role?.Name}");
+
+                    // Chuyển hướng dựa trên vai trò
+                    if (user.Role?.Name?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        Console.WriteLine("Redirecting to Admin Dashboard");
+                        return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                    }
+                    else if (user.Role?.Name?.Equals("User", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        Console.WriteLine("Redirecting to User Dashboard");
+                        return RedirectToAction("Dashboard", "User");
+                    }
+                    else
+                    {
+                        // Fallback cho các role khác hoặc role null
+                        Console.WriteLine($"Unknown role '{user.Role?.Name}', redirecting to Home");
+                        return RedirectToAction("Index", "Home");
+                    }
                 }
 
                 ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
@@ -105,32 +136,28 @@ namespace ShopTechnology.Controllers
                     return View(model);
                 }
 
+                // Get default role (User)
+                var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+                if (userRole == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Không thể tạo tài khoản. Vui lòng thử lại sau.");
+                    return View(model);
+                }
+
                 var user = new User
                 {
+                    RoleId = userRole.RoleId,
                     FullName = model.FullName,
                     Email = model.Email,
                     PhoneNumber = model.PhoneNumber,
                     Password = HashPassword(model.Password),
                     DateOfBirth = model.DateOfBirth,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 };
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-
-                // Assign default role (Customer)
-                var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
-                if (customerRole != null)
-                {
-                    var userRole = new UserRole
-                    {
-                        UserId = user.UserId,
-                        RoleId = customerRole.RoleId,
-                        AssignedAt = DateTime.Now
-                    };
-                    _context.UserRoles.Add(userRole);
-                    await _context.SaveChangesAsync();
-                }
 
                 // Send welcome email
                 await _emailService.SendWelcomeEmailAsync(user.Email, user.FullName);
@@ -142,12 +169,7 @@ namespace ShopTechnology.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
-        }
+
 
         [HttpGet]
         public IActionResult ForgotPassword()
@@ -246,8 +268,7 @@ namespace ShopTechnology.Controllers
             }
 
             var user = await _context.Users
-                .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
+                .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.UserId == int.Parse(userId));
 
             if (user == null)
@@ -261,12 +282,12 @@ namespace ShopTechnology.Controllers
                 FullName = user.FullName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
-                City = user.City,
-                Province = user.Province,
-                PostalCode = user.PostalCode,
+                Address = user.Address ?? string.Empty,
+                City = user.City ?? string.Empty,
+                Province = user.Province ?? string.Empty,
+                PostalCode = user.PostalCode ?? string.Empty,
                 DateOfBirth = user.DateOfBirth,
-                Avatar = user.Avatar,
+                Avatar = user.Avatar ?? string.Empty,
                 IsEmailVerified = user.IsEmailVerified,
                 IsPhoneVerified = user.IsPhoneVerified
             };
@@ -287,10 +308,10 @@ namespace ShopTechnology.Controllers
 
                 user.FullName = model.FullName;
                 user.PhoneNumber = model.PhoneNumber;
-                user.Address = model.Address;
-                user.City = model.City;
-                user.Province = model.Province;
-                user.PostalCode = model.PostalCode;
+                user.Address = model.Address ?? string.Empty;
+                user.City = model.City ?? string.Empty;
+                user.Province = model.Province ?? string.Empty;
+                user.PostalCode = model.PostalCode ?? string.Empty;
                 user.DateOfBirth = model.DateOfBirth;
                 user.UpdatedAt = DateTime.Now;
 
@@ -342,6 +363,32 @@ namespace ShopTechnology.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+            // Xóa session
+            HttpContext.Session.Clear();
+
+            // Đăng xuất khỏi authentication
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            TempData["SuccessMessage"] = "Đăng xuất thành công!";
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LogoutPost()
+        {
+            // Xóa session
+            HttpContext.Session.Clear();
+
+            // Đăng xuất khỏi authentication
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            TempData["SuccessMessage"] = "Đăng xuất thành công!";
+            return RedirectToAction("Index", "Home");
         }
 
         private string HashPassword(string password)
@@ -502,6 +549,71 @@ namespace ShopTechnology.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> DebugRoles()
+        {
+            try
+            {
+                var roles = await _context.Roles.ToListAsync();
+                var users = await _context.Users.Include(u => u.Role).ToListAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    roles = roles.Select(r => new { roleId = r.RoleId, roleName = r.Name }),
+                    users = users.Select(u => new
+                    {
+                        userId = u.UserId,
+                        email = u.Email,
+                        roleId = u.RoleId,
+                        roleName = u.Role?.Name ?? "NULL",
+                        isActive = u.IsActive
+                    }),
+                    message = "Roles and users information retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DebugUserInfo(string email)
+        {
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Email == email);
+
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    user = new
+                    {
+                        userId = user.UserId,
+                        email = user.Email,
+                        fullName = user.FullName,
+                        roleId = user.RoleId,
+                        roleName = user.Role?.Name ?? "NULL",
+                        isActive = user.IsActive,
+                        createdAt = user.CreatedAt
+                    },
+                    message = "User information retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> CreateDefaultUsers()
         {
             try
@@ -515,7 +627,7 @@ namespace ShopTechnology.Controllers
                     var roles = new List<Role>
                     {
                         new Role { Name = "Admin", CreatedAt = DateTime.Now },
-                        new Role { Name = "Customer", CreatedAt = DateTime.Now }
+                        new Role { Name = "User", CreatedAt = DateTime.Now }
                     };
                     _context.Roles.AddRange(roles);
                     await _context.SaveChangesAsync();
@@ -527,32 +639,27 @@ namespace ShopTechnology.Controllers
 
                 if (adminUser == null)
                 {
+                    // Get admin role
+                    var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+                    if (adminRole == null)
+                    {
+                        return Json(new { success = false, error = "Admin role not found" });
+                    }
+
                     // Create admin user
                     adminUser = new User
                     {
+                        RoleId = adminRole.RoleId,
                         FullName = "Admin",
                         Email = adminEmail,
                         PhoneNumber = "0123456789",
                         Password = HashPassword("admin123"),
                         DateOfBirth = new DateTime(1990, 1, 1),
-                        CreatedAt = DateTime.Now
+                        CreatedAt = DateTime.Now,
+                        IsActive = true
                     };
                     _context.Users.Add(adminUser);
                     await _context.SaveChangesAsync();
-
-                    // Assign admin role
-                    var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-                    if (adminRole != null)
-                    {
-                        var userRole = new UserRole
-                        {
-                            UserId = adminUser.UserId,
-                            RoleId = adminRole.RoleId,
-                            AssignedAt = DateTime.Now
-                        };
-                        _context.UserRoles.Add(userRole);
-                        await _context.SaveChangesAsync();
-                    }
                 }
 
                 // Check if customer user exists
@@ -561,32 +668,27 @@ namespace ShopTechnology.Controllers
 
                 if (customerUser == null)
                 {
+                    // Get user role
+                    var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+                    if (userRole == null)
+                    {
+                        return Json(new { success = false, error = "User role not found" });
+                    }
+
                     // Create customer user
                     customerUser = new User
                     {
+                        RoleId = userRole.RoleId,
                         FullName = "Customer",
                         Email = customerEmail,
                         PhoneNumber = "0987654321",
                         Password = HashPassword("customer123"),
                         DateOfBirth = new DateTime(1995, 1, 1),
-                        CreatedAt = DateTime.Now
+                        CreatedAt = DateTime.Now,
+                        IsActive = true
                     };
                     _context.Users.Add(customerUser);
                     await _context.SaveChangesAsync();
-
-                    // Assign customer role
-                    var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
-                    if (customerRole != null)
-                    {
-                        var userRole = new UserRole
-                        {
-                            UserId = customerUser.UserId,
-                            RoleId = customerRole.RoleId,
-                            AssignedAt = DateTime.Now
-                        };
-                        _context.UserRoles.Add(userRole);
-                        await _context.SaveChangesAsync();
-                    }
                 }
 
                 var userCount = await _context.Users.CountAsync();

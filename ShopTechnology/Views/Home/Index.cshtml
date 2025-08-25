@@ -4,7 +4,17 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-@if (Context.Session.GetString("UserId") == null)
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="user-welcome">
+        <h2><i class="fas fa-user-circle"></i> Xin chào, @User.Identity.Name!</h2>
+        <p>Cảm ơn bạn đã quay trở lại. Hãy khám phá các sản phẩm mới nhất của chúng tôi.</p>
+        <span class="user-role-badge @(User.IsInRole("Admin") ? "admin" : "user")">
+            @(User.IsInRole("Admin") ? "Admin" : "Khách hàng")
+        </span>
+    </div>
+}
+else
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
         <i class="fas fa-info-circle"></i>
@@ -23,10 +33,16 @@
                 <p class="lead">Cửa hàng chuyên cung cấp các phụ kiện công nghệ hiện đại và chất lượng cao</p>
                 <div class="d-flex gap-2">
                     <a asp-controller="Product" asp-action="Index" class="btn btn-light btn-lg">Khám phá ngay</a>
-                    @if (Context.Session.GetString("UserId") == null)
+                    @if (!User.Identity.IsAuthenticated)
                     {
                         <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
                             <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-success btn-lg">
+                            <i class="fas fa-shopping-cart"></i> Giỏ hàng
                         </a>
                     }
                 </div>
