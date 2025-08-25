@@ -24,7 +24,7 @@ namespace ShopTechnology.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        public DateTime? UpdatedAt { get; set; }
+        // public DateTime? UpdatedAt { get; set; } // Commented out - column may not exist in database
 
         // Navigation properties
         public virtual Cart Cart { get; set; }

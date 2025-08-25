@@ -76,20 +76,33 @@ public class OrderPaymentViewModel
 public class OrderViewModel
 {
     public int OrderId { get; set; }
+    public string OrderNumber { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string ShippingAddress { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+    public string CustomerPhone { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public DateTime OrderDate { get; set; }
     public List<OrderDetailViewModel> OrderDetails { get; set; } = new();
+    public List<OrderHistoryViewModel> OrderHistories { get; set; } = new();
     public OrderPaymentViewModel? Payment { get; set; }
 }
 
 public class OrderDetailViewModel
 {
+    public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public string ProductImage { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public decimal Price { get; set; }
+}
+
+public class OrderHistoryViewModel
+{
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public string Note { get; set; } = string.Empty;
 }
 
 

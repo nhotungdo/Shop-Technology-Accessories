@@ -25,7 +25,6 @@ namespace ShopTechnology.Services
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.Product)
-                .ThenInclude(p => p.ProductImages)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
@@ -96,13 +95,19 @@ namespace ShopTechnology.Services
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
+            // Ensure CartItems is initialized
+            if (cart != null && cart.CartItems == null)
+            {
+                cart.CartItems = new List<CartItem>();
+            }
+
             if (cart == null)
             {
                 cart = new Cart
                 {
                     UserId = userId.Value,
-                    CreatedAt = DateTime.Now
-                    // IsActive = true - removed because column doesn't exist
+                    CreatedAt = DateTime.Now,
+                    CartItems = new List<CartItem>()
                 };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
@@ -113,7 +118,7 @@ namespace ShopTechnology.Services
             {
                 existingItem.Quantity += quantity;
                 existingItem.TotalPrice = existingItem.Quantity * existingItem.UnitPrice;
-                existingItem.UpdatedAt = DateTime.Now;
+                // existingItem.UpdatedAt = DateTime.Now; // Commented out - column may not exist in database
             }
             else
             {
@@ -163,7 +168,7 @@ namespace ShopTechnology.Services
 
             cartItem.Quantity = quantity;
             cartItem.TotalPrice = quantity * cartItem.UnitPrice;
-            cartItem.UpdatedAt = DateTime.Now;
+            // cartItem.UpdatedAt = DateTime.Now; // Commented out - column may not exist in database
 
             await _context.SaveChangesAsync();
 

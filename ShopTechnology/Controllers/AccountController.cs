@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using ShopTechnology.Services;
 using ShopTechnology.ViewModels;
+using ShopTechnology.DTOs;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -276,23 +277,19 @@ namespace ShopTechnology.Controllers
                 return NotFound();
             }
 
-            var viewModel = new ProfileViewModel
+            var userDto = new UserDTO
             {
                 UserId = user.UserId,
                 FullName = user.FullName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Address = user.Address ?? string.Empty,
-                City = user.City ?? string.Empty,
-                Province = user.Province ?? string.Empty,
-                PostalCode = user.PostalCode ?? string.Empty,
-                DateOfBirth = user.DateOfBirth,
-                Avatar = user.Avatar ?? string.Empty,
-                IsEmailVerified = user.IsEmailVerified,
-                IsPhoneVerified = user.IsPhoneVerified
+                RoleId = user.RoleId,
+                RoleName = user.Role?.Name ?? "User",
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
             };
 
-            return View(viewModel);
+            return View(userDto);
         }
 
         [HttpPost]

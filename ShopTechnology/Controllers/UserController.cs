@@ -148,6 +148,68 @@ namespace ShopTechnology.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == int.Parse(userId));
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            return View(user);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditProfile(User user)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || int.Parse(userId) != user.UserId)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var existingUser = await _context.Users.FindAsync(user.UserId);
+            if (existingUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Cập nhật thông tin cơ bản
+            existingUser.FullName = user.FullName;
+            existingUser.PhoneNumber = user.PhoneNumber;
+            existingUser.Address = user.Address;
+            existingUser.City = user.City;
+            existingUser.Province = user.Province;
+            existingUser.PostalCode = user.PostalCode;
+            existingUser.DateOfBirth = user.DateOfBirth;
+            existingUser.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
+            return RedirectToAction("Profile");
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Orders()
         {
             if (!User.Identity.IsAuthenticated)
@@ -167,6 +229,36 @@ namespace ShopTechnology.Controllers
                 .ToListAsync();
 
             return View(orders);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> OrderDetails(int id)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .ThenInclude(p => p.ProductImages)
+                .Include(o => o.OrderHistories)
+                .Where(o => o.OrderId == id && o.UserId == int.Parse(userId))
+                .FirstOrDefaultAsync();
+
+            if (order == null)
+            {
+                return RedirectToAction("Orders");
+            }
+
+            return View(order);
         }
 
         [HttpGet]

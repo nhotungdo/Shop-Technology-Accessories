@@ -1,0 +1,276 @@
+@model ShopTechnology.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-credit-card text-primary"></i> Thanh toán đơn hàng
+            </h2>
+        </div>
+    </div>
+
+    <form asp-action="Index" method="post">
+        <div class="row">
+            <!-- Checkout Form -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Thông tin khách hàng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CustomerName" class="form-label"></label>
+                                <input asp-for="CustomerName" class="form-control" />
+                                <span asp-validation-for="CustomerName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CustomerEmail" class="form-label"></label>
+                                <input asp-for="CustomerEmail" class="form-control" />
+                                <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="CustomerPhone" class="form-label"></label>
+                            <input asp-for="CustomerPhone" class="form-control" />
+                            <span asp-validation-for="CustomerPhone" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shipping-fast me-2"></i>Địa chỉ giao hàng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="ShippingAddress" class="form-label"></label>
+                            <textarea asp-for="ShippingAddress" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ShippingCity" class="form-label"></label>
+                                <input asp-for="ShippingCity" class="form-control" />
+                                <span asp-validation-for="ShippingCity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ShippingProvince" class="form-label"></label>
+                                <input asp-for="ShippingProvince" class="form-control" />
+                                <span asp-validation-for="ShippingProvince" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ShippingPostalCode" class="form-label"></label>
+                                <input asp-for="ShippingPostalCode" class="form-control" />
+                                <span asp-validation-for="ShippingPostalCode" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-truck me-2"></i>Phương thức vận chuyển
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="ShippingMethod" id="standard" value="Standard" checked>
+                            <label class="form-check-label" for="standard">
+                                <strong>Giao hàng tiêu chuẩn</strong> - 3-5 ngày làm việc
+                                <span class="text-muted d-block">Phí vận chuyển: 30,000 VNĐ</span>
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="ShippingMethod" id="express" value="Express">
+                            <label class="form-check-label" for="express">
+                                <strong>Giao hàng nhanh</strong> - 1-2 ngày làm việc
+                                <span class="text-muted d-block">Phí vận chuyển: 50,000 VNĐ</span>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ShippingMethod" id="overnight" value="Overnight">
+                            <label class="form-check-label" for="overnight">
+                                <strong>Giao hàng trong ngày</strong> - Trong ngày
+                                <span class="text-muted d-block">Phí vận chuyển: 100,000 VNĐ</span>
+                            </label>
+                        </div>
+                        <span asp-validation-for="ShippingMethod" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Phương thức thanh toán
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="PaymentMethod" id="cod" value="COD" checked>
+                            <label class="form-check-label" for="cod">
+                                <strong>Thanh toán khi nhận hàng (COD)</strong>
+                                <span class="text-muted d-block">Thanh toán bằng tiền mặt khi nhận hàng</span>
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="PaymentMethod" id="bank" value="BankTransfer">
+                            <label class="form-check-label" for="bank">
+                                <strong>Chuyển khoản ngân hàng</strong>
+                                <span class="text-muted d-block">Chuyển khoản trực tiếp vào tài khoản ngân hàng</span>
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="PaymentMethod" id="momo" value="Momo">
+                            <label class="form-check-label" for="momo">
+                                <strong>Ví MoMo</strong>
+                                <span class="text-muted d-block">Thanh toán qua ứng dụng MoMo</span>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="PaymentMethod" id="zalopay" value="ZaloPay">
+                            <label class="form-check-label" for="zalopay">
+                                <strong>ZaloPay</strong>
+                                <span class="text-muted d-block">Thanh toán qua ứng dụng ZaloPay</span>
+                            </label>
+                        </div>
+                        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>Ghi chú đơn hàng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="OrderNotes" class="form-label"></label>
+                            <textarea asp-for="OrderNotes" class="form-control" rows="3" placeholder="Ghi chú về đơn hàng (không bắt buộc)"></textarea>
+                            <span asp-validation-for="OrderNotes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shopping-cart me-2"></i>Tóm tắt đơn hàng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Cart.Items.Any())
+                        {
+                            <div class="order-items mb-3">
+                                @foreach (var item in Model.Cart.Items)
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="@item.ProductImage" alt="@item.ProductName" 
+                                             style="width: 50px; height: 50px; object-fit: cover;" 
+                                             class="rounded me-2" />
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">@item.ProductName</h6>
+                                            <small class="text-muted">SL: @item.Quantity</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong>@item.TotalPrice.ToString("N0") ₫</strong>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <hr />
+
+                            <div class="order-summary">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Tạm tính:</span>
+                                    <span>@Model.Cart.SubTotal.ToString("N0") ₫</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Phí vận chuyển:</span>
+                                    <span>@Model.Cart.ShippingFee.ToString("N0") ₫</span>
+                                </div>
+                                @if (Model.Cart.TaxAmount > 0)
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Thuế:</span>
+                                        <span>@Model.Cart.TaxAmount.ToString("N0") ₫</span>
+                                    </div>
+                                }
+                                @if (Model.Cart.DiscountAmount > 0)
+                                {
+                                    <div class="d-flex justify-content-between mb-2 text-success">
+                                        <span>Giảm giá:</span>
+                                        <span>-@Model.Cart.DiscountAmount.ToString("N0") ₫</span>
+                                    </div>
+                                }
+                                <hr />
+                                <div class="d-flex justify-content-between mb-3">
+                                    <strong>Tổng cộng:</strong>
+                                    <strong class="text-primary fs-5">@Model.Cart.TotalAmount.ToString("N0") ₫</strong>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-lock me-2"></i>Đặt hàng ngay
+                            </button>
+
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-shield-alt me-1"></i>
+                                    Thông tin của bạn được bảo mật an toàn
+                                </small>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                <h6 class="text-muted">Giỏ hàng trống</h6>
+                                <a asp-controller="Product" asp-action="Index" class="btn btn-primary">
+                                    Tiếp tục mua sắm
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Update shipping fee based on selected method
+        $('input[name="ShippingMethod"]').change(function() {
+            var shippingFee = 0;
+            switch($(this).val()) {
+                case 'Standard':
+                    shippingFee = 30000;
+                    break;
+                case 'Express':
+                    shippingFee = 50000;
+                    break;
+                case 'Overnight':
+                    shippingFee = 100000;
+                    break;
+            }
+            
+            // Update shipping fee display (you might want to make an AJAX call to update the total)
+            console.log('Shipping fee: ' + shippingFee);
+        });
+    </script>
+}

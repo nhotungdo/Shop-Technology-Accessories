@@ -27,15 +27,32 @@ namespace ShopTechnology.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
         {
-            var userId = GetUserId();
-            var result = await _cartService.AddToCartAsync(userId, productId, quantity);
-
-            if (result.Success)
+            if (!User.Identity.IsAuthenticated)
             {
-                return Json(new { success = true, message = "Sản phẩm đã được thêm vào giỏ hàng." });
+                return Json(new { success = false, message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng." });
             }
 
-            return Json(new { success = false, message = result.Message });
+            var userId = GetUserId();
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Không thể xác định người dùng. Vui lòng đăng nhập lại." });
+            }
+
+            try
+            {
+                var result = await _cartService.AddToCartAsync(userId, productId, quantity);
+
+                if (result.Success)
+                {
+                    return Json(new { success = true, message = "Sản phẩm đã được thêm vào giỏ hàng." });
+                }
+
+                return Json(new { success = false, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra khi thêm vào giỏ hàng: " + ex.Message });
+            }
         }
 
         [HttpPost]

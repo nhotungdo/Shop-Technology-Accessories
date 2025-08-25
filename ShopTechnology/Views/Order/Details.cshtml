@@ -1,52 +1,181 @@
 @model ShopTechnology.ViewModels.OrderViewModel
 @{
-	ViewData["Title"] = "Chi tiết đơn hàng";
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="mb-4"><i class="fas fa-file-invoice"></i> Chi tiết đơn hàng #@Model.OrderId</h2>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-receipt text-primary"></i> Chi tiết đơn hàng #@Model.OrderNumber</h2>
+                <a asp-action="History" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại lịch sử
+                </a>
+            </div>
 
-<div class="row">
-	<div class="col-md-8">
-		<table class="table table-bordered">
-			<thead class="table-light">
-				<tr>
-					<th>Sản phẩm</th>
-					<th>SL</th>
-					<th>Giá</th>
-					<th>Tổng</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach (var d in Model.OrderDetails)
-				{
-					<tr>
-						<td>
-							<div class="d-flex align-items-center gap-2">
-								<img src="@d.ProductImage" style="width:48px;height:48px;object-fit:cover" class="rounded" />
-								<span>@d.ProductName</span>
-							</div>
-						</td>
-						<td>@d.Quantity</td>
-						<td>@d.Price.ToString("N0")</td>
-						<td>@(d.Price * d.Quantity).ToString("N0")</td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-	<div class="col-md-4">
-		<div class="card">
-			<div class="card-body">
-				<p><strong>Trạng thái:</strong> <span class="badge bg-secondary">@Model.Status</span></p>
-				<p><strong>Địa chỉ giao hàng:</strong><br/>@Model.ShippingAddress</p>
-				<p><strong>Tổng tiền:</strong> <span class="text-primary fw-bold">@Model.TotalAmount.ToString("N0") VNĐ</span></p>
-				@if (Model.Payment != null)
-				{
-					<hr/>
-					<p><strong>Thanh toán:</strong> @Model.Payment.Method</p>
-					<p><strong>Trạng thái:</strong> @Model.Payment.Status</p>
-				}
-			</div>
-		</div>
-	</div>
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Mã đơn hàng:</strong> #@Model.OrderNumber</p>
+                            <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Trạng thái:</strong> 
+                                <span class="badge bg-@(Model.Status == "Completed" ? "success" : Model.Status == "Pending" ? "warning" : Model.Status == "Cancelled" ? "danger" : "info")">
+                                    @Model.Status
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Tổng tiền:</strong> <span class="text-primary fw-bold">@Model.TotalAmount.ToString("N0") VNĐ</span></p>
+                            <p><strong>Địa chỉ giao hàng:</strong> @Model.ShippingAddress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Thông tin khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Họ tên:</strong> @Model.CustomerName</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Email:</strong> @Model.CustomerEmail</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Số điện thoại:</strong> @Model.CustomerPhone</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Sản phẩm đã đặt</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@item.ProductImage" alt="@item.ProductName" 
+                                                     style="width: 60px; height: 60px; object-fit: cover;" 
+                                                     class="rounded me-3" />
+                                                <div>
+                                                    <h6 class="mb-0">@item.ProductName</h6>
+                                                    <small class="text-muted">ID: @item.ProductId</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="text-end">@item.Price.ToString("N0") VNĐ</td>
+                                        <td class="text-end fw-bold">@((item.Price * item.Quantity).ToString("N0")) VNĐ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                                    <td class="text-end"><strong class="text-primary">@Model.TotalAmount.ToString("N0") VNĐ</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History -->
+            @if (Model.OrderHistories.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history"></i> Lịch sử đơn hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            @foreach (var history in Model.OrderHistories)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">@history.Status</h6>
+                                            <small class="text-muted">@history.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(history.Note))
+                                        {
+                                            <p class="mb-0 text-muted">@history.Note</p>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #007bff;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 3px #007bff;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -29px;
+    top: 17px;
+    width: 2px;
+    height: calc(100% + 10px);
+    background-color: #e9ecef;
+}
+
+.timeline-content {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+</style>

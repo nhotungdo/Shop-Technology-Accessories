@@ -388,8 +388,8 @@
                href="@Url.Action("Profile", "User")" role="tab">
                 <i class="fas fa-user me-2"></i>Hồ sơ
             </a>
-            <a class="nav-link @(ViewContext.RouteData.Values["Action"].ToString() == "Orders" ? "active" : "")" 
-               href="@Url.Action("Orders", "User")" role="tab">
+            <a class="nav-link @(ViewContext.RouteData.Values["Action"].ToString() == "History" && ViewContext.RouteData.Values["Controller"].ToString() == "Order" ? "active" : "")" 
+               href="@Url.Action("History", "Order")" role="tab">
                 <i class="fas fa-shopping-bag me-2"></i>Đơn hàng
             </a>
             <a class="nav-link @(ViewContext.RouteData.Values["Action"].ToString() == "Wishlist" ? "active" : "")" 

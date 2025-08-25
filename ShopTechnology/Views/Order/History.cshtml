@@ -12,13 +12,21 @@
 		{
 			<div class="accordion-item mb-3">
 				<h2 class="accordion-header" id="h-@order.OrderId">
-					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-@order.OrderId">
-						#@order.OrderId - @order.OrderDate.ToString("dd/MM/yyyy HH:mm") - <span class="ms-1 badge bg-secondary">@order.Status</span> - <span class="ms-1 text-primary fw-bold">@order.TotalAmount.ToString("N0") VNĐ</span>
+					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+						data-bs-target="#c-@order.OrderId">
+						#@order.OrderNumber - @order.OrderDate.ToString("dd/MM/yyyy HH:mm") - <span
+							class="ms-1 badge bg-@(order.Status == "Completed" ? "success" : order.Status == "Pending" ? "warning" : order.Status == "Cancelled" ? "danger" : "secondary")">@order.Status</span>
+						- <span class="ms-1 text-primary fw-bold">@order.TotalAmount.ToString("N0") VNĐ</span>
 					</button>
 				</h2>
 				<div id="c-@order.OrderId" class="accordion-collapse collapse" data-bs-parent="#orders">
 					<div class="accordion-body">
-						<p><strong>Địa chỉ giao hàng:</strong> @order.ShippingAddress</p>
+						<div class="d-flex justify-content-between align-items-center mb-3">
+							<p class="mb-0"><strong>Địa chỉ giao hàng:</strong> @order.ShippingAddress</p>
+							<a asp-action="Details" asp-route-id="@order.OrderId" class="btn btn-sm btn-outline-primary">
+								<i class="fas fa-eye"></i> Xem chi tiết
+							</a>
+						</div>
 						<table class="table table-striped">
 							<thead>
 								<tr>
@@ -34,13 +42,14 @@
 									<tr>
 										<td>
 											<div class="d-flex align-items-center gap-2">
-												<img src="@d.ProductImage" style="width:48px;height:48px;object-fit:cover" class="rounded" />
+												<img src="@d.ProductImage" style="width:48px;height:48px;object-fit:cover"
+													class="rounded" />
 												<span>@d.ProductName</span>
 											</div>
 										</td>
 										<td>@d.Quantity</td>
 										<td>@d.Price.ToString("N0")</td>
-										<td>@(d.Price * d.Quantity).ToString("N0")</td>
+										<td>@(d.Price* d.Quantity).ToString("N0")</td>
 									</tr>
 								}
 							</tbody>

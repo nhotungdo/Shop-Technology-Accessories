@@ -14,9 +14,8 @@ namespace ShopTechnology.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        public DateTime? UpdatedAt { get; set; }
-
-        public DateTime? ExpiresAt { get; set; }
+        // public DateTime? UpdatedAt { get; set; } // Commented out - column may not exist in database
+        // public DateTime? ExpiresAt { get; set; } // Commented out - column may not exist in database
 
         // Navigation properties
         public virtual User? User { get; set; }

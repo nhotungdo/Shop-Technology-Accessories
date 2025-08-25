@@ -73,64 +73,64 @@ namespace ShopTechnology.Controllers
                     return RedirectToAction("Index", "Cart");
                 }
 
-                // Create order
-                var order = new Order
-                {
-                    UserId = userId.Value,
-                    OrderNumber = GenerateOrderNumber(),
-                    CustomerName = model.CustomerName,
-                    CustomerEmail = model.CustomerEmail,
-                    CustomerPhone = model.CustomerPhone,
-                    ShippingAddress = model.ShippingAddress,
-                    ShippingCity = model.ShippingCity,
-                    ShippingProvince = model.ShippingProvince,
-                    ShippingPostalCode = model.ShippingPostalCode,
-                    OrderNotes = model.OrderNotes,
-                    SubTotal = cart.SubTotal,
-                    TaxAmount = cart.TaxAmount,
-                    ShippingFee = cart.ShippingFee,
-                    DiscountAmount = cart.DiscountAmount,
-                    TotalAmount = cart.TotalAmount,
-                    OrderStatus = "Pending",
-                    PaymentStatus = "Pending",
-                    PaymentMethod = model.PaymentMethod,
-                    ShippingMethod = model.ShippingMethod,
-                    CreatedAt = DateTime.Now
-                };
+                // Create order using raw SQL to avoid navigation properties
+                var orderNumber = GenerateOrderNumber();
+                var orderSql = @"INSERT INTO Orders (UserId, OrderNumber, CustomerName, CustomerEmail, CustomerPhone, ShippingAddress, ShippingCity, ShippingProvince, ShippingPostalCode, OrderNotes, SubTotal, TaxAmount, ShippingFee, DiscountAmount, TotalAmount, OrderStatus, PaymentStatus, PaymentMethod, ShippingMethod, CreatedAt) 
+                                VALUES (@UserId, @OrderNumber, @CustomerName, @CustomerEmail, @CustomerPhone, @ShippingAddress, @ShippingCity, @ShippingProvince, @ShippingPostalCode, @OrderNotes, @SubTotal, @TaxAmount, @ShippingFee, @DiscountAmount, @TotalAmount, @OrderStatus, @PaymentStatus, @PaymentMethod, @ShippingMethod, @CreatedAt);
+                                SELECT CAST(SCOPE_IDENTITY() as int)";
 
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
+                var orderId = await _context.Database.ExecuteSqlRawAsync(orderSql,
+                    new Microsoft.Data.SqlClient.SqlParameter("@UserId", userId.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@OrderNumber", orderNumber),
+                    new Microsoft.Data.SqlClient.SqlParameter("@CustomerName", model.CustomerName),
+                    new Microsoft.Data.SqlClient.SqlParameter("@CustomerEmail", model.CustomerEmail),
+                    new Microsoft.Data.SqlClient.SqlParameter("@CustomerPhone", model.CustomerPhone),
+                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingAddress", model.ShippingAddress),
+                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingCity", (object)model.ShippingCity ?? DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingProvince", (object)model.ShippingProvince ?? DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingPostalCode", (object)model.ShippingPostalCode ?? DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@OrderNotes", (object)model.OrderNotes ?? DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@SubTotal", cart.SubTotal),
+                    new Microsoft.Data.SqlClient.SqlParameter("@TaxAmount", cart.TaxAmount),
+                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingFee", cart.ShippingFee),
+                    new Microsoft.Data.SqlClient.SqlParameter("@DiscountAmount", cart.DiscountAmount),
+                    new Microsoft.Data.SqlClient.SqlParameter("@TotalAmount", cart.TotalAmount),
+                    new Microsoft.Data.SqlClient.SqlParameter("@OrderStatus", "Pending"),
+                    new Microsoft.Data.SqlClient.SqlParameter("@PaymentStatus", "Pending"),
+                    new Microsoft.Data.SqlClient.SqlParameter("@PaymentMethod", model.PaymentMethod),
+                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingMethod", model.ShippingMethod),
+                    new Microsoft.Data.SqlClient.SqlParameter("@CreatedAt", DateTime.Now));
 
-                // Create order details
+                // Get the created order ID
+                var order = new { OrderId = orderId };
+
+                // Create order details using raw SQL to avoid navigation properties
                 foreach (var item in cart.Items)
                 {
-                    var orderDetail = new OrderDetail
-                    {
-                        OrderId = order.OrderId,
-                        ProductId = item.ProductId,
-                        ProductName = item.ProductName,
-                        ProductSKU = item.ProductSKU,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        TotalPrice = item.TotalPrice,
-                        ProductImage = item.ProductImage,
-                        ProductBrand = item.ProductBrand
-                    };
+                    var sql = @"INSERT INTO OrderDetails (OrderId, ProductId, ProductName, ProductSKU, Quantity, UnitPrice, TotalPrice, ProductImage, ProductBrand) 
+                               VALUES (@OrderId, @ProductId, @ProductName, @ProductSKU, @Quantity, @UnitPrice, @TotalPrice, @ProductImage, @ProductBrand)";
 
-                    _context.OrderDetails.Add(orderDetail);
+                    await _context.Database.ExecuteSqlRawAsync(sql,
+                        new Microsoft.Data.SqlClient.SqlParameter("@OrderId", order.OrderId),
+                        new Microsoft.Data.SqlClient.SqlParameter("@ProductId", item.ProductId),
+                        new Microsoft.Data.SqlClient.SqlParameter("@ProductName", item.ProductName),
+                        new Microsoft.Data.SqlClient.SqlParameter("@ProductSKU", (object)item.ProductSKU ?? DBNull.Value),
+                        new Microsoft.Data.SqlClient.SqlParameter("@Quantity", item.Quantity),
+                        new Microsoft.Data.SqlClient.SqlParameter("@UnitPrice", item.UnitPrice),
+                        new Microsoft.Data.SqlClient.SqlParameter("@TotalPrice", item.TotalPrice),
+                        new Microsoft.Data.SqlClient.SqlParameter("@ProductImage", (object)item.ProductImage ?? DBNull.Value),
+                        new Microsoft.Data.SqlClient.SqlParameter("@ProductBrand", (object)item.ProductBrand ?? DBNull.Value));
                 }
 
-                // Create order history
-                var orderHistory = new OrderHistory
-                {
-                    OrderId = order.OrderId,
-                    Status = "Pending",
-                    Notes = "Đơn hàng được tạo",
-                    CreatedAt = DateTime.Now
-                };
+                // Create order history using raw SQL
+                var historySql = @"INSERT INTO OrderHistories (OrderId, Status, Notes, CreatedAt) 
+                                  VALUES (@OrderId, @Status, @Notes, @CreatedAt)";
 
-                _context.OrderHistories.Add(orderHistory);
-                await _context.SaveChangesAsync();
+                await _context.Database.ExecuteSqlRawAsync(historySql,
+                    new Microsoft.Data.SqlClient.SqlParameter("@OrderId", order.OrderId),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Status", "Pending"),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Notes", "Đơn hàng được tạo"),
+                    new Microsoft.Data.SqlClient.SqlParameter("@CreatedAt", DateTime.Now));
 
                 // Clear cart
                 await _cartService.ClearCartAsync(userId);
@@ -155,7 +155,6 @@ namespace ShopTechnology.Controllers
 
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
                 .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId);
 
             if (order == null)
@@ -248,7 +247,6 @@ namespace ShopTechnology.Controllers
 
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
                 .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId);
 
             if (order == null)
@@ -286,7 +284,6 @@ namespace ShopTechnology.Controllers
 
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
                 .Include(o => o.OrderHistories.OrderByDescending(oh => oh.CreatedAt))
                 .Include(o => o.Payments)
                 .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId);
