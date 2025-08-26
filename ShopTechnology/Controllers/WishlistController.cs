@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 using ShopTechnology.Services;
+using ShopTechnology.ViewModels;
 using System.Security.Claims;
 
 namespace ShopTechnology.Controllers
@@ -9,10 +10,12 @@ namespace ShopTechnology.Controllers
     public class WishlistController : Controller
     {
         private readonly IWishlistService _wishlistService;
+        private readonly ICartService _cartService;
 
-        public WishlistController(IWishlistService wishlistService)
+        public WishlistController(IWishlistService wishlistService, ICartService cartService)
         {
             _wishlistService = wishlistService;
+            _cartService = cartService;
         }
 
         public async Task<IActionResult> Index()
@@ -24,7 +27,38 @@ namespace ShopTechnology.Controllers
             }
 
             var wishlistItems = await _wishlistService.GetUserWishlistAsync(userId.Value);
-            return View(wishlistItems);
+
+            // Lấy thông tin cart để kiểm tra sản phẩm có trong cart không
+            var cart = await _cartService.GetCartAsync(userId);
+            var cartProductIds = cart.Items.Select(i => i.ProductId).ToHashSet();
+
+            // Chuyển đổi từ Wishlist sang ProductViewModel
+            var productViewModels = wishlistItems.Select(w => new ProductViewModel
+            {
+                ProductId = w.Product.ProductId,
+                ProductName = w.Product.Name,
+                Description = w.Product.Description ?? string.Empty,
+                Price = w.Product.Price,
+                OriginalPrice = w.Product.OriginalPrice ?? 0,
+                StockQuantity = w.Product.StockQuantity,
+                SKU = w.Product.SKU ?? string.Empty,
+                Slug = w.Product.Slug ?? string.Empty,
+                Brand = w.Product.Brand ?? string.Empty,
+                CategoryName = w.Product.Category?.Name ?? string.Empty,
+                CategoryId = w.Product.CategoryId,
+                AverageRating = w.Product.AverageRating ?? 0,
+                ReviewCount = 0, // Có thể tính từ Reviews nếu cần
+                MainImageUrl = w.Product.ProductImages?.FirstOrDefault(pi => pi.IsMain)?.ImageUrl ??
+                              w.Product.ProductImages?.FirstOrDefault()?.ImageUrl ??
+                              "/images/no-image.png",
+                ImageUrls = w.Product.ProductImages?.Select(pi => pi.ImageUrl).ToList() ?? new List<string>(),
+                IsInWishlist = true,
+                IsInCart = cartProductIds.Contains(w.Product.ProductId),
+                CartQuantity = cart.Items.FirstOrDefault(i => i.ProductId == w.Product.ProductId)?.Quantity ?? 0,
+                CreatedAt = w.Product.CreatedAt
+            }).ToList();
+
+            return View(productViewModels);
         }
 
         [HttpPost]
@@ -97,6 +131,38 @@ namespace ShopTechnology.Controllers
             }
 
             return Json(new { success = true, message = "Sản phẩm đã được chuyển vào giỏ hàng." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MoveAllToCart()
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập." });
+            }
+
+            var wishlistItems = await _wishlistService.GetUserWishlistAsync(userId.Value);
+            if (!wishlistItems.Any())
+            {
+                return Json(new { success = false, message = "Danh sách yêu thích trống." });
+            }
+
+            var successCount = 0;
+            foreach (var item in wishlistItems)
+            {
+                var result = await _wishlistService.MoveToCartAsync(userId.Value, item.ProductId);
+                if (result) successCount++;
+            }
+
+            if (successCount > 0)
+            {
+                return Json(new { success = true, message = $"Đã chuyển {successCount} sản phẩm vào giỏ hàng." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Không thể chuyển sản phẩm vào giỏ hàng." });
+            }
         }
 
         [HttpGet]

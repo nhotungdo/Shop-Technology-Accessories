@@ -123,7 +123,7 @@ namespace ShopTechnology.Controllers
                 }
 
                 // Create order history using raw SQL
-                var historySql = @"INSERT INTO OrderHistories (OrderId, Status, Notes, CreatedAt) 
+                var historySql = @"INSERT INTO OrderHistory (OrderId, Status, Notes, CreatedAt) 
                                   VALUES (@OrderId, @Status, @Notes, @CreatedAt)";
 
                 await _context.Database.ExecuteSqlRawAsync(historySql,
