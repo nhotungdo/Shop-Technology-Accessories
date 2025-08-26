@@ -4,84 +4,120 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-@if (User.Identity.IsAuthenticated)
-{
-    <div class="user-welcome">
-        <h2><i class="fas fa-user-circle"></i> Xin chào, @User.Identity.Name!</h2>
-        <p>Cảm ơn bạn đã quay trở lại. Hãy khám phá các sản phẩm mới nhất của chúng tôi.</p>
-        <span class="user-role-badge @(User.IsInRole("Admin") ? "admin" : "user")">
-            @(User.IsInRole("Admin") ? "Admin" : "Khách hàng")
-        </span>
-    </div>
-}
-else
-{
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="fas fa-info-circle"></i>
-        <strong>Chào mừng bạn!</strong> Bạn có thể xem tất cả sản phẩm mà không cần đăng nhập.
-        <a asp-controller="Account" asp-action="Login" class="alert-link">Đăng nhập</a> hoặc
-        <a asp-controller="Account" asp-action="Register" class="alert-link">đăng ký</a> để mua hàng và quản lý đơn hàng.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" />
 }
 
-<div class="hero-section bg-primary text-white py-5 mb-5">
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="display-4 fw-bold">Shop Technology Accessories</h1>
-                <p class="lead">Cửa hàng chuyên cung cấp các phụ kiện công nghệ hiện đại và chất lượng cao</p>
-                <div class="d-flex gap-2">
-                    <a asp-controller="Product" asp-action="Index" class="btn btn-light btn-lg">Khám phá ngay</a>
+        <div class="row align-items-center hero-content">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Shop Technology Accessories</h1>
+                <p class="hero-subtitle">Khám phá bộ sưu tập phụ kiện công nghệ hiện đại với chất lượng cao và thiết kế
+                    tinh tế</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-modern btn-primary-modern">
+                        <i class="fas fa-shopping-bag me-2"></i>Khám phá ngay
+                    </a>
                     @if (!User.Identity.IsAuthenticated)
                     {
-                        <a asp-controller="Account" asp-action="Login" class="btn btn-warning btn-lg">
-                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-modern btn-secondary-modern">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
                         </a>
                     }
                     else
                     {
-                        <a asp-controller="Cart" asp-action="Index" class="btn btn-success btn-lg">
-                            <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-modern btn-secondary-modern">
+                            <i class="fas fa-shopping-cart me-2"></i>Giỏ hàng
                         </a>
                     }
                 </div>
             </div>
-            <div class="col-md-6 text-center">
-                <i class="fas fa-laptop fa-8x"></i>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-laptop fa-10x" style="opacity: 0.8;"></i>
             </div>
         </div>
     </div>
 </div>
 
 <div class="container">
-    <!-- Sản phẩm nổi bật -->
-    <section class="mb-5">
-        <h2 class="text-center mb-4">
-            <i class="fas fa-star text-warning"></i> Sản phẩm nổi bật
+    <!-- Welcome Section -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="welcome-title">
+                        <i class="fas fa-user-circle me-2"></i>Xin chào, @User.Identity.Name!
+                    </h3>
+                    <p class="welcome-text">Cảm ơn bạn đã quay trở lại. Hãy khám phá các sản phẩm mới nhất và ưu đãi đặc
+                        biệt dành cho bạn.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="role-badge @(User.IsInRole("Admin") ? "admin" : "user")">
+                        <i class="fas fa-crown me-1"></i>@(User.IsInRole("Admin") ? "Admin" : "Khách hàng")
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="welcome-title">
+                        <i class="fas fa-heart me-2"></i>Chào mừng bạn đến với Shop Technology!
+                    </h3>
+                    <p class="welcome-text">Bạn có thể xem tất cả sản phẩm mà không cần đăng nhập.
+                        <a asp-controller="Account" asp-action="Login" class="text-decoration-none fw-bold">Đăng nhập</a>
+                        hoặc
+                        <a asp-controller="Account" asp-action="Register" class="text-decoration-none fw-bold">đăng ký</a>
+                        để mua hàng và quản lý đơn hàng.
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-modern btn-primary-modern">
+                        <i class="fas fa-user-plus me-2"></i>Đăng ký ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Featured Products Section -->
+    <section class="section-padding mb-section">
+        <h2 class="section-title">
+            <i class="fas fa-star me-3"></i>Sản phẩm nổi bật
         </h2>
         <div class="row">
             @if (Model.FeaturedProducts != null && Model.FeaturedProducts.Any())
             {
                 @foreach (var product in Model.FeaturedProducts)
                 {
-                    <div class="col-md-3 mb-4">
-                        <div class="card h-100 shadow-sm">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card card-modern h-100">
                             <img src="@(product.ProductImages?.FirstOrDefault()?.ImageUrl ?? "/img/best-tech-accessories.png")"
-                                class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@product.Name</h5>
-                                <p class="card-text text-muted">@product.Category?.Name</p>
-                                <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
-                                <p class="card-text">
-                                    <small class="text-muted">
-                                        <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
-                                    </small>
+                                class="card-img-modern" alt="@product.Name">
+                            <div class="card-body-modern d-flex flex-column">
+                                <h5 class="card-title-modern">@product.Name</h5>
+                                <p class="card-category">
+                                    <i class="fas fa-tag me-1"></i>@product.Category?.Name
+                                </p>
+                                <p class="card-price">@product.Price.ToString("N0") VNĐ</p>
+                                <p class="text-muted small mb-3">
+                                    <i class="fas fa-box me-1"></i>Còn lại: @product.StockQuantity
                                 </p>
                                 <div class="mt-auto">
                                     <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
-                                        class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-eye"></i> Chi tiết
+                                        class="btn btn-card w-100">
+                                        <i class="fas fa-eye me-2"></i>Xem chi tiết
                                     </a>
                                 </div>
                             </div>
@@ -92,38 +128,36 @@ else
             else
             {
                 <div class="col-12 text-center">
-                    <p class="text-muted">Không có sản phẩm nổi bật</p>
+                    <div class="p-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Không có sản phẩm nổi bật</p>
+                    </div>
                 </div>
             }
         </div>
     </section>
 
-    <!-- Sản phẩm mới nhất -->
-    <section class="mb-5">
-        <h2 class="text-center mb-4">
-            <i class="fas fa-clock text-info"></i> Sản phẩm mới nhất
+    <!-- Latest Products Section -->
+    <section class="section-padding mb-section">
+        <h2 class="section-title">
+            <i class="fas fa-clock me-3"></i>Sản phẩm mới nhất
         </h2>
         <div class="row">
             @if (Model.LatestProducts != null && Model.LatestProducts.Any())
             {
                 @foreach (var product in Model.LatestProducts)
                 {
-                    <div class="col-md-2 mb-4">
-                        <div class="card h-100 shadow-sm">
+                    <div class="col-lg-2 col-md-4 col-6 mb-4">
+                        <div class="card card-modern h-100">
                             <img src="@(product.ProductImages?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.png")"
-                                class="card-img-top" alt="@product.Name" style="height: 150px; object-fit: cover;">
-                            <div class="card-body d-flex flex-column">
-                                <h6 class="card-title">@product.Name</h6>
-                                <p class="card-text text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
-                                <p class="card-text">
-                                    <small class="text-muted">
-                                        <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
-                                    </small>
-                                </p>
+                                class="card-img-modern" alt="@product.Name" style="height: 180px;">
+                            <div class="card-body-modern d-flex flex-column">
+                                <h6 class="card-title-modern">@product.Name</h6>
+                                <p class="card-price">@product.Price.ToString("N0") VNĐ</p>
                                 <div class="mt-auto">
                                     <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId"
-                                        class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-eye"></i> Xem
+                                        class="btn btn-card w-100">
+                                        <i class="fas fa-eye me-1"></i>Xem
                                     </a>
                                 </div>
                             </div>
@@ -134,30 +168,33 @@ else
             else
             {
                 <div class="col-12 text-center">
-                    <p class="text-muted">Không có sản phẩm mới</p>
+                    <div class="p-5">
+                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Không có sản phẩm mới</p>
+                    </div>
                 </div>
             }
         </div>
     </section>
 
-    <!-- Danh mục sản phẩm -->
-    <section class="mb-5">
-        <h2 class="text-center mb-4">
-            <i class="fas fa-th-large text-success"></i> Danh mục sản phẩm
+    <!-- Categories Section -->
+    <section class="section-padding mb-section">
+        <h2 class="section-title">
+            <i class="fas fa-th-large me-3"></i>Danh mục sản phẩm
         </h2>
         <div class="row">
             @if (Model.Categories != null && Model.Categories.Any())
             {
-                @foreach (var category in Model.Categories.Take(5))
+                @foreach (var category in Model.Categories.Take(6))
                 {
-                    <div class="col-md-2 mb-3">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
-                                <i class="fas fa-th-large fa-3x text-primary mb-3"></i>
-                                <h5 class="card-title">@category.Name</h5>
-                                <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@category.CategoryId"
-                                    class="btn btn-outline-primary btn-sm">Xem sản phẩm</a>
-                            </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-4">
+                        <div class="category-card">
+                            <i class="fas fa-th-large category-icon"></i>
+                            <h5 class="category-title">@category.Name</h5>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@category.CategoryId"
+                                class="btn btn-card">
+                                <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                            </a>
                         </div>
                     </div>
                 }
@@ -165,57 +202,93 @@ else
             else
             {
                 <!-- Fallback categories -->
-                <div class="col-md-2 mb-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <i class="fas fa-charging-station fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">Sạc</h5>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="1"
-                                class="btn btn-outline-primary btn-sm">Xem sản phẩm</a>
-                        </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="category-card">
+                        <i class="fas fa-charging-station category-icon"></i>
+                        <h5 class="category-title">Sạc</h5>
+                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="1" class="btn btn-card">
+                            <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-2 mb-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <i class="fas fa-headphones fa-3x text-info mb-3"></i>
-                            <h5 class="card-title">Tai nghe</h5>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="2"
-                                class="btn btn-outline-info btn-sm">Xem sản phẩm</a>
-                        </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="category-card">
+                        <i class="fas fa-headphones category-icon"></i>
+                        <h5 class="category-title">Tai nghe</h5>
+                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="2" class="btn btn-card">
+                            <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-2 mb-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Ốp lưng</h5>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="3"
-                                class="btn btn-outline-success btn-sm">Xem sản phẩm</a>
-                        </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="category-card">
+                        <i class="fas fa-mobile-alt category-icon"></i>
+                        <h5 class="category-title">Ốp lưng</h5>
+                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="3" class="btn btn-card">
+                            <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-2 mb-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <i class="fas fa-keyboard fa-3x text-warning mb-3"></i>
-                            <h5 class="card-title">Bàn phím</h5>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="4"
-                                class="btn btn-outline-warning btn-sm">Xem sản phẩm</a>
-                        </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="category-card">
+                        <i class="fas fa-keyboard category-icon"></i>
+                        <h5 class="category-title">Bàn phím</h5>
+                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="4" class="btn btn-card">
+                            <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-2 mb-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <i class="fas fa-mouse fa-3x text-danger mb-3"></i>
-                            <h5 class="card-title">Chuột</h5>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="5"
-                                class="btn btn-outline-danger btn-sm">Xem sản phẩm</a>
-                        </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="category-card">
+                        <i class="fas fa-mouse category-icon"></i>
+                        <h5 class="category-title">Chuột</h5>
+                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="5" class="btn btn-card">
+                            <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <div class="category-card">
+                        <i class="fas fa-laptop category-icon"></i>
+                        <h5 class="category-title">Laptop</h5>
+                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="6" class="btn btn-card">
+                            <i class="fas fa-arrow-right me-1"></i>Xem sản phẩm
+                        </a>
                     </div>
                 </div>
             }
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section-padding">
+        <div class="stats-section">
+            <div class="row">
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Sản phẩm</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Danh mục</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Khách hàng</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Hỗ trợ</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 </div>
