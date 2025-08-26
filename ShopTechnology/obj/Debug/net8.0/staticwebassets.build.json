@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "DjcCpkhFAloH5DISeue/j2tRaA81U3F+jckHmC9eYB4=",
+  "Hash": "gJvXMYAuesXBnO9URt6rrJP+gsGxosA8wk8pH9yJVGY=",
   "Source": "ShopTechnology",
   "BasePath": "_content/ShopTechnology",
   "Mode": "Default",
@@ -72,6 +72,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\forgot-password.css"
+    },
+    {
+      "Identity": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\home.css",
+      "SourceId": "ShopTechnology",
+      "SourceType": "Discovered",
+      "ContentRoot": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\",
+      "BasePath": "_content/ShopTechnology",
+      "RelativePath": "css/home.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\home.css"
     },
     {
       "Identity": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\login-modern.css",

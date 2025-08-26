@@ -602,12 +602,34 @@
                         @if (Context.Session.GetString("UserId") != null)
                         {
                             <div class="d-grid gap-2 action-buttons">
-                                <button class="btn btn-primary btn-lg add-to-cart-detail" data-product-id="@Model.ProductId">
-                                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
-                                </button>
-                                <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
-                                    <i class="fas fa-heart"></i> Thêm vào yêu thích
-                                </button>
+                                @if (Model.IsInCart)
+                                {
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle"></i> Sản phẩm đã có trong giỏ hàng (SL: @Model.CartQuantity)
+                                    </div>
+                                    <button class="btn btn-success btn-lg" disabled>
+                                        <i class="fas fa-check"></i> Đã thêm vào giỏ hàng
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-primary btn-lg add-to-cart-detail" data-product-id="@Model.ProductId">
+                                        <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                                    </button>
+                                }
+
+                                @if (Model.IsInWishlist)
+                                {
+                                    <button class="btn btn-danger btn-lg remove-from-wishlist" data-product-id="@Model.ProductId">
+                                        <i class="fas fa-heart-broken"></i> Xóa khỏi yêu thích
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@Model.ProductId">
+                                        <i class="fas fa-heart"></i> Thêm vào yêu thích
+                                    </button>
+                                }
                             </div>
                         }
                         else
@@ -910,9 +932,10 @@
                             button.prop('disabled', false);
 
                             if (response.success) {
-                                showMessage('success', 'Đã thêm sản phẩm vào yêu thích!');
-                                button.html('<i class="fas fa-heart"></i> Đã thêm vào yêu thích');
+                                showMessage('success', 'Đã thêm sản phẩm vào danh sách yêu thích!');
+                                button.html('<i class="fas fa-heart-broken"></i> Xóa khỏi yêu thích');
                                 button.removeClass('btn-outline-danger').addClass('btn-danger');
+                                button.removeClass('add-to-wishlist').addClass('remove-from-wishlist');
                             } else {
                                 showMessage('error', 'Có lỗi xảy ra: ' + response.message);
                             }
@@ -920,7 +943,35 @@
                         .fail(function () {
                             hideLoading();
                             button.prop('disabled', false);
-                            showMessage('error', 'Có lỗi xảy ra khi thêm vào yêu thích');
+                            showMessage('error', 'Có lỗi xảy ra khi thêm vào danh sách yêu thích');
+                        });
+                });
+
+                $('.remove-from-wishlist').click(function () {
+                    var productId = $(this).data('product-id');
+                    var button = $(this);
+
+                    showLoading();
+                    button.prop('disabled', true);
+
+                    $.post('/Wishlist/RemoveFromWishlist', { productId: productId })
+                        .done(function (response) {
+                            hideLoading();
+                            button.prop('disabled', false);
+
+                            if (response.success) {
+                                showMessage('success', 'Đã xóa sản phẩm khỏi danh sách yêu thích!');
+                                button.html('<i class="fas fa-heart"></i> Thêm vào yêu thích');
+                                button.removeClass('btn-danger').addClass('btn-outline-danger');
+                                button.removeClass('remove-from-wishlist').addClass('add-to-wishlist');
+                            } else {
+                                showMessage('error', 'Có lỗi xảy ra: ' + response.message);
+                            }
+                        })
+                        .fail(function () {
+                            hideLoading();
+                            button.prop('disabled', false);
+                            showMessage('error', 'Có lỗi xảy ra khi xóa khỏi danh sách yêu thích');
                         });
                 });
 

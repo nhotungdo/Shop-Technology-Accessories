@@ -27,7 +27,7 @@ namespace ShopTechnology.Models
         // public DateTime? UpdatedAt { get; set; } // Commented out - column may not exist in database
 
         // Navigation properties
-        public virtual Cart Cart { get; set; }
-        public virtual Product Product { get; set; }
+        public virtual Cart Cart { get; set; } = null!;
+        public virtual Product Product { get; set; } = null!;
     }
 }

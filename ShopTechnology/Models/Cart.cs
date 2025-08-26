@@ -19,6 +19,6 @@ namespace ShopTechnology.Models
 
         // Navigation properties
         public virtual User? User { get; set; }
-        public virtual ICollection<CartItem> CartItems { get; set; }
+        public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }

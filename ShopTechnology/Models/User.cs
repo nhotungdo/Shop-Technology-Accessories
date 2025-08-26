@@ -68,10 +68,10 @@ namespace ShopTechnology.Models
 
         // Navigation properties
         [ForeignKey("RoleId")]
-        public virtual Role Role { get; set; }
-        public virtual ICollection<Order> Orders { get; set; }
-        public virtual ICollection<Review> Reviews { get; set; }
-        public virtual ICollection<Wishlist> Wishlists { get; set; }
-        public virtual ICollection<Cart> Carts { get; set; }
+        public virtual Role Role { get; set; } = null!;
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+        public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
     }
 }

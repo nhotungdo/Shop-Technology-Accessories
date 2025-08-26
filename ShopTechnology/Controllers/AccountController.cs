@@ -56,7 +56,7 @@ namespace ShopTechnology.Controllers
                         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                         new Claim(ClaimTypes.Name, user.FullName),
                         new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, user.Role?.Name ?? "User"),
+                        new Claim(ClaimTypes.Role, user.Role?.Name ?? "User" ?? string.Empty),
                         new Claim("RoleId", user.RoleId.ToString()),
                         new Claim("UserId", user.UserId.ToString())
                     };
@@ -75,7 +75,7 @@ namespace ShopTechnology.Controllers
                     HttpContext.Session.SetString("UserId", user.UserId.ToString());
                     HttpContext.Session.SetString("UserName", user.FullName);
                     HttpContext.Session.SetString("UserEmail", user.Email);
-                    HttpContext.Session.SetString("UserRole", user.Role?.Name ?? "User");
+                    HttpContext.Session.SetString("UserRole", user.Role?.Name ?? "User" ?? string.Empty);
                     HttpContext.Session.SetString("RoleId", user.RoleId.ToString());
 
                     // Chuyển hướng dựa trên vai trò
@@ -293,23 +293,26 @@ namespace ShopTechnology.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Profile(ProfileViewModel model)
+        public async Task<IActionResult> Profile(int UserId, string FullName, string PhoneNumber)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var user = await _context.Users.FindAsync(model.UserId);
+                var user = await _context.Users.FindAsync(UserId);
                 if (user == null)
                 {
-                    return NotFound();
+                    TempData["ErrorMessage"] = "Không tìm thấy thông tin người dùng.";
+                    return RedirectToAction(nameof(Profile));
                 }
 
-                user.FullName = model.FullName;
-                user.PhoneNumber = model.PhoneNumber;
-                user.Address = model.Address ?? string.Empty;
-                user.City = model.City ?? string.Empty;
-                user.Province = model.Province ?? string.Empty;
-                user.PostalCode = model.PostalCode ?? string.Empty;
-                user.DateOfBirth = model.DateOfBirth;
+                // Validate input
+                if (string.IsNullOrWhiteSpace(FullName))
+                {
+                    TempData["ErrorMessage"] = "Họ tên không được để trống.";
+                    return RedirectToAction(nameof(Profile));
+                }
+
+                user.FullName = FullName.Trim();
+                user.PhoneNumber = PhoneNumber?.Trim() ?? string.Empty;
                 user.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
@@ -317,13 +320,20 @@ namespace ShopTechnology.Controllers
                 TempData["SuccessMessage"] = "Thông tin cá nhân đã được cập nhật thành công.";
                 return RedirectToAction(nameof(Profile));
             }
-
-            return View(model);
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.";
+                return RedirectToAction(nameof(Profile));
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> ChangePassword()
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction(nameof(Login));
+            }
             return View();
         }
 

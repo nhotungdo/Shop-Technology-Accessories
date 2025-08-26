@@ -96,12 +96,12 @@ namespace ShopTechnology.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual Category Category { get; set; }
-        public virtual ICollection<ProductImage> ProductImages { get; set; }
-        public virtual ICollection<Review> Reviews { get; set; }
-        public virtual ICollection<CartItem> CartItems { get; set; }
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-        public virtual ICollection<Wishlist> Wishlists { get; set; }
-        public virtual ICollection<ProductPromotion> ProductPromotions { get; set; }
+        public virtual Category Category { get; set; } = null!;
+        public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+        public virtual ICollection<ProductPromotion> ProductPromotions { get; set; } = new List<ProductPromotion>();
     }
 }

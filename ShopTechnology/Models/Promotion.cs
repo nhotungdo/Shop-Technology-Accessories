@@ -50,7 +50,7 @@ namespace ShopTechnology.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual ICollection<ProductPromotion> ProductPromotions { get; set; }
-        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<ProductPromotion> ProductPromotions { get; set; } = new List<ProductPromotion>();
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

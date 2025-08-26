@@ -37,8 +37,8 @@ namespace ShopTechnology.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual Product Product { get; set; }
-        public virtual User User { get; set; }
-        public virtual ICollection<ReviewImage> ReviewImages { get; set; }
+        public virtual Product Product { get; set; } = null!;
+        public virtual User User { get; set; } = null!;
+        public virtual ICollection<ReviewImage> ReviewImages { get; set; } = new List<ReviewImage>();
     }
 }

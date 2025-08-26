@@ -24,14 +24,16 @@ public class AutoMapperProfile : Profile
 
         // ProductDTO to ProductViewModel mapping
         CreateMap<ProductDTO, ProductViewModel>();
-        
+
         // Product to ProductViewModel mapping
         CreateMap<Product, ProductViewModel>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty))
-            .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.ProductImages.Select(pi => pi.ImageUrl)))
+            .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.ProductImages != null ? src.ProductImages.Select(pi => pi.ImageUrl).ToList() : new List<string>()))
             .ForMember(dest => dest.MainImageUrl, opt => opt.MapFrom(src =>
-                src.ProductImages.Where(pi => pi.IsMain).Select(pi => pi.ImageUrl).FirstOrDefault() ??
-                src.ProductImages.Select(pi => pi.ImageUrl).FirstOrDefault() ?? string.Empty));
+                src.ProductImages != null && src.ProductImages.Any() ?
+                (src.ProductImages.Where(pi => pi.IsMain).Select(pi => pi.ImageUrl).FirstOrDefault() ??
+                 src.ProductImages.Select(pi => pi.ImageUrl).FirstOrDefault() ?? string.Empty) : string.Empty));
 
         // Order mappings
         CreateMap<Order, OrderDTO>()

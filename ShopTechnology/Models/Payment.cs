@@ -43,6 +43,6 @@ namespace ShopTechnology.Models
         public string? CallbackData { get; set; }
 
         // Navigation properties
-        public virtual Order Order { get; set; }
+        public virtual Order Order { get; set; } = null!;
     }
 }

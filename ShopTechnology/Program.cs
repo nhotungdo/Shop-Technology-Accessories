@@ -24,6 +24,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
     });
 
+// Function to check if the current user is an Admin
+bool IsUserAdmin(HttpContext context)
+{
+    return context.User.Identity?.IsAuthenticated == true &&
+           context.User.IsInRole("Admin");
+}
+
+
 // Add Authorization
 builder.Services.AddAuthorization(options =>
 {

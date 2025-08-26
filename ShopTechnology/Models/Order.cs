@@ -84,9 +84,9 @@ namespace ShopTechnology.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual User User { get; set; }
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-        public virtual ICollection<Payment> Payments { get; set; }
-        public virtual ICollection<OrderHistory> OrderHistories { get; set; }
+        public virtual User User { get; set; } = null!;
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public virtual ICollection<OrderHistory> OrderHistories { get; set; } = new List<OrderHistory>();
     }
 }

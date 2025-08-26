@@ -63,17 +63,16 @@ public class ProductController : Controller
         {
             _logger.LogInformation("Attempting to load product details for ID: {ProductId}", id);
 
-            // First, check if we can connect to database
-            var productCount = await _context.Products.CountAsync();
-            _logger.LogInformation("Total products in database: {Count}", productCount);
+            // Load product with all related data
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages.OrderBy(pi => pi.DisplayOrder))
+                .Include(p => p.Reviews.Where(r => r.IsApproved).OrderByDescending(r => r.CreatedAt))
+                .ThenInclude(r => r.User)
+                .Include(p => p.Reviews.Where(r => r.IsApproved))
+                .ThenInclude(r => r.ReviewImages)
+                .FirstOrDefaultAsync(p => p.ProductId == id && p.IsActive);
 
-            if (productCount == 0)
-            {
-                _logger.LogWarning("No products found in database");
-                return View("Error");
-            }
-
-            var product = await _productService.GetProductByIdAsync(id);
             if (product == null)
             {
                 _logger.LogWarning("Product with ID {ProductId} not found", id);
@@ -82,17 +81,51 @@ public class ProductController : Controller
 
             _logger.LogInformation("Found product: {ProductName}", product.Name);
 
+            // Increment view count
+            product.ViewCount++;
+            await _context.SaveChangesAsync();
+
             // Map to ProductViewModel
             var productViewModel = _mapper.Map<ProductViewModel>(product);
 
-            // Get related products
+            // Get related products from same category
             var relatedProducts = await _context.Products
-                .Where(p => p.CategoryId == product.CategoryId && p.ProductId != id)
+                .Include(p => p.ProductImages)
+                .Where(p => p.CategoryId == product.CategoryId && p.ProductId != id && p.IsActive)
+                .OrderByDescending(p => p.ViewCount)
                 .Take(4)
                 .ToListAsync();
 
             // Get reviews for this product
             var reviews = await _reviewService.GetReviewsByProductIdAsync(id);
+
+            // Check if user is authenticated and get cart/wishlist status
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int userIdInt))
+                {
+                    // Check if product is in user's cart
+                    var cartItem = await _context.CartItems
+                        .Include(ci => ci.Cart)
+                        .FirstOrDefaultAsync(ci => ci.ProductId == id && ci.Cart.UserId == userIdInt);
+
+                    if (cartItem != null)
+                    {
+                        productViewModel.IsInCart = true;
+                        productViewModel.CartQuantity = cartItem.Quantity;
+                    }
+
+                    // Check if product is in user's wishlist
+                    var wishlistItem = await _context.Wishlists
+                        .FirstOrDefaultAsync(w => w.ProductId == id && w.UserId == userIdInt);
+
+                    if (wishlistItem != null)
+                    {
+                        productViewModel.IsInWishlist = true;
+                    }
+                }
+            }
 
             ViewBag.RelatedProducts = _mapper.Map<List<ProductViewModel>>(relatedProducts);
             ViewBag.Reviews = reviews;
@@ -102,7 +135,8 @@ public class ProductController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading product details for ID: {ProductId}. Error: {ErrorMessage}", id, ex.Message);
-            return View("Error");
+            TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin sản phẩm. Vui lòng thử lại sau.";
+            return RedirectToAction("Index", "Home");
         }
     }
 

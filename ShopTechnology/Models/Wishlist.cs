@@ -14,7 +14,7 @@ namespace ShopTechnology.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        public virtual User User { get; set; }
-        public virtual Product Product { get; set; }
+        public virtual User User { get; set; } = null!;
+        public virtual Product Product { get; set; } = null!;
     }
 }

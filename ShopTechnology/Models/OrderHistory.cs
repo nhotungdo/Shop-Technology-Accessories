@@ -21,7 +21,7 @@ namespace ShopTechnology.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        public virtual Order Order { get; set; }
+        public virtual Order Order { get; set; } = null!;
         public virtual User? UpdatedByUser { get; set; }
     }
 }

@@ -16,6 +16,6 @@ namespace ShopTechnology.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        public virtual Review Review { get; set; }
+        public virtual Review Review { get; set; } = null!;
     }
 }

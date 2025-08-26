@@ -11,7 +11,7 @@ namespace ShopTechnology.Models
 
         [Required]
         [StringLength(255)]
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
 
         public int DisplayOrder { get; set; } = 0;
 
@@ -20,6 +20,6 @@ namespace ShopTechnology.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        public virtual Product Product { get; set; }
+        public virtual Product Product { get; set; } = null!;
     }
 }
