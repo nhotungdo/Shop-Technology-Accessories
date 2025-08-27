@@ -40,15 +40,76 @@ namespace ShopTechnology.Controllers
 
             var viewModel = new HomeViewModel
             {
-                FeaturedProducts = await _productService.GetFeaturedProductsAsync(8),
-                LatestProducts = await _productService.GetNewProductsAsync(8),
-                NewProducts = await _productService.GetNewProductsAsync(8),
-                HotProducts = await _productService.GetHotProductsAsync(8),
+                // Hero Banner - Sản phẩm nổi bật
+                HeroProducts = await _productService.GetFeaturedProductsAsync(3),
+
+                // Categories - Danh mục sản phẩm
                 Categories = await _categoryService.GetFeaturedCategoriesAsync(6),
+
+                // Best Sellers - Sản phẩm bán chạy
+                BestSellers = await _productService.GetHotProductsAsync(9),
+
+                // New Arrivals - Sản phẩm mới về
+                NewArrivals = await _productService.GetNewProductsAsync(9),
+
+                // Promotions - Khuyến mãi và deal đặc biệt
+                PromotionalProducts = await _productService.GetPromotionalProductsAsync(6),
+
+                // Personalized Recommendations - Khuyến nghị cá nhân hóa
+                RecommendedProducts = await GetPersonalizedRecommendationsAsync(),
+
+                // Banners
                 Banners = await _bannerService.GetActiveBannersAsync("Homepage")
             };
 
             return View(viewModel);
+        }
+
+        private async Task<List<Product>> GetPersonalizedRecommendationsAsync()
+        {
+            // Nếu user đã đăng nhập, lấy sản phẩm dựa trên lịch sử
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+                if (userId > 0)
+                {
+                    // Lấy sản phẩm dựa trên lịch sử mua hàng hoặc xem
+                    var userOrders = await _context.Orders
+                        .Include(o => o.OrderDetails)
+                        .Where(o => o.UserId == userId)
+                        .ToListAsync();
+
+                    if (userOrders.Any())
+                    {
+                        var purchasedCategories = userOrders
+                            .SelectMany(o => o.OrderDetails)
+                            .Select(od => od.ProductId)
+                            .Distinct()
+                            .ToList();
+
+                        var recommendedProducts = await _context.Products
+                            .Include(p => p.Category)
+                            .Include(p => p.ProductImages)
+                            .Where(p => purchasedCategories.Contains(p.CategoryId))
+                            .OrderByDescending(p => p.AverageRating)
+                            .Take(8)
+                            .ToListAsync();
+
+                        if (recommendedProducts.Any())
+                            return recommendedProducts;
+                    }
+                }
+            }
+
+            // Fallback: Lấy sản phẩm có rating cao nhất
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.IsActive && p.StockQuantity > 0)
+                .OrderByDescending(p => p.AverageRating)
+                .ThenByDescending(p => p.ViewCount)
+                .Take(8)
+                .ToListAsync();
         }
 
         public async Task<IActionResult> About()

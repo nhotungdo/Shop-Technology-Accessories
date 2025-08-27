@@ -11,11 +11,13 @@ namespace ShopTechnology.Controllers
     {
         private readonly ShopTechnologyAccessoriesContext _context;
         private readonly ICartService _cartService;
+        private readonly IOrderFlowService _orderFlowService;
 
-        public CartController(ShopTechnologyAccessoriesContext context, ICartService cartService)
+        public CartController(ShopTechnologyAccessoriesContext context, ICartService cartService, IOrderFlowService orderFlowService)
         {
             _context = context;
             _cartService = cartService;
+            _orderFlowService = orderFlowService;
         }
 
         public async Task<IActionResult> Index()
@@ -40,17 +42,25 @@ namespace ShopTechnology.Controllers
 
             try
             {
-                var result = await _cartService.AddToCartAsync(userId, productId, quantity);
+                Console.WriteLine("=== DFD Level 1 - Bước 2: Thêm vào giỏ hàng ===");
+                Console.WriteLine($"Data Flow: Customer → Client Tier → Middle Tier → Cart Data Store");
+                Console.WriteLine($"Parameters: UserId={userId}, ProductId={productId}, Quantity={quantity}");
+
+                // Level 1: Thêm vào giỏ hàng - Data Flow: Customer → Client Tier → Middle Tier → Cart Data Store
+                var result = await _orderFlowService.AddToCartAsync(userId.Value, productId, quantity);
 
                 if (result.Success)
                 {
-                    return Json(new { success = true, message = "Sản phẩm đã được thêm vào giỏ hàng." });
+                    Console.WriteLine("Data Flow completed successfully");
+                    return Json(new { success = true, message = result.Message });
                 }
 
-                return Json(new { success = false, message = result.Message });
+                Console.WriteLine($"Data Flow failed: {result.ErrorMessage}");
+                return Json(new { success = false, message = result.ErrorMessage });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in AddToCart: {ex.Message}");
                 return Json(new { success = false, message = "Có lỗi xảy ra khi thêm vào giỏ hàng: " + ex.Message });
             }
         }

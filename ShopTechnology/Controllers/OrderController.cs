@@ -37,6 +37,8 @@ namespace ShopTechnology.Controllers
 
             try
             {
+                Console.WriteLine($"=== DEBUG: OrderController.History called for UserId: {userId} ===");
+
                 // Use ADO.NET directly to avoid Entity Framework navigation property issues
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
@@ -89,12 +91,17 @@ namespace ShopTechnology.Controllers
                             UpdatedAt = reader.IsDBNull(reader.GetOrdinal("UpdatedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("UpdatedAt"))
                         };
                         orders.Add(order);
+                        Console.WriteLine($"DEBUG: Found Order - ID: {order.OrderId}, Number: {order.OrderNumber}, Total: {order.TotalAmount}");
                     }
                 }
+
+                Console.WriteLine($"DEBUG: Total orders found: {orders.Count}");
 
                 // Get order details for all orders
                 foreach (var order in orders)
                 {
+                    Console.WriteLine($"DEBUG: Getting OrderDetails for OrderId: {order.OrderId}");
+
                     var orderDetailsSql = @"SELECT OrderDetailId, OrderId, ProductId, ProductName, ProductSKU, 
                                                   Quantity, UnitPrice, TotalPrice, ProductImage, ProductBrand
                                            FROM OrderDetails 
@@ -109,7 +116,7 @@ namespace ShopTechnology.Controllers
                     {
                         while (await reader.ReadAsync())
                         {
-                            orderDetails.Add(new OrderDetail
+                            var orderDetail = new OrderDetail
                             {
                                 OrderDetailId = reader.GetInt32(reader.GetOrdinal("OrderDetailId")),
                                 OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
@@ -121,10 +128,13 @@ namespace ShopTechnology.Controllers
                                 TotalPrice = reader.GetDecimal(reader.GetOrdinal("TotalPrice")),
                                 ProductImage = reader.IsDBNull(reader.GetOrdinal("ProductImage")) ? null : reader.GetString(reader.GetOrdinal("ProductImage")),
                                 ProductBrand = reader.IsDBNull(reader.GetOrdinal("ProductBrand")) ? null : reader.GetString(reader.GetOrdinal("ProductBrand"))
-                            });
+                            };
+                            orderDetails.Add(orderDetail);
+                            Console.WriteLine($"DEBUG: Found OrderDetail - Product: {orderDetail.ProductName}, Qty: {orderDetail.Quantity}, Price: {orderDetail.UnitPrice}");
                         }
                     }
                     order.OrderDetails = orderDetails;
+                    Console.WriteLine($"DEBUG: Order {order.OrderId} has {orderDetails.Count} items");
                 }
 
                 var orderViewModels = orders.Select(order => new OrderViewModel
@@ -146,10 +156,10 @@ namespace ShopTechnology.Controllers
                 }).ToList();
 
                 // Debug logging
-                Console.WriteLine($"Found {orders.Count} orders for user {userId}");
-                foreach (var order in orders)
+                Console.WriteLine($"DEBUG: Created {orderViewModels.Count} OrderViewModels for user {userId}");
+                foreach (var orderViewModel in orderViewModels)
                 {
-                    Console.WriteLine($"Order {order.OrderId}: {order.OrderDetails.Count} items");
+                    Console.WriteLine($"DEBUG: OrderViewModel {orderViewModel.OrderId}: {orderViewModel.OrderDetails.Count} items");
                 }
 
                 return View(orderViewModels);
@@ -165,19 +175,24 @@ namespace ShopTechnology.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                Console.WriteLine($"=== DEBUG: OrderController.Details called for OrderId: {id} ===");
+
+                // Debug: Kiểm tra dữ liệu trực tiếp từ database
+                await DebugOrderData(id);
+
                 // Use ADO.NET directly to avoid Entity Framework navigation property issues
                 using var connection = _context.Database.GetDbConnection();
                 await connection.OpenAsync();
@@ -239,39 +254,69 @@ namespace ShopTechnology.Controllers
                 }
 
                 // Get order details
-                var orderDetailsSql = @"SELECT OrderDetailId, OrderId, ProductId, ProductName, ProductSKU, 
-                                              Quantity, UnitPrice, TotalPrice, ProductImage, ProductBrand
-                                       FROM OrderDetails 
-                                       WHERE OrderId = @OrderId";
-
-                using var detailsCommand = connection.CreateCommand();
-                detailsCommand.CommandText = orderDetailsSql;
-                detailsCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@OrderId", id));
-
-                var orderDetails = new List<OrderDetail>();
-                using (var reader = await detailsCommand.ExecuteReaderAsync())
+                try
                 {
-                    while (await reader.ReadAsync())
+                    var orderDetailsSql = @"SELECT OrderDetailId, OrderId, ProductId, ProductName, ProductSKU, 
+                                                  Quantity, UnitPrice, TotalPrice, ProductImage, ProductBrand
+                                           FROM OrderDetails 
+                                           WHERE OrderId = @OrderId";
+
+                    Console.WriteLine($"Executing SQL: {orderDetailsSql} with OrderId = {id}");
+
+                    // First, let's check if there are any order details at all
+                    var checkSql = "SELECT COUNT(*) FROM OrderDetails";
+                    using var checkCommand = connection.CreateCommand();
+                    checkCommand.CommandText = checkSql;
+                    var totalOrderDetails = await checkCommand.ExecuteScalarAsync();
+                    Console.WriteLine($"Total OrderDetails in database: {totalOrderDetails}");
+
+                    // Let's also check what order details exist for this specific order
+                    var checkOrderSql = "SELECT COUNT(*) FROM OrderDetails WHERE OrderId = @OrderId";
+                    using var checkOrderCommand = connection.CreateCommand();
+                    checkOrderCommand.CommandText = checkOrderSql;
+                    checkOrderCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@OrderId", id));
+                    var orderDetailsCount = await checkOrderCommand.ExecuteScalarAsync();
+                    Console.WriteLine($"OrderDetails for OrderId {id}: {orderDetailsCount}");
+
+                    using var detailsCommand = connection.CreateCommand();
+                    detailsCommand.CommandText = orderDetailsSql;
+                    detailsCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@OrderId", id));
+
+                    var orderDetails = new List<OrderDetail>();
+                    using (var reader = await detailsCommand.ExecuteReaderAsync())
                     {
-                        orderDetails.Add(new OrderDetail
+                        while (await reader.ReadAsync())
                         {
-                            OrderDetailId = reader.GetInt32(reader.GetOrdinal("OrderDetailId")),
-                            OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                            ProductId = reader.GetInt32(reader.GetOrdinal("ProductId")),
-                            ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
-                            ProductSKU = reader.IsDBNull(reader.GetOrdinal("ProductSKU")) ? null : reader.GetString(reader.GetOrdinal("ProductSKU")),
-                            Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
-                            UnitPrice = reader.GetDecimal(reader.GetOrdinal("UnitPrice")),
-                            TotalPrice = reader.GetDecimal(reader.GetOrdinal("TotalPrice")),
-                            ProductImage = reader.IsDBNull(reader.GetOrdinal("ProductImage")) ? null : reader.GetString(reader.GetOrdinal("ProductImage")),
-                            ProductBrand = reader.IsDBNull(reader.GetOrdinal("ProductBrand")) ? null : reader.GetString(reader.GetOrdinal("ProductBrand"))
-                        });
+                            var orderDetail = new OrderDetail
+                            {
+                                OrderDetailId = reader.GetInt32(reader.GetOrdinal("OrderDetailId")),
+                                OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
+                                ProductId = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                ProductSKU = reader.IsDBNull(reader.GetOrdinal("ProductSKU")) ? null : reader.GetString(reader.GetOrdinal("ProductSKU")),
+                                Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+                                UnitPrice = reader.GetDecimal(reader.GetOrdinal("UnitPrice")),
+                                TotalPrice = reader.GetDecimal(reader.GetOrdinal("TotalPrice")),
+                                ProductImage = reader.IsDBNull(reader.GetOrdinal("ProductImage")) ? null : reader.GetString(reader.GetOrdinal("ProductImage")),
+                                ProductBrand = reader.IsDBNull(reader.GetOrdinal("ProductBrand")) ? null : reader.GetString(reader.GetOrdinal("ProductBrand"))
+                            };
+                            orderDetails.Add(orderDetail);
+                            Console.WriteLine($"Found OrderDetail: {orderDetail.ProductName} - Qty: {orderDetail.Quantity} - Price: {orderDetail.UnitPrice}");
+                        }
                     }
+
+                    order.OrderDetails = orderDetails;
+                    Console.WriteLine($"Order {order.OrderId} has {orderDetails.Count} items");
                 }
-                order.OrderDetails = orderDetails;
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to get order details for OrderId {id}");
+                    Console.WriteLine($"Error: {ex.Message}");
+                    order.OrderDetails = new List<OrderDetail>();
+                }
 
                 // Debug logging
-                Console.WriteLine($"Order {order.OrderId} has {orderDetails.Count} items");
+                Console.WriteLine($"Order {order.OrderId} has {order.OrderDetails.Count} items");
 
                 // Get order history
                 var orderHistorySql = @"SELECT OrderHistoryId, OrderId, Status, Notes, UpdatedByUserId, CreatedAt
@@ -301,14 +346,30 @@ namespace ShopTechnology.Controllers
                 }
                 order.OrderHistories = orderHistories;
 
-                var orderDetailViewModels = order.OrderDetails.Select(od => new OrderDetailViewModel
+                Console.WriteLine($"Creating OrderDetailViewModels from {order.OrderDetails.Count} order details...");
+
+                var orderDetailViewModels = new List<OrderDetailViewModel>();
+
+                if (order.OrderDetails.Count > 0)
                 {
-                    ProductId = od.ProductId,
-                    ProductName = od.ProductName,
-                    Quantity = od.Quantity,
-                    Price = od.UnitPrice,
-                    ProductImage = od.ProductImage ?? "/img/best-tech-accessories.png"
-                }).ToList();
+                    orderDetailViewModels = order.OrderDetails.Select(od =>
+                    {
+                        var viewModel = new OrderDetailViewModel
+                        {
+                            ProductId = od.ProductId,
+                            ProductName = od.ProductName,
+                            Quantity = od.Quantity,
+                            Price = od.UnitPrice,
+                            ProductImage = od.ProductImage ?? "/img/best-tech-accessories.png"
+                        };
+                        Console.WriteLine($"Created ViewModel: {viewModel.ProductName} - Qty: {viewModel.Quantity} - Price: {viewModel.Price}");
+                        return viewModel;
+                    }).ToList();
+                }
+                else
+                {
+                    Console.WriteLine("No order details found, creating empty list");
+                }
 
                 // Debug logging
                 Console.WriteLine($"Created {orderDetailViewModels.Count} OrderDetailViewModels");
@@ -337,8 +398,100 @@ namespace ShopTechnology.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading order details: {ex.Message}");
+                Console.WriteLine($"ERROR: OrderController.Details failed for OrderId {id}");
+                Console.WriteLine($"Error message: {ex.Message}");
+                Console.WriteLine($"Error type: {ex.GetType().Name}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                // Log inner exception if exists
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner exception type: {ex.InnerException.GetType().Name}");
+                }
+
                 return View("Error");
+            }
+        }
+
+        private async Task DebugOrderData(int orderId)
+        {
+            try
+            {
+                using var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                // Kiểm tra tổng số OrderDetails
+                var totalSql = "SELECT COUNT(*) FROM OrderDetails";
+                using var totalCommand = connection.CreateCommand();
+                totalCommand.CommandText = totalSql;
+                var totalOrderDetails = await totalCommand.ExecuteScalarAsync();
+                Console.WriteLine($"DEBUG: Total OrderDetails in database: {totalOrderDetails}");
+
+                // Kiểm tra OrderDetails cho đơn hàng cụ thể
+                var orderSql = "SELECT COUNT(*) FROM OrderDetails WHERE OrderId = @OrderId";
+                using var orderCommand = connection.CreateCommand();
+                orderCommand.CommandText = orderSql;
+                orderCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@OrderId", orderId));
+                var orderDetailsCount = await orderCommand.ExecuteScalarAsync();
+                Console.WriteLine($"DEBUG: OrderDetails for OrderId {orderId}: {orderDetailsCount}");
+
+                // Kiểm tra chi tiết OrderDetails
+                var detailsSql = @"SELECT OrderDetailId, ProductId, ProductName, Quantity, UnitPrice, TotalPrice 
+                                  FROM OrderDetails WHERE OrderId = @OrderId";
+                using var detailsCommand = connection.CreateCommand();
+                detailsCommand.CommandText = detailsSql;
+                detailsCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@OrderId", orderId));
+
+                using var reader = await detailsCommand.ExecuteReaderAsync();
+                var detailsFound = false;
+                while (await reader.ReadAsync())
+                {
+                    detailsFound = true;
+                    var detailId = reader.GetInt32(reader.GetOrdinal("OrderDetailId"));
+                    var productId = reader.GetInt32(reader.GetOrdinal("ProductId"));
+                    var productName = reader.GetString(reader.GetOrdinal("ProductName"));
+                    var quantity = reader.GetInt32(reader.GetOrdinal("Quantity"));
+                    var unitPrice = reader.GetDecimal(reader.GetOrdinal("UnitPrice"));
+                    var totalPrice = reader.GetDecimal(reader.GetOrdinal("TotalPrice"));
+
+                    Console.WriteLine($"DEBUG: Found OrderDetail - ID: {detailId}, Product: {productName} (ID: {productId}), Qty: {quantity}, Price: {unitPrice}, Total: {totalPrice}");
+                }
+
+                if (!detailsFound)
+                {
+                    Console.WriteLine($"DEBUG: No OrderDetails found for OrderId {orderId}");
+                }
+
+                // Kiểm tra Orders
+                var ordersSql = "SELECT COUNT(*) FROM Orders";
+                using var ordersCommand = connection.CreateCommand();
+                ordersCommand.CommandText = ordersSql;
+                var totalOrders = await ordersCommand.ExecuteScalarAsync();
+                Console.WriteLine($"DEBUG: Total Orders in database: {totalOrders}");
+
+                // Kiểm tra Order cụ thể
+                var specificOrderSql = "SELECT OrderId, OrderNumber, CustomerName, TotalAmount FROM Orders WHERE OrderId = @OrderId";
+                using var specificOrderCommand = connection.CreateCommand();
+                specificOrderCommand.CommandText = specificOrderSql;
+                specificOrderCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@OrderId", orderId));
+
+                using var orderReader = await specificOrderCommand.ExecuteReaderAsync();
+                if (await orderReader.ReadAsync())
+                {
+                    var orderNumber = orderReader.GetString(orderReader.GetOrdinal("OrderNumber"));
+                    var customerName = orderReader.GetString(orderReader.GetOrdinal("CustomerName"));
+                    var totalAmount = orderReader.GetDecimal(orderReader.GetOrdinal("TotalAmount"));
+                    Console.WriteLine($"DEBUG: Found Order - ID: {orderId}, Number: {orderNumber}, Customer: {customerName}, Total: {totalAmount}");
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: Order with ID {orderId} not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG: Error in DebugOrderData: {ex.Message}");
             }
         }
     }

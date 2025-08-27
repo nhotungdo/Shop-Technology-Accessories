@@ -43,6 +43,19 @@ namespace ShopTechnology.Services
                 .ToListAsync();
         }
 
+        public async Task<List<Product>> GetPromotionalProductsAsync(int count)
+        {
+            return await _context.Products
+                .Include(p => p.ProductImages)
+                .Include(p => p.Category)
+                .Where(p => p.IsActive && p.StockQuantity > 0 &&
+                           (p.OriginalPrice > p.Price))
+                .OrderByDescending(p => p.OriginalPrice - p.Price)
+                .ThenByDescending(p => p.ViewCount)
+                .Take(count)
+                .ToListAsync();
+        }
+
         public async Task<List<Product>> GetProductsByCategoryAsync(int categoryId, int page = 1, int pageSize = 12)
         {
             return await _context.Products

@@ -14,17 +14,23 @@ namespace ShopTechnology.Controllers
         private readonly ICartService _cartService;
         private readonly IOrderService _orderService;
         private readonly IPaymentService _paymentService;
+        private readonly IOrderFlowService _orderFlowService;
+        private readonly IPostPaymentService _postPaymentService;
 
         public CheckoutController(
             ShopTechnologyAccessoriesContext context,
             ICartService cartService,
             IOrderService orderService,
-            IPaymentService paymentService)
+            IPaymentService paymentService,
+            IOrderFlowService orderFlowService,
+            IPostPaymentService postPaymentService)
         {
             _context = context;
             _cartService = cartService;
             _orderService = orderService;
             _paymentService = paymentService;
+            _orderFlowService = orderFlowService;
+            _postPaymentService = postPaymentService;
         }
 
         public async Task<IActionResult> Index()
@@ -68,82 +74,171 @@ namespace ShopTechnology.Controllers
 
             if (ModelState.IsValid)
             {
-                var cart = await _cartService.GetCartAsync(userId);
-                if (cart.Items.Count == 0)
+                Console.WriteLine("=== DFD Level 1 - Bước 3: Checkout ===");
+                Console.WriteLine($"Data Flow: Customer → Client Tier → Middle Tier → Order Database");
+                Console.WriteLine($"Parameters: UserId={userId}");
+
+                // Level 1: Checkout - Data Flow: Customer → Client Tier → Middle Tier → Order Database
+                var checkoutResult = await _orderFlowService.ValidateCheckoutAsync(userId.Value, model);
+
+                if (!checkoutResult.Success)
                 {
-                    return RedirectToAction("Index", "Cart");
+                    Console.WriteLine($"Checkout validation failed: {checkoutResult.ErrorMessage}");
+                    ModelState.AddModelError("", checkoutResult.ErrorMessage);
+                    return View(model);
                 }
 
-                // Create order using raw SQL to avoid navigation properties
-                var orderNumber = GenerateOrderNumber();
-                var orderSql = @"INSERT INTO Orders (UserId, OrderNumber, CustomerName, CustomerEmail, CustomerPhone, ShippingAddress, ShippingCity, ShippingProvince, ShippingPostalCode, OrderNotes, SubTotal, TaxAmount, ShippingFee, DiscountAmount, TotalAmount, OrderStatus, PaymentStatus, PaymentMethod, ShippingMethod, CreatedAt) 
-                                VALUES (@UserId, @OrderNumber, @CustomerName, @CustomerEmail, @CustomerPhone, @ShippingAddress, @ShippingCity, @ShippingProvince, @ShippingPostalCode, @OrderNotes, @SubTotal, @TaxAmount, @ShippingFee, @DiscountAmount, @TotalAmount, @OrderStatus, @PaymentStatus, @PaymentMethod, @ShippingMethod, @CreatedAt);
-                                SELECT CAST(SCOPE_IDENTITY() as int)";
+                Console.WriteLine($"Checkout validation completed successfully");
+                Console.WriteLine($"Total items: {checkoutResult.CartViewModel?.Items.Count}, Total amount: {checkoutResult.TotalAmount}");
 
-                var orderId = await _context.Database.ExecuteSqlRawAsync(orderSql,
-                    new Microsoft.Data.SqlClient.SqlParameter("@UserId", userId.Value),
-                    new Microsoft.Data.SqlClient.SqlParameter("@OrderNumber", orderNumber),
-                    new Microsoft.Data.SqlClient.SqlParameter("@CustomerName", model.CustomerName),
-                    new Microsoft.Data.SqlClient.SqlParameter("@CustomerEmail", model.CustomerEmail),
-                    new Microsoft.Data.SqlClient.SqlParameter("@CustomerPhone", model.CustomerPhone),
-                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingAddress", model.ShippingAddress),
-                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingCity", (object)model.ShippingCity ?? DBNull.Value),
-                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingProvince", (object)model.ShippingProvince ?? DBNull.Value),
-                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingPostalCode", (object)model.ShippingPostalCode ?? DBNull.Value),
-                    new Microsoft.Data.SqlClient.SqlParameter("@OrderNotes", (object)model.OrderNotes ?? DBNull.Value),
-                    new Microsoft.Data.SqlClient.SqlParameter("@SubTotal", cart.SubTotal),
-                    new Microsoft.Data.SqlClient.SqlParameter("@TaxAmount", cart.TaxAmount),
-                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingFee", cart.ShippingFee),
-                    new Microsoft.Data.SqlClient.SqlParameter("@DiscountAmount", cart.DiscountAmount),
-                    new Microsoft.Data.SqlClient.SqlParameter("@TotalAmount", cart.TotalAmount),
-                    new Microsoft.Data.SqlClient.SqlParameter("@OrderStatus", "Pending"),
-                    new Microsoft.Data.SqlClient.SqlParameter("@PaymentStatus", "Pending"),
-                    new Microsoft.Data.SqlClient.SqlParameter("@PaymentMethod", model.PaymentMethod),
-                    new Microsoft.Data.SqlClient.SqlParameter("@ShippingMethod", model.ShippingMethod),
-                    new Microsoft.Data.SqlClient.SqlParameter("@CreatedAt", DateTime.Now));
-
-                // Get the created order ID
-                var order = new { OrderId = orderId };
-
-                // Create order details using raw SQL to avoid navigation properties
-                foreach (var item in cart.Items)
+                // Level 1: Thanh toán - Data Flow: Middle Tier → Payment Gateway → Middle Tier → Order Database
+                var paymentData = new PaymentViewModel
                 {
-                    var sql = @"INSERT INTO OrderDetails (OrderId, ProductId, ProductName, ProductSKU, Quantity, UnitPrice, TotalPrice, ProductImage, ProductBrand) 
-                               VALUES (@OrderId, @ProductId, @ProductName, @ProductSKU, @Quantity, @UnitPrice, @TotalPrice, @ProductImage, @ProductBrand)";
+                    CustomerName = model.CustomerName,
+                    CustomerEmail = model.CustomerEmail,
+                    CustomerPhone = model.CustomerPhone,
+                    ShippingAddress = model.ShippingAddress,
+                    PaymentMethod = model.PaymentMethod,
+                    PromoCode = model.PromoCode
+                };
 
-                    await _context.Database.ExecuteSqlRawAsync(sql,
-                        new Microsoft.Data.SqlClient.SqlParameter("@OrderId", order.OrderId),
-                        new Microsoft.Data.SqlClient.SqlParameter("@ProductId", item.ProductId),
-                        new Microsoft.Data.SqlClient.SqlParameter("@ProductName", item.ProductName),
-                        new Microsoft.Data.SqlClient.SqlParameter("@ProductSKU", (object)item.ProductSKU ?? DBNull.Value),
-                        new Microsoft.Data.SqlClient.SqlParameter("@Quantity", item.Quantity),
-                        new Microsoft.Data.SqlClient.SqlParameter("@UnitPrice", item.UnitPrice),
-                        new Microsoft.Data.SqlClient.SqlParameter("@TotalPrice", item.TotalPrice),
-                        new Microsoft.Data.SqlClient.SqlParameter("@ProductImage", (object)item.ProductImage ?? DBNull.Value),
-                        new Microsoft.Data.SqlClient.SqlParameter("@ProductBrand", (object)item.ProductBrand ?? DBNull.Value));
+                var paymentResult = await _orderFlowService.ProcessPaymentAsync(userId.Value, paymentData);
+
+                if (!paymentResult.Success)
+                {
+                    Console.WriteLine($"Payment processing failed: {paymentResult.ErrorMessage}");
+                    ModelState.AddModelError("", paymentResult.ErrorMessage);
+                    return View(model);
                 }
 
-                // Create order history using raw SQL
-                var historySql = @"INSERT INTO OrderHistory (OrderId, Status, Notes, CreatedAt) 
-                                  VALUES (@OrderId, @Status, @Notes, @CreatedAt)";
+                Console.WriteLine($"Payment processed successfully. OrderId: {paymentResult.OrderId}");
 
-                await _context.Database.ExecuteSqlRawAsync(historySql,
-                    new Microsoft.Data.SqlClient.SqlParameter("@OrderId", order.OrderId),
-                    new Microsoft.Data.SqlClient.SqlParameter("@Status", "Pending"),
-                    new Microsoft.Data.SqlClient.SqlParameter("@Notes", "Đơn hàng được tạo"),
-                    new Microsoft.Data.SqlClient.SqlParameter("@CreatedAt", DateTime.Now));
+                // Level 2: Quy trình hoàn chỉnh sau thanh toán - Data Flow: Payment Gateway → Middle Tier → Multiple Systems
+                var postPaymentResult = await _postPaymentService.ProcessPostPaymentAsync(paymentResult.OrderId, paymentResult.TransactionId);
 
-                // Clear cart
-                await _cartService.ClearCartAsync(userId);
+                if (!postPaymentResult.Success)
+                {
+                    Console.WriteLine($"Post-payment processing failed: {postPaymentResult.ErrorMessage}");
+                    ModelState.AddModelError("", postPaymentResult.ErrorMessage);
+                    return View(model);
+                }
 
-                // Redirect to payment
-                return RedirectToAction("Payment", new { orderId = order.OrderId });
+                Console.WriteLine($"Post-payment processing completed successfully for OrderId: {postPaymentResult.OrderId}");
+                Console.WriteLine($"Transaction ID: {postPaymentResult.TransactionId}");
+                Console.WriteLine("Data Flow completed successfully");
+
+                // Redirect to payment confirmation
+                return RedirectToAction("Payment", new { orderId = paymentResult.OrderId });
             }
 
             // If we got this far, something failed, redisplay form
             var cartForView = await _cartService.GetCartAsync(userId);
             model.Cart = cartForView;
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPayment(int orderId, string paymentMethod)
+        {
+            try
+            {
+                Console.WriteLine("=== DFD Level 2: Xác nhận thanh toán ===");
+                Console.WriteLine($"Data Flow: Customer → Client Tier → Middle Tier → Payment Gateway");
+                Console.WriteLine($"Parameters: OrderId={orderId}, PaymentMethod={paymentMethod}");
+
+                var userId = GetUserId();
+                if (!userId.HasValue)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập để thực hiện thanh toán" });
+                }
+
+                // Kiểm tra đơn hàng
+                var order = await _context.Orders
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId.Value);
+
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+                }
+
+                if (order.PaymentStatus == "Paid")
+                {
+                    return Json(new { success = false, message = "Đơn hàng đã được thanh toán" });
+                }
+
+                // Xử lý thanh toán theo phương thức
+                string transactionId;
+                bool paymentSuccess;
+
+                switch (paymentMethod)
+                {
+                    case "COD":
+                        // Thanh toán khi nhận hàng - luôn thành công
+                        transactionId = $"COD-{DateTime.Now:yyyyMMddHHmmss}";
+                        paymentSuccess = true;
+                        break;
+                    case "BankTransfer":
+                        // Chuyển khoản ngân hàng - giả lập
+                        transactionId = $"BANK-{DateTime.Now:yyyyMMddHHmmss}";
+                        paymentSuccess = true;
+                        break;
+                    case "MoMo":
+                        // Ví MoMo - giả lập
+                        transactionId = $"MOMO-{DateTime.Now:yyyyMMddHHmmss}";
+                        paymentSuccess = true;
+                        break;
+                    case "VNPay":
+                        // VNPay - giả lập
+                        transactionId = $"VNPAY-{DateTime.Now:yyyyMMddHHmmss}";
+                        paymentSuccess = true;
+                        break;
+                    default:
+                        return Json(new { success = false, message = "Phương thức thanh toán không hợp lệ" });
+                }
+
+                if (paymentSuccess)
+                {
+                    Console.WriteLine($"Payment successful: {transactionId}");
+
+                    // Cập nhật phương thức thanh toán
+                    order.PaymentMethod = paymentMethod;
+                    await _context.SaveChangesAsync();
+
+                    // Thực hiện quy trình sau thanh toán
+                    var postPaymentResult = await _postPaymentService.ProcessPostPaymentAsync(orderId, transactionId);
+
+                    if (postPaymentResult.Success)
+                    {
+                        Console.WriteLine("Post-payment processing completed successfully");
+                        return Json(new
+                        {
+                            success = true,
+                            message = "Thanh toán thành công! Đơn hàng đã được xác nhận.",
+                            orderId = orderId,
+                            transactionId = transactionId
+                        });
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Post-payment processing failed: {postPaymentResult.ErrorMessage}");
+                        return Json(new
+                        {
+                            success = false,
+                            message = "Thanh toán thành công nhưng có lỗi xảy ra trong quá trình xử lý đơn hàng. Vui lòng liên hệ hỗ trợ."
+                        });
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Payment failed");
+                    return Json(new { success = false, message = "Thanh toán thất bại. Vui lòng thử lại." });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ConfirmPayment: {ex.Message}");
+                return Json(new { success = false, message = "Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại." });
+            }
         }
 
         public async Task<IActionResult> Payment(int orderId)

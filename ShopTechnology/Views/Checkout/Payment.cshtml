@@ -65,11 +65,13 @@
                                     <div class="flex-shrink-0">
                                         @if (!string.IsNullOrEmpty(item.ProductImage))
                                         {
-                                            <img src="@item.ProductImage" alt="@item.ProductName" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                            <img src="@item.ProductImage" alt="@item.ProductName" class="img-thumbnail"
+                                                style="width: 60px; height: 60px; object-fit: cover;">
                                         }
                                         else
                                         {
-                                            <div class="bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                                style="width: 60px; height: 60px;">
                                                 <i class="fas fa-image text-muted"></i>
                                             </div>
                                         }
@@ -132,50 +134,56 @@
                     </div>
 
                     <!-- Phương thức thanh toán -->
-                    <form asp-action="ProcessPayment" method="post">
-                        <input type="hidden" name="orderId" value="@Model.Order.OrderId" />
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Chọn phương thức thanh toán:</label>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD" checked>
-                                <label class="form-check-label" for="cod">
-                                    <i class="fas fa-money-bill-wave text-success me-2"></i>
-                                    Thanh toán khi nhận hàng (COD)
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="BankTransfer">
-                                <label class="form-check-label" for="bank">
-                                    <i class="fas fa-university text-primary me-2"></i>
-                                    Chuyển khoản ngân hàng
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="MoMo">
-                                <label class="form-check-label" for="momo">
-                                    <i class="fas fa-mobile-alt text-danger me-2"></i>
-                                    Ví MoMo
-                                </label>
-                            </div>
-                            
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="VNPay">
-                                <label class="form-check-label" for="vnpay">
-                                    <i class="fas fa-credit-card text-warning me-2"></i>
-                                    VNPay
-                                </label>
-                            </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn phương thức thanh toán:</label>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"
+                                checked>
+                            <label class="form-check-label" for="cod">
+                                <i class="fas fa-money-bill-wave text-success me-2"></i>
+                                Thanh toán khi nhận hàng (COD)
+                            </label>
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100 btn-lg">
-                            <i class="fas fa-lock me-2"></i>
-                            Xác nhận thanh toán
-                        </button>
-                    </form>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="bank"
+                                value="BankTransfer">
+                            <label class="form-check-label" for="bank">
+                                <i class="fas fa-university text-primary me-2"></i>
+                                Chuyển khoản ngân hàng
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="MoMo">
+                            <label class="form-check-label" for="momo">
+                                <i class="fas fa-mobile-alt text-danger me-2"></i>
+                                Ví MoMo
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="VNPay">
+                            <label class="form-check-label" for="vnpay">
+                                <i class="fas fa-credit-card text-warning me-2"></i>
+                                VNPay
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" id="confirmPaymentBtn" class="btn btn-success w-100 btn-lg">
+                        <i class="fas fa-lock me-2"></i>
+                        Xác nhận thanh toán
+                    </button>
+
+                    <!-- Loading spinner -->
+                    <div id="paymentLoading" class="text-center mt-3" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang xử lý...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Đang xử lý thanh toán...</p>
+                    </div>
 
                     <div class="mt-3 text-center">
                         <small class="text-muted">
@@ -191,11 +199,81 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Hiển thị thông tin thanh toán tương ứng với phương thức được chọn
-            $('input[name="paymentMethod"]').change(function() {
+            $('input[name="paymentMethod"]').change(function () {
                 var method = $(this).val();
-                // Có thể thêm logic hiển thị thông tin thanh toán tương ứng ở đây
+                console.log('Payment method selected:', method);
+            });
+
+            // Xử lý nút "Xác nhận thanh toán"
+            $('#confirmPaymentBtn').click(function () {
+                var paymentMethod = $('input[name="paymentMethod"]:checked').val();
+                var orderId = @Model.Order.OrderId;
+
+                if (!paymentMethod) {
+                    alert('Vui lòng chọn phương thức thanh toán');
+                    return;
+                }
+
+                // Hiển thị loading
+                $('#confirmPaymentBtn').prop('disabled', true);
+                $('#paymentLoading').show();
+
+                console.log('Processing payment:', { orderId: orderId, paymentMethod: paymentMethod });
+
+                // Gửi request thanh toán
+                $.ajax({
+                    url: '@Url.Action("ConfirmPayment", "Checkout")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        paymentMethod: paymentMethod
+                    },
+                    success: function (response) {
+                        console.log('Payment response:', response);
+
+                        if (response.success) {
+                            // Thanh toán thành công
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thanh toán thành công!',
+                                text: response.message,
+                                confirmButtonText: 'Xem đơn hàng',
+                                showCancelButton: true,
+                                cancelButtonText: 'Tiếp tục mua sắm'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '@Url.Action("History", "Order")';
+                                } else {
+                                    window.location.href = '@Url.Action("Index", "Product")';
+                                }
+                            });
+                        } else {
+                            // Thanh toán thất bại
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Thanh toán thất bại',
+                                text: response.message,
+                                confirmButtonText: 'Thử lại'
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Payment error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi hệ thống',
+                            text: 'Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại.',
+                            confirmButtonText: 'Thử lại'
+                        });
+                    },
+                    complete: function () {
+                        // Ẩn loading
+                        $('#confirmPaymentBtn').prop('disabled', false);
+                        $('#paymentLoading').hide();
+                    }
+                });
             });
         });
     </script>

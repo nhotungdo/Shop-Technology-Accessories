@@ -69,10 +69,31 @@ namespace ShopTechnology.ViewModels
         [Required(ErrorMessage = "Phương thức vận chuyển là bắt buộc")]
         [Display(Name = "Phương thức vận chuyển")]
         public string ShippingMethod { get; set; } = string.Empty;
+
+        [Display(Name = "Mã giảm giá")]
+        public string? PromoCode { get; set; }
     }
 
     public class PaymentViewModel
     {
+        [Required(ErrorMessage = "Họ tên là bắt buộc")]
+        public string CustomerName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string CustomerEmail { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+        public string CustomerPhone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Địa chỉ giao hàng là bắt buộc")]
+        public string ShippingAddress { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Phương thức thanh toán là bắt buộc")]
+        public string PaymentMethod { get; set; } = string.Empty;
+
+        public string? PromoCode { get; set; }
+
         public Order Order { get; set; } = new Order();
         public List<string> PaymentMethods { get; set; } = new List<string>
         {

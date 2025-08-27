@@ -73,6 +73,8 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOrderFlowService, OrderFlowService>();
+builder.Services.AddScoped<IPostPaymentService, PostPaymentService>();
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
@@ -137,7 +139,7 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine($"Database connection error: {ex.Message}");
         Console.WriteLine("Please ensure the database is set up by running setup-database.bat");
-        
+
         if (!app.Environment.IsDevelopment())
         {
             throw; // Re-throw in production

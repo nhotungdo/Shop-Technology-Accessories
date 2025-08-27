@@ -13,6 +13,7 @@ public class ProductController : Controller
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
     private readonly IReviewService _reviewService;
+    private readonly IOrderFlowService _orderFlowService;
     private readonly IMapper _mapper;
     private readonly ILogger<ProductController> _logger;
 
@@ -21,6 +22,7 @@ public class ProductController : Controller
         IProductService productService,
         ICategoryService categoryService,
         IReviewService reviewService,
+        IOrderFlowService orderFlowService,
         IMapper mapper,
         ILogger<ProductController> logger)
     {
@@ -28,6 +30,7 @@ public class ProductController : Controller
         _productService = productService;
         _categoryService = categoryService;
         _reviewService = reviewService;
+        _orderFlowService = orderFlowService;
         _mapper = mapper;
         _logger = logger;
     }
@@ -36,8 +39,24 @@ public class ProductController : Controller
     {
         try
         {
-            const int pageSize = 12;
-            var products = await _productService.GetProductsAsync(categoryId, searchTerm, null, null, sortBy, page, pageSize);
+            Console.WriteLine("=== DFD Level 0: Context Diagram - Product Browsing ===");
+            Console.WriteLine("External Entity: Customer");
+            Console.WriteLine("Process: Online Ordering System (Product Browsing)");
+            Console.WriteLine($"Input: SearchTerm={searchTerm}, CategoryId={categoryId}, SortBy={sortBy}, Page={page}");
+
+            // Level 1: Duyệt sản phẩm - Data Flow: Product Database → Middle Tier → Client Tier → Customer
+            var browseResult = await _orderFlowService.BrowseProductsAsync(
+                categoryId?.ToString(), 
+                searchTerm, 
+                page
+            );
+
+            if (!browseResult.Success)
+            {
+                _logger.LogError("Failed to browse products: {Error}", browseResult.ErrorMessage);
+                return View("Error");
+            }
+
             var categories = await _categoryService.GetAllCategoriesAsync();
 
             ViewBag.Categories = categories;
@@ -45,10 +64,13 @@ public class ProductController : Controller
             ViewBag.CategoryId = categoryId;
             ViewBag.SortBy = sortBy;
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = products.TotalPages;
-            ViewBag.TotalCount = products.TotalCount;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)browseResult.TotalCount / 12);
+            ViewBag.TotalCount = browseResult.TotalCount;
 
-            return View(_mapper.Map<List<ProductViewModel>>(products.Items));
+            Console.WriteLine($"Output: {browseResult.Products.Count} products displayed to customer");
+            Console.WriteLine("Data Flow completed successfully");
+
+            return View(_mapper.Map<List<ProductViewModel>>(browseResult.Products));
         }
         catch (Exception ex)
         {
