@@ -1,0 +1,286 @@
+@model ShopTechnology.Models.Order
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Thông báo thành công -->
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="text-success mb-3">Đặt hàng thành công!</h2>
+                    <p class="lead mb-4">
+                        Cảm ơn bạn đã đặt hàng. Chúng tôi đã nhận được đơn hàng của bạn và sẽ xử lý trong thời gian sớm nhất.
+                    </p>
+                    <div class="alert alert-info">
+                        <strong>Mã đơn hàng:</strong> #@Model.OrderNumber
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin đơn hàng -->
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chi tiết đơn hàng
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Thông tin giao hàng</h6>
+                            <p><strong>Họ tên:</strong> @Model.CustomerName</p>
+                            <p><strong>Email:</strong> @Model.CustomerEmail</p>
+                            <p><strong>Số điện thoại:</strong> @Model.CustomerPhone</p>
+                            <p><strong>Địa chỉ:</strong> @Model.ShippingAddress</p>
+                            @if (!string.IsNullOrEmpty(Model.ShippingCity))
+                            {
+                                <p><strong>Thành phố:</strong> @Model.ShippingCity</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ShippingProvince))
+                            {
+                                <p><strong>Tỉnh:</strong> @Model.ShippingProvince</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ShippingPostalCode))
+                            {
+                                <p><strong>Mã bưu điện:</strong> @Model.ShippingPostalCode</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Thông tin thanh toán</h6>
+                            <p><strong>Phương thức thanh toán:</strong> 
+                                @switch (Model.PaymentMethod)
+                                {
+                                    case "COD":
+                                        <span class="badge bg-success">Thanh toán khi nhận hàng</span>
+                                        break;
+                                    case "BankTransfer":
+                                        <span class="badge bg-primary">Chuyển khoản ngân hàng</span>
+                                        break;
+                                    case "MoMo":
+                                        <span class="badge bg-danger">Ví MoMo</span>
+                                        break;
+                                    case "VNPay":
+                                        <span class="badge bg-warning">VNPay</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@Model.PaymentMethod</span>
+                                        break;
+                                }
+                            </p>
+                            <p><strong>Trạng thái thanh toán:</strong> 
+                                @switch (Model.PaymentStatus)
+                                {
+                                    case "Paid":
+                                        <span class="badge bg-success">Đã thanh toán</span>
+                                        break;
+                                    case "Pending":
+                                        <span class="badge bg-warning">Chờ thanh toán</span>
+                                        break;
+                                    case "Failed":
+                                        <span class="badge bg-danger">Thanh toán thất bại</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@Model.PaymentStatus</span>
+                                        break;
+                                }
+                            </p>
+                            <p><strong>Trạng thái đơn hàng:</strong> 
+                                @switch (Model.OrderStatus)
+                                {
+                                    case "Processing":
+                                        <span class="badge bg-info">Đang xử lý</span>
+                                        break;
+                                    case "Shipped":
+                                        <span class="badge bg-primary">Đã gửi hàng</span>
+                                        break;
+                                    case "Delivered":
+                                        <span class="badge bg-success">Đã giao hàng</span>
+                                        break;
+                                    case "Cancelled":
+                                        <span class="badge bg-danger">Đã hủy</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@Model.OrderStatus</span>
+                                        break;
+                                }
+                            </p>
+                            <p><strong>Ngày đặt hàng:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.OrderNotes))
+                    {
+                        <div class="mt-3">
+                            <h6 class="text-primary mb-2">Ghi chú:</h6>
+                            <p class="text-muted">@Model.OrderNotes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Danh sách sản phẩm -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-box me-2"></i>
+                        Sản phẩm đã đặt
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <div class="d-flex align-items-center border-bottom py-3">
+                            <div class="flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(item.ProductImage))
+                                {
+                                    <img src="@item.ProductImage" alt="@item.ProductName" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">@item.ProductName</h6>
+                                @if (!string.IsNullOrEmpty(item.ProductBrand))
+                                {
+                                    <small class="text-muted">@item.ProductBrand</small>
+                                }
+                                @if (!string.IsNullOrEmpty(item.ProductSKU))
+                                {
+                                    <br><small class="text-muted">SKU: @item.ProductSKU</small>
+                                }
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">@item.Quantity x @item.UnitPrice.ToString("N0") đ</div>
+                                <div class="text-primary fw-bold fs-5">@item.TotalPrice.ToString("N0") đ</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Tổng tiền -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="text-primary mb-3">Tổng tiền</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tạm tính:</span>
+                                <span>@Model.SubTotal.ToString("N0") đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Thuế:</span>
+                                <span>@Model.TaxAmount.ToString("N0") đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Phí vận chuyển:</span>
+                                <span>@Model.ShippingFee.ToString("N0") đ</span>
+                            </div>
+                            @if (Model.DiscountAmount > 0)
+                            {
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span>Giảm giá:</span>
+                                    <span>-@Model.DiscountAmount.ToString("N0") đ</span>
+                                </div>
+                            }
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-4">
+                                <span>Tổng cộng:</span>
+                                <span class="text-primary">@Model.TotalAmount.ToString("N0") đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Các bước tiếp theo -->
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        Các bước tiếp theo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Xác nhận đơn hàng</h6>
+                                    <small class="text-muted">Chúng tôi sẽ xác nhận đơn hàng của bạn trong vòng 24 giờ</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Chuẩn bị và gửi hàng</h6>
+                                    <small class="text-muted">Hàng sẽ được đóng gói và gửi trong 1-2 ngày làm việc</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Vận chuyển</h6>
+                                    <small class="text-muted">Thời gian giao hàng từ 2-5 ngày tùy theo địa điểm</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Giao hàng</h6>
+                                    <small class="text-muted">Nhận hàng và thanh toán (nếu chọn COD)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary me-2">
+                    <i class="fas fa-home me-2"></i>
+                    Về trang chủ
+                </a>
+                <a href="@Url.Action("OrderHistory", "Checkout")" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-history me-2"></i>
+                    Xem lịch sử đơn hàng
+                </a>
+                <a href="@Url.Action("OrderDetail", "Checkout", new { orderId = Model.OrderId })" class="btn btn-outline-info">
+                    <i class="fas fa-eye me-2"></i>
+                    Xem chi tiết đơn hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
