@@ -3,6 +3,7 @@ using ShopTechnology.Models;
 using ShopTechnology.Services;
 using ShopTechnology.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using ShopTechnology;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +26,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // Function to check if the current user is an Admin
-bool IsUserAdmin(HttpContext context)
-{
-    return context.User.Identity?.IsAuthenticated == true &&
-           context.User.IsInRole("Admin");
-}
+// bool IsUserAdmin(HttpContext context)
+// {
+//     return context.User.Identity?.IsAuthenticated == true &&
+//            context.User.IsInRole("Admin");
+// }
 
 
 // Add Authorization
@@ -79,6 +80,11 @@ builder.Services.AddScoped<IPostPaymentService, PostPaymentService>();
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
+// Add Identity services (commented out to avoid conflicts with custom authentication)
+// builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+//     .AddEntityFrameworkStores<ShopTechnologyAccessoriesContext>()
+//     .AddDefaultTokenProviders();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -119,7 +125,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Verify database connection
+// Verify database connection and seed data
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -129,6 +135,9 @@ using (var scope = app.Services.CreateScope())
         if (canConnect)
         {
             Console.WriteLine("Database connection successful.");
+
+            // Seed data
+            await SeedData.Initialize(context);
         }
         else
         {

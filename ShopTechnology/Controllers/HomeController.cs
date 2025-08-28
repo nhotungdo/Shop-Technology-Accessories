@@ -67,38 +67,42 @@ namespace ShopTechnology.Controllers
 
         private async Task<List<Product>> GetPersonalizedRecommendationsAsync()
         {
-            // Nếu user đã đăng nhập, lấy sản phẩm dựa trên lịch sử
-            if (User.Identity.IsAuthenticated)
+            try
             {
-                var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-                if (userId > 0)
+                // Nếu user đã đăng nhập, lấy sản phẩm dựa trên lịch sử
+                if (User.Identity?.IsAuthenticated == true)
                 {
-                    // Lấy sản phẩm dựa trên lịch sử mua hàng hoặc xem
-                    var userOrders = await _context.Orders
-                        .Include(o => o.OrderDetails)
-                        .Where(o => o.UserId == userId)
-                        .ToListAsync();
-
-                    if (userOrders.Any())
+                    var userIdClaim = User.FindFirst("UserId")?.Value;
+                    if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId) && userId > 0)
                     {
-                        var purchasedCategories = userOrders
-                            .SelectMany(o => o.OrderDetails)
+                        // Lấy sản phẩm dựa trên lịch sử mua hàng - sử dụng query đơn giản hơn
+                        var userOrderDetails = await _context.OrderDetails
+                            .Where(od => _context.Orders.Any(o => o.OrderId == od.OrderId && o.UserId == userId))
                             .Select(od => od.ProductId)
                             .Distinct()
-                            .ToList();
-
-                        var recommendedProducts = await _context.Products
-                            .Include(p => p.Category)
-                            .Include(p => p.ProductImages)
-                            .Where(p => purchasedCategories.Contains(p.CategoryId))
-                            .OrderByDescending(p => p.AverageRating)
-                            .Take(8)
                             .ToListAsync();
 
-                        if (recommendedProducts.Any())
-                            return recommendedProducts;
+                        if (userOrderDetails.Any())
+                        {
+                            var recommendedProducts = await _context.Products
+                                .Include(p => p.Category)
+                                .Include(p => p.ProductImages)
+                                .Where(p => p.IsActive && p.StockQuantity > 0)
+                                .OrderByDescending(p => p.AverageRating)
+                                .ThenByDescending(p => p.ViewCount)
+                                .Take(8)
+                                .ToListAsync();
+
+                            if (recommendedProducts.Any())
+                                return recommendedProducts;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                // Log error và fallback
+                Console.WriteLine($"Error in GetPersonalizedRecommendationsAsync: {ex.Message}");
             }
 
             // Fallback: Lấy sản phẩm có rating cao nhất
@@ -112,12 +116,12 @@ namespace ShopTechnology.Controllers
                 .ToListAsync();
         }
 
-        public async Task<IActionResult> About()
+        public IActionResult About()
         {
             return View();
         }
 
-        public async Task<IActionResult> Contact()
+        public IActionResult Contact()
         {
             return View();
         }
@@ -163,21 +167,21 @@ namespace ShopTechnology.Controllers
             if (!string.IsNullOrEmpty(q))
             {
                 query = query.Where(p => p.Name.Contains(q) ||
-                                        p.Description.Contains(q) ||
-                                        p.Brand.Contains(q) ||
-                                        p.SKU.Contains(q));
+                                        (p.Description != null && p.Description.Contains(q)) ||
+                                        (p.Brand != null && p.Brand.Contains(q)) ||
+                                        (p.SKU != null && p.SKU.Contains(q)));
             }
 
             // Filter by category
             if (!string.IsNullOrEmpty(category))
             {
-                query = query.Where(p => p.Category.Slug == category);
+                query = query.Where(p => p.Category != null && p.Category.Slug == category);
             }
 
             // Filter by brand
             if (!string.IsNullOrEmpty(brand))
             {
-                query = query.Where(p => p.Brand == brand);
+                query = query.Where(p => p.Brand != null && p.Brand == brand);
             }
 
             // Filter by price range
