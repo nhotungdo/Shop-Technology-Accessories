@@ -1,274 +1,221 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ShopTechnology.Data;
 using ShopTechnology.Models;
 
-namespace ShopTechnology.Services;
-
-public class UserService : IUserService
+namespace ShopTechnology.Services
 {
-    private readonly ShopTechnologyAccessoriesContext _context;
-
-    public UserService(ShopTechnologyAccessoriesContext context)
+    public class UserService : IUserService
     {
-        _context = context;
-    }
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-    public async Task<List<User>> GetAllUsersAsync(int page = 1, int pageSize = 20)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.IsActive)
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
+        public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        {
+            _userManager = userManager;
+            _context = context;
+        }
 
-    public async Task<User?> GetUserByIdAsync(int userId)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-    }
+        public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
+        {
+            return await _userManager.FindByIdAsync(userId);
+        }
 
-    public async Task<User?> GetUserByEmailAsync(string email)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == email);
-    }
+        public async Task<ApplicationUser?> GetUserByEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
 
-    public async Task<bool> IsEmailExistsAsync(string email)
-    {
-        return await _context.Users.AnyAsync(u => u.Email == email);
-    }
+        public async Task<IEnumerable<ApplicationUser>> GetAllUsersAsync()
+        {
+            return await _userManager.Users.ToListAsync();
+        }
 
-    public async Task<User> CreateUserAsync(User user)
-    {
-        user.CreatedAt = DateTime.Now;
-        // user.IsActive - removed because column doesn't exist = true;
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        return user;
-    }
+        public async Task<bool> CreateUserAsync(ApplicationUser user, string password)
+        {
+            try
+            {
+                var result = await _userManager.CreateAsync(user, password);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-    public async Task<bool> UpdateUserAsync(User user)
-    {
-        var existingUser = await _context.Users.FindAsync(user.UserId);
-        if (existingUser == null) return false;
+        public async Task<bool> UpdateUserAsync(ApplicationUser user)
+        {
+            try
+            {
+                user.UpdatedAt = DateTime.UtcNow;
+                var result = await _userManager.UpdateAsync(user);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-        existingUser.FullName = user.FullName;
-        existingUser.PhoneNumber = user.PhoneNumber;
-        existingUser.Address = user.Address;
-        existingUser.City = user.City;
-        existingUser.Province = user.Province;
-        existingUser.PostalCode = user.PostalCode;
-        existingUser.DateOfBirth = user.DateOfBirth;
-        existingUser.Avatar = user.Avatar;
-        existingUser.UpdatedAt = DateTime.Now;
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-        await _context.SaveChangesAsync();
-        return true;
-    }
+                var result = await _userManager.DeleteAsync(user);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-    public async Task<bool> DeleteUserAsync(int userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
+        public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-        // user.IsActive - removed because column doesn't exist = false;
-        await _context.SaveChangesAsync();
-        return true;
-    }
+                var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-    public async Task<bool> ChangePasswordAsync(int userId, string newPassword)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
+        public async Task<bool> ResetPasswordAsync(string email)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null) return false;
 
-        user.Password = newPassword; // Trong thực tế nên hash password
-        user.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
-        return true;
-    }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                // In a real application, you would send this token via email
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-    public async Task<bool> UpdateLastLoginAsync(int userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
+        public async Task<bool> ConfirmEmailAsync(string userId, string token)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-        user.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
-        return true;
-    }
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-    public async Task<bool> ToggleUserStatusAsync(int userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
+        public async Task<bool> IsEmailConfirmedAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            return user?.EmailConfirmed ?? false;
+        }
 
-        user.IsActive = !user.IsActive;
-        user.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
-        return true;
-    }
+        public async Task<IEnumerable<string>> GetUserRolesAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return new List<string>();
 
-    public async Task<bool> AssignRoleAsync(int userId, int roleId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
+            return await _userManager.GetRolesAsync(user);
+        }
 
-        user.RoleId = roleId;
-        user.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
-        return true;
-    }
+        public async Task<bool> AddUserToRoleAsync(string userId, string roleName)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-    public async Task<bool> RemoveRoleAsync(int userId, int roleId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.RoleId != roleId) return false;
+                var result = await _userManager.AddToRoleAsync(user, roleName);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-        // Set to default role (assuming role 1 is default)
-        user.RoleId = 1;
-        user.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
-        return true;
-    }
+        public async Task<bool> RemoveUserFromRoleAsync(string userId, string roleName)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-    public async Task<Role?> GetUserRoleAsync(int userId)
-    {
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
+                var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-        return user?.Role;
-    }
+        public async Task<bool> IsInRoleAsync(string userId, string roleName)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
 
-    public async Task<bool> HasRoleAsync(int userId, string roleName)
-    {
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-        
-        return user?.Role?.Name == roleName;
-    }
+            return await _userManager.IsInRoleAsync(user, roleName);
+        }
 
-    public async Task<List<User>> GetUsersByRoleAsync(string roleName)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.IsActive && u.Role.Name == roleName)
-            .ToListAsync();
-    }
+        public async Task<bool> UpdateProfileAsync(string userId, string firstName, string lastName, string? phoneNumber, string? address)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-    public async Task<List<User>> GetActiveUsersAsync()
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.IsActive)
-            .ToListAsync();
-    }
+                user.FirstName = firstName;
+                user.LastName = lastName;
+                user.PhoneNumber = phoneNumber;
+                user.Address = address;
+                user.UpdatedAt = DateTime.UtcNow;
 
-    public async Task<int> GetTotalUsersCountAsync()
-    {
-        return await _context.Users.CountAsync(u => u.IsActive);
-    }
+                var result = await _userManager.UpdateAsync(user);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-    public async Task<int> GetActiveUsersCountAsync()
-    {
-        return await _context.Users.CountAsync(u => u.IsActive);
-    }
+        public async Task<bool> UpdateAvatarAsync(string userId, string avatarUrl)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
 
-    public async Task<int> GetNewUsersCountAsync(DateTime startDate, DateTime endDate)
-    {
-        return await _context.Users
-            .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= endDate);
-    }
+                user.Avatar = avatarUrl;
+                user.UpdatedAt = DateTime.UtcNow;
 
-    public async Task<List<User>> GetRecentUsersAsync(int count = 10)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.IsActive)
-            .OrderByDescending(u => u.CreatedAt)
-            .Take(count)
-            .ToListAsync();
-    }
-
-    public async Task<List<User>> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 20)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.IsActive &&
-                       (u.FullName.Contains(searchTerm) ||
-                        u.Email.Contains(searchTerm) ||
-                        u.PhoneNumber.Contains(searchTerm)))
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
-
-    public async Task<bool> VerifyPasswordAsync(int userId, string password)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
-
-        return user.Password == password; // Trong thực tế nên so sánh hash
-    }
-
-    public async Task<bool> UpdateUserProfileAsync(int userId, string fullName, string phoneNumber, string? address, string? city, string? province, string? postalCode)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
-
-        user.FullName = fullName;
-        user.PhoneNumber = phoneNumber;
-        user.Address = address;
-        user.City = city;
-        user.Province = province;
-        user.PostalCode = postalCode;
-        user.UpdatedAt = DateTime.Now;
-
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> VerifyEmailAsync(int userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null) return false;
-
-        user.IsEmailVerified = true;
-        user.EmailVerificationToken = null;
-        user.EmailVerificationExpiry = null;
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> SetPasswordResetTokenAsync(string email, string token, DateTime expiry)
-    {
-        var user = await GetUserByEmailAsync(email);
-        if (user == null) return false;
-
-        user.PasswordResetToken = token;
-        user.PasswordResetExpiry = expiry;
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> ResetPasswordAsync(string token, string newPassword)
-    {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.PasswordResetToken == token &&
-                                     u.PasswordResetExpiry > DateTime.Now);
-        if (user == null) return false;
-
-        user.Password = newPassword; // Trong thực tế nên hash password
-        user.PasswordResetToken = null;
-        user.PasswordResetExpiry = null;
-        user.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
-        return true;
+                var result = await _userManager.UpdateAsync(user);
+                return result.Succeeded;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

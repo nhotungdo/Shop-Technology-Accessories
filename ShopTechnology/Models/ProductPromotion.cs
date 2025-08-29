@@ -4,14 +4,13 @@ namespace ShopTechnology.Models
 {
     public class ProductPromotion
     {
-        [Key]
-        public int ProductPromotionId { get; set; }
+        public int Id { get; set; }
 
         public int ProductId { get; set; }
 
         public int PromotionId { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         public virtual Product Product { get; set; } = null!;

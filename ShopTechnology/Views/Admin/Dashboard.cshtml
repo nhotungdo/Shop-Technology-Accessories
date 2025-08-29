@@ -1,0 +1,275 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="admin-header">
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <p>Quản lý hệ thống Shop Technology</p>
+    </div>
+</div>
+
+<div class="admin-container">
+    <div class="container">
+        <div class="admin-content">
+            <!-- Admin Navigation -->
+            <div class="admin-nav">
+                <div class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Tổng quan</span>
+                </div>
+                <div class="nav-item" data-tab="products">
+                    <i class="fas fa-box"></i>
+                    <span>Sản phẩm</span>
+                </div>
+                <div class="nav-item" data-tab="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Đơn hàng</span>
+                </div>
+                <div class="nav-item" data-tab="users">
+                    <i class="fas fa-users"></i>
+                    <span>Người dùng</span>
+                </div>
+                <div class="nav-item" data-tab="categories">
+                    <i class="fas fa-tags"></i>
+                    <span>Danh mục</span>
+                </div>
+                <div class="nav-item" data-tab="promotions">
+                    <i class="fas fa-gift"></i>
+                    <span>Khuyến mãi</span>
+                </div>
+                <div class="nav-item" data-tab="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Báo cáo</span>
+                </div>
+                <div class="nav-item" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </div>
+            </div>
+
+            <!-- Admin Main Content -->
+            <div class="admin-main">
+                <!-- Dashboard Overview -->
+                <div class="admin-tab active" id="dashboard">
+                    <h2>Tổng quan hệ thống</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>1,234</h3>
+                                <p>Đơn hàng hôm nay</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>45,678,000 ₫</h3>
+                                <p>Doanh thu hôm nay</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>567</h3>
+                                <p>Người dùng mới</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>89</h3>
+                                <p>Sản phẩm sắp hết hàng</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-charts">
+                        <div class="chart-container">
+                            <h3>Biểu đồ doanh thu</h3>
+                            <div class="chart-placeholder">
+                                <i class="fas fa-chart-line"></i>
+                                <p>Biểu đồ doanh thu sẽ được hiển thị tại đây</p>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <h3>Sản phẩm bán chạy</h3>
+                            <div class="chart-placeholder">
+                                <i class="fas fa-chart-pie"></i>
+                                <p>Biểu đồ sản phẩm bán chạy sẽ được hiển thị tại đây</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-activities">
+                        <h3>Hoạt động gần đây</h3>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p>Đơn hàng mới #ORD1234 được tạo</p>
+                                    <span class="activity-time">2 phút trước</span>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p>Người dùng mới đăng ký: nguyenvana@example.com</p>
+                                    <span class="activity-time">5 phút trước</span>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p>Sản phẩm "iPhone 15 Pro Max" được cập nhật</p>
+                                    <span class="activity-time">10 phút trước</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Management -->
+                <div class="admin-tab" id="products">
+                    <h2>Quản lý sản phẩm</h2>
+                    <div class="admin-actions">
+                        <button type="button" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Thêm sản phẩm mới
+                        </button>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Hình ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá</th>
+                                    <th>Tồn kho</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><img src="/img/placeholder.jpg" alt="Product" width="50" /></td>
+                                    <td>iPhone 15 Pro Max</td>
+                                    <td>Điện thoại</td>
+                                    <td>25,000,000 ₫</td>
+                                    <td>15</td>
+                                    <td><span class="badge badge-success">Còn hàng</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">Sửa</button>
+                                        <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Management -->
+                <div class="admin-tab" id="orders">
+                    <h2>Quản lý đơn hàng</h2>
+                    <div class="admin-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#ORD1234</td>
+                                    <td>Nguyễn Văn A</td>
+                                    <td>25,000,000 ₫</td>
+                                    <td><span class="badge badge-warning">Chờ xử lý</span></td>
+                                    <td>15/12/2024</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">Xem chi tiết</button>
+                                        <button class="btn btn-sm btn-outline-success">Cập nhật trạng thái</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Other tabs placeholder -->
+                <div class="admin-tab" id="users">
+                    <h2>Quản lý người dùng</h2>
+                    <p>Chức năng quản lý người dùng sẽ được cập nhật sớm.</p>
+                </div>
+
+                <div class="admin-tab" id="categories">
+                    <h2>Quản lý danh mục</h2>
+                    <p>Chức năng quản lý danh mục sẽ được cập nhật sớm.</p>
+                </div>
+
+                <div class="admin-tab" id="promotions">
+                    <h2>Quản lý khuyến mãi</h2>
+                    <p>Chức năng quản lý khuyến mãi sẽ được cập nhật sớm.</p>
+                </div>
+
+                <div class="admin-tab" id="reports">
+                    <h2>Báo cáo</h2>
+                    <p>Chức năng báo cáo sẽ được cập nhật sớm.</p>
+                </div>
+
+                <div class="admin-tab" id="settings">
+                    <h2>Cài đặt hệ thống</h2>
+                    <p>Chức năng cài đặt hệ thống sẽ được cập nhật sớm.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Admin tab navigation
+        document.querySelectorAll('.admin-nav .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                // Remove active class from all nav items and tabs
+                document.querySelectorAll('.admin-nav .nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to current nav item and tab
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+}

@@ -738,30 +738,3 @@ BEGIN
 END
 GO
 
-PRINT 'Database ShopTechnologyAccessories đã được tạo thành công!';
-PRINT 'Tổng cộng: 21 bảng, 25+ index, 3 stored procedures, 1 view';
-PRINT 'Dữ liệu mẫu đã được thêm vào các bảng chính';
-PRINT '';
-PRINT '=== THÔNG TIN ĐĂNG NHẬP ===';
-PRINT 'Admin: donhotung2004@gmail.com / Donhotung2004';
-PRINT 'User: nguyenvana@gmail.com / password123';
-PRINT 'User: tranthib@gmail.com / password123';
-PRINT '';
-PRINT '=== DỮ LIỆU ĐÃ THÊM ===';
-PRINT '- 2 Roles (Admin, User)';
-PRINT '- 3 Users (1 Admin, 2 Users)';
-PRINT '- 5 Categories (Sạc, Tai nghe, Ốp lưng, Bàn phím, Chuột)';
-PRINT '- 15 Products với hình ảnh';
-PRINT '- 30 ProductImages';
-PRINT '- 4 Promotions';
-PRINT '- 3 Banners';
-PRINT '- 4 FAQs';
-PRINT '- 4 Reviews';
-PRINT '- 4 Wishlists';
-PRINT '- 2 Contacts';
-PRINT '- 2 Carts với CartItems';
-PRINT '- 2 Orders với OrderDetails';
-PRINT '- 3 OrderHistory records';
-PRINT '- 2 Payments';
-PRINT '- 4 ProductPromotions';
-PRINT '- 3 ReviewImages';

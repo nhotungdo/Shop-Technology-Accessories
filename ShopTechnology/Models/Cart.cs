@@ -4,21 +4,24 @@ namespace ShopTechnology.Models
 {
     public class Cart
     {
-        [Key]
-        public int CartId { get; set; }
+        public int Id { get; set; }
 
-        public int? UserId { get; set; }
+        public string? UserId { get; set; }
 
-        [StringLength(100)]
+        [MaxLength(100)]
         public string? SessionId { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // public DateTime? UpdatedAt { get; set; } // Commented out - column may not exist in database
-        // public DateTime? ExpiresAt { get; set; } // Commented out - column may not exist in database
+        public DateTime? UpdatedAt { get; set; }
+
+        public DateTime? ExpiresAt { get; set; }
+
+        [MaxLength(50)]
+        public string? PromotionCode { get; set; }
 
         // Navigation properties
-        public virtual User? User { get; set; }
-        public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+        public virtual ApplicationUser? User { get; set; }
+        public virtual ICollection<CartItem> Items { get; set; } = new List<CartItem>();
     }
 }

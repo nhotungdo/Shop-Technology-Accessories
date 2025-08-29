@@ -1,44 +1,44 @@
 {
   "Files": [
     {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\ShopTechnology.bundle.scp.css",
-      "PackagePath": "staticwebassets\\ShopTechnology.bundle.scp.css"
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\admin.css",
+      "PackagePath": "staticwebassets\\css\\admin.css"
     },
     {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\forgot-password.css",
-      "PackagePath": "staticwebassets\\css\\forgot-password.css"
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\auth.css",
+      "PackagePath": "staticwebassets\\css\\auth.css"
+    },
+    {
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\cart.css",
+      "PackagePath": "staticwebassets\\css\\cart.css"
+    },
+    {
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\checkout.css",
+      "PackagePath": "staticwebassets\\css\\checkout.css"
     },
     {
       "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\home.css",
       "PackagePath": "staticwebassets\\css\\home.css"
     },
     {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\login-modern.css",
-      "PackagePath": "staticwebassets\\css\\login-modern.css"
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\order.css",
+      "PackagePath": "staticwebassets\\css\\order.css"
+    },
+    {
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\product.css",
+      "PackagePath": "staticwebassets\\css\\product.css"
     },
     {
       "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\profile.css",
       "PackagePath": "staticwebassets\\css\\profile.css"
     },
     {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\register-modern.css",
-      "PackagePath": "staticwebassets\\css\\register-modern.css"
-    },
-    {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\register.css",
-      "PackagePath": "staticwebassets\\css\\register.css"
-    },
-    {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\reset-password.css",
-      "PackagePath": "staticwebassets\\css\\reset-password.css"
-    },
-    {
       "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
-      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\user-profile.css",
-      "PackagePath": "staticwebassets\\css\\user-profile.css"
+      "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\css\\wishlist.css",
+      "PackagePath": "staticwebassets\\css\\wishlist.css"
     },
     {
       "Id": "F:\\PRN212-REVIEW\\ShopTechnology\\Shop-Technology-Accessories\\ShopTechnology\\wwwroot\\favicon.ico",

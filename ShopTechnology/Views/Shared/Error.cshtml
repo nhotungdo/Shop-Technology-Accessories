@@ -2,47 +2,42 @@
     ViewData["Title"] = "Lỗi";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="mb-0">
-                        <i class="fas fa-exclamation-triangle"></i> Đã xảy ra lỗi
-                    </h3>
-                </div>
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-bug fa-4x text-muted"></i>
-                    </div>
-                    <h4 class="text-muted mb-3">Rất tiếc, đã xảy ra lỗi không mong muốn</h4>
-                    <p class="text-muted mb-4">
-                        Chúng tôi đang khắc phục vấn đề này. Vui lòng thử lại sau hoặc liên hệ với chúng tôi nếu vấn đề vẫn tiếp tục.
-                    </p>
-                    
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary me-md-2">
-                                <i class="fas fa-home"></i> Về trang chủ
-                            </a>
-                            <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-secondary">
-                                <i class="fas fa-envelope"></i> Liên hệ hỗ trợ
-                            </a>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary me-md-2">
-                                <i class="fas fa-home"></i> Về trang chủ
-                            </a>
-                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">
-                                <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                            </a>
-                        </div>
-                    }
-                </div>
+<div class="error-container">
+    <div class="container">
+        <div class="error-content">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <h1 class="error-title">Đã xảy ra lỗi</h1>
+            <p class="error-message">
+                Xin lỗi, đã có lỗi xảy ra trong quá trình xử lý yêu cầu của bạn. 
+                Vui lòng thử lại sau hoặc liên hệ với chúng tôi nếu vấn đề vẫn tiếp tục.
+            </p>
+
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home"></i>
+                    Về trang chủ
+                </a>
+                <a href="/Home/Contact" class="btn btn-outline-primary">
+                    <i class="fas fa-envelope"></i>
+                    Liên hệ hỗ trợ
+                </a>
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại
+                </button>
+            </div>
+
+            <div class="error-help">
+                <h3>Bạn có thể thử:</h3>
+                <ul>
+                    <li>Làm mới trang</li>
+                    <li>Kiểm tra kết nối internet</li>
+                    <li>Xóa cache trình duyệt</li>
+                    <li>Thử trình duyệt khác</li>
+                </ul>
             </div>
         </div>
     </div>

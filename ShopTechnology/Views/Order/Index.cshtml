@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<div class="order-header">
+    <div class="container">
+        <h1>Đơn hàng của tôi</h1>
+        <p>Theo dõi và quản lý đơn hàng của bạn</p>
+    </div>
+</div>
+
+<div class="order-container">
+    <div class="container">
+        <div class="order-filters">
+            <div class="filter-group">
+                <label>Tình trạng:</label>
+                <select class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="processing">Đang xử lý</option>
+                    <option value="shipped">Đã giao hàng</option>
+                    <option value="delivered">Đã nhận hàng</option>
+                    <option value="cancelled">Đã hủy</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Từ ngày:</label>
+                <input type="date" class="form-control" />
+            </div>
+            
+            <div class="filter-group">
+                <label>Đến ngày:</label>
+                <input type="date" class="form-control" />
+            </div>
+            
+            <button type="button" class="btn btn-primary">Lọc</button>
+        </div>
+
+        <div class="order-list">
+            <div class="order-item">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Đơn hàng #ORD001</h3>
+                        <p class="order-date">Đặt ngày: 15/12/2024</p>
+                    </div>
+                    <div class="order-status pending">
+                        <span>Chờ xử lý</span>
+                    </div>
+                </div>
+                
+                <div class="order-products">
+                    <div class="product-item">
+                        <img src="/img/placeholder.jpg" alt="Sản phẩm" />
+                        <div class="product-info">
+                            <h4>iPhone 15 Pro Max</h4>
+                            <p>Số lượng: 1</p>
+                            <p>Giá: 25,000,000 ₫</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-footer">
+                    <div class="order-total">
+                        <span>Tổng cộng: 25,000,000 ₫</span>
+                    </div>
+                    <div class="order-actions">
+                        <a href="#" class="btn btn-outline-primary">Xem chi tiết</a>
+                        <button type="button" class="btn btn-outline-danger">Hủy đơn hàng</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-item">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Đơn hàng #ORD002</h3>
+                        <p class="order-date">Đặt ngày: 10/12/2024</p>
+                    </div>
+                    <div class="order-status delivered">
+                        <span>Đã nhận hàng</span>
+                    </div>
+                </div>
+                
+                <div class="order-products">
+                    <div class="product-item">
+                        <img src="/img/placeholder.jpg" alt="Sản phẩm" />
+                        <div class="product-info">
+                            <h4>MacBook Pro M3</h4>
+                            <p>Số lượng: 1</p>
+                            <p>Giá: 45,000,000 ₫</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-footer">
+                    <div class="order-total">
+                        <span>Tổng cộng: 45,000,000 ₫</span>
+                    </div>
+                    <div class="order-actions">
+                        <a href="#" class="btn btn-outline-primary">Xem chi tiết</a>
+                        <button type="button" class="btn btn-outline-success">Đánh giá</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination-wrapper">
+            <nav class="pagination">
+                <a href="#" class="page-link">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                <a href="#" class="page-link active">1</a>
+                <a href="#" class="page-link">2</a>
+                <a href="#" class="page-link">3</a>
+                <a href="#" class="page-link">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </nav>
+        </div>
+    </div>
+</div>

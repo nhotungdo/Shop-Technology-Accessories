@@ -1,12 +1,16 @@
-using ShopTechnology.DTOs;
+
 
 namespace ShopTechnology.Services
 {
     public interface IEmailService
     {
-        Task SendWelcomeEmailAsync(string email, string fullName);
-        Task SendPasswordResetEmailAsync(string email, string fullName, string resetLink);
-        Task SendOrderConfirmationEmailAsync(string email, string fullName, string orderNumber);
-        Task SendOrderStatusUpdateEmailAsync(string email, string fullName, string orderNumber, string status);
+        Task<bool> SendEmailAsync(string to, string subject, string body, bool isHtml = false);
+        Task<bool> SendEmailConfirmationAsync(string to, string callbackUrl);
+        Task<bool> SendPasswordResetAsync(string to, string callbackUrl);
+        Task<bool> SendOrderConfirmationAsync(string to, string orderNumber, string orderDetails);
+        Task<bool> SendOrderStatusUpdateAsync(string to, string orderNumber, string status, string? trackingNumber = null);
+        Task<bool> SendWelcomeEmailAsync(string to, string userName);
+        Task<bool> SendPromotionEmailAsync(string to, string subject, string promotionDetails);
+        Task<bool> SendStockAlertAsync(string to, string productName, int currentStock);
     }
 }

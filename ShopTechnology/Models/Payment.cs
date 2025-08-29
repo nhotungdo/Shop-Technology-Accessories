@@ -1,48 +1,44 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Payment
     {
-        [Key]
-        public int PaymentId { get; set; }
+        public int Id { get; set; }
 
         public int OrderId { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string PaymentMethod { get; set; } // CreditCard, BankTransfer, EWallet, etc.
+        [MaxLength(100)]
+        public string TransactionId { get; set; } = string.Empty;
 
-        [StringLength(100)]
-        public string? PaymentProvider { get; set; } // PayPal, Stripe, Momo, ZaloPay, etc.
+        [Required]
+        [MaxLength(50)]
+        public string PaymentMethod { get; set; } = string.Empty;
 
-        [StringLength(100)]
-        public string? TransactionId { get; set; }
+        public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
 
-        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        [StringLength(50)]
-        public string Status { get; set; } = "Pending"; // Pending, Success, Failed, Refunded
+        [MaxLength(50)]
+        public string? Currency { get; set; } = "VND";
 
-        [StringLength(500)]
+        [MaxLength(500)]
         public string? Description { get; set; }
 
-        [StringLength(500)]
-        public string? ErrorMessage { get; set; }
+        [MaxLength(1000)]
+        public string? GatewayResponse { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime? UpdatedAt { get; set; }
+        public DateTime? ProcessedAt { get; set; }
 
-        [StringLength(255)]
-        public string? PaymentUrl { get; set; }
+        public DateTime? FailedAt { get; set; }
 
-        [StringLength(500)]
-        public string? CallbackData { get; set; }
+        [MaxLength(500)]
+        public string? FailureReason { get; set; }
 
-        // Navigation properties
+        // Navigation property
         public virtual Order Order { get; set; } = null!;
     }
 }

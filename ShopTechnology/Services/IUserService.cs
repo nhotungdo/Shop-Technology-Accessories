@@ -1,33 +1,25 @@
 using ShopTechnology.Models;
+using Microsoft.AspNetCore.Identity;
 
-namespace ShopTechnology.Services;
-
-public interface IUserService
+namespace ShopTechnology.Services
 {
-    Task<List<User>> GetAllUsersAsync(int page = 1, int pageSize = 20);
-    Task<User?> GetUserByIdAsync(int userId);
-    Task<User?> GetUserByEmailAsync(string email);
-    Task<bool> IsEmailExistsAsync(string email);
-    Task<User> CreateUserAsync(User user);
-    Task<bool> UpdateUserAsync(User user);
-    Task<bool> DeleteUserAsync(int userId);
-    Task<bool> ChangePasswordAsync(int userId, string newPassword);
-    Task<bool> UpdateLastLoginAsync(int userId);
-    Task<bool> ToggleUserStatusAsync(int userId);
-    Task<bool> AssignRoleAsync(int userId, int roleId);
-    Task<bool> RemoveRoleAsync(int userId, int roleId);
-    Task<Role?> GetUserRoleAsync(int userId);
-    Task<bool> HasRoleAsync(int userId, string roleName);
-    Task<List<User>> GetUsersByRoleAsync(string roleName);
-    Task<List<User>> GetActiveUsersAsync();
-    Task<int> GetTotalUsersCountAsync();
-    Task<int> GetActiveUsersCountAsync();
-    Task<int> GetNewUsersCountAsync(DateTime startDate, DateTime endDate);
-    Task<List<User>> GetRecentUsersAsync(int count = 10);
-    Task<List<User>> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 20);
-    Task<bool> VerifyPasswordAsync(int userId, string password);
-    Task<bool> UpdateUserProfileAsync(int userId, string fullName, string phoneNumber, string? address, string? city, string? province, string? postalCode);
-    Task<bool> VerifyEmailAsync(int userId);
-    Task<bool> SetPasswordResetTokenAsync(string email, string token, DateTime expiry);
-    Task<bool> ResetPasswordAsync(string token, string newPassword);
+    public interface IUserService
+    {
+        Task<ApplicationUser?> GetUserByIdAsync(string userId);
+        Task<ApplicationUser?> GetUserByEmailAsync(string email);
+        Task<IEnumerable<ApplicationUser>> GetAllUsersAsync();
+        Task<bool> CreateUserAsync(ApplicationUser user, string password);
+        Task<bool> UpdateUserAsync(ApplicationUser user);
+        Task<bool> DeleteUserAsync(string userId);
+        Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
+        Task<bool> ResetPasswordAsync(string email);
+        Task<bool> ConfirmEmailAsync(string userId, string token);
+        Task<bool> IsEmailConfirmedAsync(string userId);
+        Task<IEnumerable<string>> GetUserRolesAsync(string userId);
+        Task<bool> AddUserToRoleAsync(string userId, string roleName);
+        Task<bool> RemoveUserFromRoleAsync(string userId, string roleName);
+        Task<bool> IsInRoleAsync(string userId, string roleName);
+        Task<bool> UpdateProfileAsync(string userId, string firstName, string lastName, string? phoneNumber, string? address);
+        Task<bool> UpdateAvatarAsync(string userId, string avatarUrl);
+    }
 }

@@ -4,17 +4,16 @@ namespace ShopTechnology.Models
 {
     public class Wishlist
     {
-        [Key]
-        public int WishlistId { get; set; }
+        public int Id { get; set; }
 
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
         public int ProductId { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime AddedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public virtual User User { get; set; } = null!;
+        public virtual ApplicationUser User { get; set; } = null!;
         public virtual Product Product { get; set; } = null!;
     }
 }

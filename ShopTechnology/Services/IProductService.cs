@@ -5,22 +5,28 @@ namespace ShopTechnology.Services
 {
     public interface IProductService
     {
-        Task<List<Product>> GetFeaturedProductsAsync(int count);
-        Task<List<Product>> GetNewProductsAsync(int count);
-        Task<List<Product>> GetHotProductsAsync(int count);
-        Task<List<Product>> GetPromotionalProductsAsync(int count);
-        Task<List<Product>> GetProductsByCategoryAsync(int categoryId, int page = 1, int pageSize = 12);
+        Task<PagedResult<Product>> GetProductsAsync(ProductFilterViewModel filter, int page = 1, int pageSize = 12);
+        Task<Product?> GetProductByIdAsync(int id);
         Task<Product?> GetProductBySlugAsync(string slug);
-        Task<List<string>> GetAllBrandsAsync();
-        Task<List<Product>> SearchProductsAsync(string searchTerm, int page = 1, int pageSize = 12);
-        Task<int> GetTotalProductsCountAsync();
-        Task<List<Product>> GetRelatedProductsAsync(int productId, int count = 4);
-        Task UpdateProductViewCountAsync(int productId);
-        Task UpdateProductRatingAsync(int productId);
-        Task<List<Product>> GetProductsAsync(int page = 1, int pageSize = 12);
-        Task<PaginatedResult<Product>> GetProductsAsync(int? categoryId, string? searchTerm, decimal? minPrice, decimal? maxPrice, string? sortBy, int page = 1, int pageSize = 12);
-        Task<Product?> GetProductByIdAsync(int productId);
-        Task<List<Product>> GetLowStockProductsAsync(int threshold = 10);
-        Task<List<Product>> GetOutOfStockProductsAsync();
+        Task<IEnumerable<Product>> GetFeaturedProductsAsync(int count = 8);
+        Task<IEnumerable<Product>> GetNewProductsAsync(int count = 8);
+        Task<IEnumerable<Product>> GetHotProductsAsync(int count = 8);
+        Task<IEnumerable<Product>> GetRelatedProductsAsync(int productId, int count = 4);
+        Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId, int count = 12);
+        Task<bool> CreateProductAsync(Product product);
+        Task<bool> UpdateProductAsync(Product product);
+        Task<bool> DeleteProductAsync(int id);
+        Task<bool> UpdateStockAsync(int productId, int quantity);
+        Task<IEnumerable<ProductImage>> GetProductImagesAsync(int productId);
+        Task<bool> AddProductImageAsync(ProductImage image);
+        Task<bool> RemoveProductImageAsync(int imageId);
+        Task<IEnumerable<ProductSpecification>> GetProductSpecificationsAsync(int productId);
+        Task<bool> AddProductSpecificationAsync(ProductSpecification specification);
+        Task<bool> UpdateProductSpecificationAsync(ProductSpecification specification);
+        Task<bool> RemoveProductSpecificationAsync(int specificationId);
+        Task<decimal> GetAverageRatingAsync(int productId);
+        Task<int> GetReviewCountAsync(int productId);
+        Task<bool> IncrementViewCountAsync(int productId);
+        Task<bool> IncrementSoldCountAsync(int productId);
     }
 }

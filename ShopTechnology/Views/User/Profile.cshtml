@@ -1,91 +1,176 @@
-@model ShopTechnology.Models.User
 @{
-    ViewData["Title"] = "Hồ sơ - " + Model.FullName;
+    ViewData["Title"] = "Hồ sơ cá nhân";
 }
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title mb-0">
-                        <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
-                    </h4>
+<div class="profile-header">
+    <div class="container">
+        <h1>Hồ sơ cá nhân</h1>
+        <p>Quản lý thông tin tài khoản của bạn</p>
+    </div>
+</div>
+
+<div class="profile-container">
+    <div class="container">
+        <div class="profile-content">
+            <!-- Profile Navigation -->
+            <div class="profile-nav">
+                <div class="nav-item active" data-tab="info">
+                    <i class="fas fa-user"></i>
+                    <span>Thông tin cá nhân</span>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center mb-4">
-                            <div class="user-avatar mx-auto" style="width: 120px; height: 120px; font-size: 3rem;">
-                                @Model.FullName.Substring(0, 1).ToUpper()
+                <div class="nav-item" data-tab="address">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Địa chỉ giao hàng</span>
+                </div>
+                <div class="nav-item" data-tab="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Bảo mật</span>
+                </div>
+                <div class="nav-item" data-tab="preferences">
+                    <i class="fas fa-cog"></i>
+                    <span>Tùy chọn</span>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="profile-main">
+                <!-- Personal Information -->
+                <div class="profile-tab active" id="info">
+                    <h2>Thông tin cá nhân</h2>
+                    <form class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">Họ *</label>
+                                <input type="text" id="firstName" name="firstName" class="form-control" value="Nguyễn" required />
                             </div>
-                            <h5 class="mt-3">@Model.FullName</h5>
-                            <span class="badge bg-@(Model.RoleId == 1 ? "danger" : "success")">
-                                @Model.Role.Name
-                            </span>
+                            <div class="form-group">
+                                <label for="lastName">Tên *</label>
+                                <input type="text" id="lastName" name="lastName" class="form-control" value="Văn A" required />
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Họ và tên:</label>
-                                    <p class="form-control-plaintext">@Model.FullName</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Email:</label>
-                                    <p class="form-control-plaintext">@Model.Email</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Số điện thoại:</label>
-                                    <p class="form-control-plaintext">@Model.PhoneNumber</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Ngày sinh:</label>
-                                    <p class="form-control-plaintext">@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Địa chỉ:</label>
-                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Address) ? "Chưa cập nhật" : Model.Address)</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Thành phố:</label>
-                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.City) ? "Chưa cập nhật" : Model.City)</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Tỉnh/Thành:</label>
-                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Province) ? "Chưa cập nhật" : Model.Province)</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Mã bưu điện:</label>
-                                    <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.PostalCode) ? "Chưa cập nhật" : Model.PostalCode)</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Ngày tham gia:</label>
-                                    <p class="form-control-plaintext">@Model.CreatedAt.ToString("dd/MM/yyyy")</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Trạng thái:</label>
-                                    <p class="form-control-plaintext">
-                                        <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
-                                            @(Model.IsActive ? "Hoạt động" : "Không hoạt động")
-                                        </span>
-                                    </p>
-                                </div>
+
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" class="form-control" value="nguyenvana@example.com" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Số điện thoại</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" value="0123456789" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="birthday">Ngày sinh</label>
+                            <input type="date" id="birthday" name="birthday" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Giới tính</label>
+                            <select id="gender" name="gender" class="form-control">
+                                <option value="">Chọn giới tính</option>
+                                <option value="male">Nam</option>
+                                <option value="female">Nữ</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Cập nhật thông tin</button>
+                    </form>
+                </div>
+
+                <!-- Address Information -->
+                <div class="profile-tab" id="address">
+                    <h2>Địa chỉ giao hàng</h2>
+                    <div class="address-list">
+                        <div class="address-item">
+                            <div class="address-content">
+                                <h4>Địa chỉ chính</h4>
+                                <p>Nguyễn Văn A</p>
+                                <p>123 Đường ABC, Quận 1, TP.HCM</p>
+                                <p>Điện thoại: 0123456789</p>
                             </div>
-                            
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <div class="d-flex gap-2">
-                                        <a asp-controller="User" asp-action="EditProfile" class="btn btn-primary">
-                                            <i class="fas fa-edit"></i> Cập nhật thông tin
-                                        </a>
-                                        <a asp-controller="Account" asp-action="ChangePassword" class="btn btn-warning">
-                                            <i class="fas fa-key"></i> Đổi mật khẩu
-                                        </a>
-                                        <a asp-controller="User" asp-action="Dashboard" class="btn btn-secondary">
-                                            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="address-actions">
+                                <button type="button" class="btn btn-outline-primary btn-sm">Sửa</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm">Xóa</button>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="profile-tab" id="security">
+                    <h2>Bảo mật tài khoản</h2>
+                    
+                    <div class="security-section">
+                        <h3>Đổi mật khẩu</h3>
+                        <form class="security-form">
+                            <div class="form-group">
+                                <label for="currentPassword">Mật khẩu hiện tại</label>
+                                <input type="password" id="currentPassword" name="currentPassword" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">Mật khẩu mới</label>
+                                <input type="password" id="newPassword" name="newPassword" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" />
+                            </div>
+                            <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                        </form>
+                    </div>
+
+                    <div class="security-section">
+                        <h3>Xác thực hai yếu tố</h3>
+                        <div class="two-factor">
+                            <p>Bảo vệ tài khoản của bạn bằng xác thực hai yếu tố</p>
+                            <button type="button" class="btn btn-outline-primary">Bật xác thực hai yếu tố</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="profile-tab" id="preferences">
+                    <h2>Tùy chọn</h2>
+                    
+                    <div class="preferences-section">
+                        <h3>Thông báo</h3>
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Email marketing</h4>
+                                <p>Nhận thông tin về sản phẩm mới và khuyến mãi</p>
+                            </div>
+                            <div class="preference-toggle">
+                                <input type="checkbox" id="emailMarketing" checked />
+                                <label for="emailMarketing" class="toggle-label"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Thông báo SMS</h4>
+                                <p>Nhận thông báo qua tin nhắn SMS</p>
+                            </div>
+                            <div class="preference-toggle">
+                                <input type="checkbox" id="smsNotification" />
+                                <label for="smsNotification" class="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="preferences-section">
+                        <h3>Ngôn ngữ</h3>
+                        <div class="form-group">
+                            <label for="language">Ngôn ngữ hiển thị</label>
+                            <select id="language" name="language" class="form-control">
+                                <option value="vi">Tiếng Việt</option>
+                                <option value="en">English</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -93,3 +178,22 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Tab navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                // Remove active class from all nav items and tabs
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.profile-tab').forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to current nav item and tab
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+}

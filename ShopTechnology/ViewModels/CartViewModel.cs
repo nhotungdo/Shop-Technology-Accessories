@@ -5,28 +5,28 @@ namespace ShopTechnology.ViewModels
 {
     public class CartViewModel
     {
+        public int CartId { get; set; }
         public List<CartItemViewModel> Items { get; set; } = new List<CartItemViewModel>();
-        public decimal SubTotal { get; set; } = 0;
-        public decimal TaxAmount { get; set; } = 0;
-        public decimal ShippingFee { get; set; } = 0;
-        public decimal DiscountAmount { get; set; } = 0;
-        public decimal TotalAmount { get; set; } = 0;
+        public decimal Subtotal { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal ShippingAmount { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal TotalAmount { get; set; }
+        public int ItemCount { get; set; }
         public string? AppliedPromotionCode { get; set; }
-        public Promotion? AppliedPromotion { get; set; }
     }
 
     public class CartItemViewModel
     {
-        public int CartItemId { get; set; }
+        public int Id { get; set; }
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
-        public string ProductSKU { get; set; } = string.Empty;
-        public string ProductImage { get; set; } = string.Empty;
-        public string ProductBrand { get; set; } = string.Empty;
-        public int Quantity { get; set; } = 1;
-        public decimal UnitPrice { get; set; } = 0;
-        public decimal TotalPrice { get; set; } = 0;
-        public int StockQuantity { get; set; } = 0;
+        public string? ProductImage { get; set; }
+        public string SKU { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int StockQuantity { get; set; }
     }
 
     public class CheckoutViewModel

@@ -1,101 +1,154 @@
 using Microsoft.EntityFrameworkCore;
+using ShopTechnology.Data;
 using ShopTechnology.Models;
 
 namespace ShopTechnology.Services
 {
     public class PaymentService : IPaymentService
     {
-        private readonly ShopTechnologyAccessoriesContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public PaymentService(ShopTechnologyAccessoriesContext context)
+        public PaymentService(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<ServiceResult> ProcessPaymentAsync(int paymentId, string paymentMethod)
+        public async Task<Payment> CreatePaymentAsync(int orderId, string paymentMethod, decimal amount)
         {
-            var payment = await _context.Payments
-                .Include(p => p.Order)
-                .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
-
-            if (payment == null)
+            var transactionId = GenerateTransactionId();
+            var payment = new Payment
             {
-                return new ServiceResult { Success = false, Message = "Thanh toán không tồn tại." };
-            }
+                OrderId = orderId,
+                TransactionId = transactionId,
+                PaymentMethod = paymentMethod,
+                Amount = amount,
+                Status = PaymentStatus.Pending,
+                Currency = "VND",
+                CreatedAt = DateTime.UtcNow
+            };
 
-            // Simulate payment processing
-            // In a real application, you would integrate with actual payment gateways
-            await Task.Delay(1000); // Simulate processing time
-
-            // For demo purposes, we'll assume all payments are successful
-            payment.Status = "Success";
-            payment.UpdatedAt = DateTime.Now;
-            payment.PaymentProvider = GetPaymentProvider(paymentMethod);
-
-            // Update order payment status
-            if (payment.Order != null)
-            {
-                payment.Order.PaymentStatus = "Paid";
-                payment.Order.UpdatedAt = DateTime.Now;
-            }
-
+            _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
-            return new ServiceResult { Success = true, Message = "Thanh toán thành công." };
+            return payment;
         }
 
-        public async Task<ServiceResult> RefundPaymentAsync(int paymentId)
+        public async Task<bool> ProcessPaymentAsync(string transactionId, PaymentStatus status, string? gatewayResponse = null)
         {
-            var payment = await _context.Payments
-                .Include(p => p.Order)
-                .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
-
-            if (payment == null)
+            try
             {
-                return new ServiceResult { Success = false, Message = "Thanh toán không tồn tại." };
-            }
+                var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+                if (payment == null) return false;
 
-            if (payment.Status != "Success")
+                payment.Status = status;
+                payment.GatewayResponse = gatewayResponse;
+
+                if (status == PaymentStatus.Paid)
+                {
+                    payment.ProcessedAt = DateTime.UtcNow;
+                }
+                else if (status == PaymentStatus.Failed)
+                {
+                    payment.FailedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Update order payment status
+                var order = await _context.Orders.FindAsync(payment.OrderId);
+                if (order != null)
+                {
+                    order.PaymentStatus = status;
+                    // order.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+
+                return true;
+            }
+            catch
             {
-                return new ServiceResult { Success = false, Message = "Chỉ có thể hoàn tiền cho thanh toán thành công." };
+                return false;
             }
-
-            // Simulate refund processing
-            await Task.Delay(1000);
-
-            payment.Status = "Refunded";
-            payment.UpdatedAt = DateTime.Now;
-
-            // Update order payment status
-            if (payment.Order != null)
-            {
-                payment.Order.PaymentStatus = "Refunded";
-                payment.Order.UpdatedAt = DateTime.Now;
-            }
-
-            await _context.SaveChangesAsync();
-
-            return new ServiceResult { Success = true, Message = "Hoàn tiền thành công." };
         }
 
-        public async Task<Payment?> GetPaymentByIdAsync(int paymentId)
+        public async Task<Payment?> GetPaymentByTransactionIdAsync(string transactionId)
         {
             return await _context.Payments
                 .Include(p => p.Order)
-                .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+                .FirstOrDefaultAsync(p => p.TransactionId == transactionId);
         }
 
-        private string GetPaymentProvider(string paymentMethod)
+        public async Task<IEnumerable<Payment>> GetOrderPaymentsAsync(int orderId)
         {
-            return paymentMethod switch
+            return await _context.Payments
+                .Where(p => p.OrderId == orderId)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<bool> RefundPaymentAsync(string transactionId, decimal amount, string reason)
+        {
+            try
             {
-                "CreditCard" => "Stripe",
-                "BankTransfer" => "Bank Transfer",
-                "Momo" => "Momo",
-                "ZaloPay" => "ZaloPay",
-                "PayPal" => "PayPal",
-                _ => "Unknown"
-            };
+                var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+                if (payment == null || payment.Status != PaymentStatus.Paid) return false;
+
+                var refund = new Payment
+                {
+                    OrderId = payment.OrderId,
+                    TransactionId = GenerateTransactionId(),
+                    PaymentMethod = payment.PaymentMethod,
+                    Amount = -amount, // Negative amount for refund
+                    Status = PaymentStatus.Refunded,
+                    Currency = payment.Currency,
+                    Description = $"Refund: {reason}",
+                    CreatedAt = DateTime.UtcNow,
+                    ProcessedAt = DateTime.UtcNow
+                };
+
+                _context.Payments.Add(refund);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<string> GeneratePaymentUrlAsync(int orderId, string paymentMethod)
+        {
+            // This would integrate with actual payment gateways
+            // For now, return a placeholder URL
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order == null) return string.Empty;
+
+            return $"/payment/process?orderId={orderId}&method={paymentMethod}&amount={order.TotalAmount}";
+        }
+
+        public async Task<bool> ValidatePaymentCallbackAsync(string transactionId, string signature)
+        {
+            // This would validate the callback signature from payment gateway
+            // For now, just check if payment exists
+            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+            return payment != null;
+        }
+
+        public async Task<PaymentStatus> GetPaymentStatusAsync(string transactionId)
+        {
+            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+            return payment?.Status ?? PaymentStatus.Pending;
+        }
+
+        private string GenerateTransactionId()
+        {
+            var prefix = "TXN";
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var random = new Random();
+            var suffix = random.Next(1000, 9999).ToString();
+
+            return $"{prefix}{timestamp}{suffix}";
         }
     }
 }

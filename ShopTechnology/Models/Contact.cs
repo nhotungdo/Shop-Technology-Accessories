@@ -4,42 +4,62 @@ namespace ShopTechnology.Models
 {
     public class Contact
     {
-        [Key]
-        public int ContactId { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        [StringLength(100)]
-        public string FullName { get; set; }
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
-        [StringLength(150)]
-        public string Email { get; set; }
+        [MaxLength(150)]
+        public string Email { get; set; } = string.Empty;
 
-        [StringLength(20)]
+        [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 
         [Required]
-        [StringLength(200)]
-        public string Subject { get; set; }
+        [MaxLength(200)]
+        public string Subject { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(1000)]
-        public string Message { get; set; }
+        [MaxLength(2000)]
+        public string Message { get; set; } = string.Empty;
 
-        [StringLength(50)]
-        public string Status { get; set; } = "New"; // New, Replied, Closed
+        public ContactStatus Status { get; set; } = ContactStatus.New;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public ContactType Type { get; set; } = ContactType.General;
 
-        public DateTime? RepliedAt { get; set; }
+        public string? AssignedToUserId { get; set; }
 
-        [StringLength(1000)]
-        public string? ReplyMessage { get; set; }
+        [MaxLength(1000)]
+        public string? AdminResponse { get; set; }
 
-        public int? RepliedByUserId { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
-        public virtual User? RepliedByUser { get; set; }
+        public DateTime? RespondedAt { get; set; }
+
+        public DateTime? ResolvedAt { get; set; }
+
+        // Navigation property
+        public virtual ApplicationUser? AssignedToUser { get; set; }
+    }
+
+    public enum ContactStatus
+    {
+        New,
+        InProgress,
+        Resolved,
+        Closed
+    }
+
+    public enum ContactType
+    {
+        General,
+        Technical,
+        Billing,
+        Shipping,
+        Complaint,
+        Suggestion
     }
 }

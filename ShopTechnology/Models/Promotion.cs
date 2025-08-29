@@ -1,38 +1,35 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Promotion
     {
-        [Key]
-        public int PromotionId { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
 
-        [StringLength(500)]
+        [MaxLength(500)]
         public string? Description { get; set; }
 
-        [StringLength(50)]
-        public string? Code { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Code { get; set; } = string.Empty;
 
-        [StringLength(20)]
-        public string DiscountType { get; set; } = "Percentage"; // Percentage, FixedAmount
+        public PromotionType Type { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal DiscountValue { get; set; }
+        public decimal Value { get; set; } // Percentage or fixed amount
 
-        [Column(TypeName = "decimal(18,2)")]
         public decimal? MinimumOrderAmount { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
         public decimal? MaximumDiscountAmount { get; set; }
 
         public int? UsageLimit { get; set; }
 
         public int UsedCount { get; set; } = 0;
+
+        public int? MaxUsagePerUser { get; set; }
 
         public DateTime StartDate { get; set; }
 
@@ -40,17 +37,21 @@ namespace ShopTechnology.Models
 
         public bool IsActive { get; set; } = true;
 
-        public bool IsPublic { get; set; } = true;
+        public bool IsFirstTimeOnly { get; set; } = false;
 
-        [StringLength(255)]
-        public string? ImageUrl { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
         public virtual ICollection<ProductPromotion> ProductPromotions { get; set; } = new List<ProductPromotion>();
-        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<PromotionUsage> Usages { get; set; } = new List<PromotionUsage>();
+    }
+
+    public enum PromotionType
+    {
+        Percentage,
+        FixedAmount,
+        FreeShipping
     }
 }

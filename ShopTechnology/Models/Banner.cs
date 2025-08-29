@@ -4,32 +4,34 @@ namespace ShopTechnology.Models
 {
     public class Banner
     {
-        [Key]
-        public int BannerId { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        [StringLength(100)]
-        public string Title { get; set; }
+        [MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string ImageUrl { get; set; }
+        [MaxLength(500)]
+        public string ImageUrl { get; set; } = string.Empty;
 
-        [StringLength(255)]
+        [MaxLength(200)]
         public string? LinkUrl { get; set; }
+
+        [MaxLength(50)]
+        public string? ButtonText { get; set; }
 
         public int DisplayOrder { get; set; } = 0;
 
-        public DateTime StartDate { get; set; }
-
-        public DateTime EndDate { get; set; }
-
-        [StringLength(50)]
-        public string? Position { get; set; } // Homepage, Category, Product, etc.
-
         public bool IsActive { get; set; } = true;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime StartDate { get; set; } = DateTime.UtcNow;
+
+        public DateTime? EndDate { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
     }

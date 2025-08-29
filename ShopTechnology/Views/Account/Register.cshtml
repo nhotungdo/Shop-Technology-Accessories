@@ -1,168 +1,136 @@
-@model ShopTechnology.ViewModels.RegisterViewModel
+@model ShopTechnology.Controllers.RegisterViewModel
 
 @{
     ViewData["Title"] = "Đăng ký";
-    Layout = null;
 }
 
-<!DOCTYPE html>
-<html lang="vi">
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Đăng ký tài khoản</h2>
+            <p>Tạo tài khoản mới để bắt đầu mua sắm</p>
+        </div>
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Shop Technology Accessories</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="stylesheet" href="~/css/register-modern.css" />
-</head>
+        <div class="auth-body">
+            <form asp-action="Register" method="post" class="auth-form">
+                <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="FirstName" class="form-label">Họ</label>
+                        <input asp-for="FirstName" type="text" class="form-control" placeholder="Nhập họ" required />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
 
-<body>
-    <div class="register-container">
-        <!-- Left Panel - Register Form -->
-        <div class="register-form-section">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <div class="logo-text">ShopTech</div>
-            </div>
-
-            <h1 class="welcome-title">Tạo tài khoản mới</h1>
-            <p class="welcome-subtitle">Tham gia cùng chúng tôi để trải nghiệm mua sắm tuyệt vời</p>
-
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-                </div>
-            }
-
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
-                </div>
-            }
-
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger">
-                    <div asp-validation-summary="All"></div>
-                </div>
-            }
-
-            <form asp-controller="Account" asp-action="Register" method="post"
-                asp-route-returnurl="@ViewData["ReturnUrl"]">
-                <div class="form-group">
-                    <label asp-for="FullName" class="form-label">Họ tên</label>
-                    <input asp-for="FullName" type="text" class="form-input" placeholder="Nhập họ tên của bạn"
-                        required />
-                    <span asp-validation-for="FullName" class="text-danger"></span>
+                    <div class="form-group">
+                        <label asp-for="LastName" class="form-label">Tên</label>
+                        <input asp-for="LastName" type="text" class="form-control" placeholder="Nhập tên" required />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" type="email" class="form-input" placeholder="example@gmail.com" required />
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Nhập email của bạn" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
-                    <input asp-for="PhoneNumber" type="tel" class="form-input" placeholder="0123456789" />
-                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
                     <label asp-for="Password" class="form-label">Mật khẩu</label>
-                    <input asp-for="Password" type="password" class="form-input" placeholder="••••••••" required />
-                    <small class="form-text text-muted">
-                        Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
-                    </small>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Tạo mật khẩu" required />
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <span class="strength-text" id="strengthText">Độ mạnh mật khẩu</span>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
-                    <input asp-for="ConfirmPassword" type="password" class="form-input" placeholder="••••••••"
-                        required />
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" required />
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
-                <button type="submit" class="register-button">
-                    <span class="button-text">
-                        <i class="fas fa-user-plus"></i> Đăng ký
-                    </span>
-                    <span class="loading">
-                        <i class="fas fa-spinner spinner"></i> Đang đăng ký...
-                    </span>
-                </button>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
             </form>
 
-            <div class="login-link">
-                Đã có tài khoản? <a href="/Account/Login">Đăng nhập ngay</a>
-            </div>
-        </div>
-
-        <!-- Right Panel - Illustration -->
-        <div class="illustration-section">
-            <div class="clouds">
-                <div class="cloud"></div>
-                <div class="cloud"></div>
-                <div class="cloud"></div>
+            <div class="auth-divider">
+                <span>hoặc</span>
             </div>
 
-            <div class="illustration-content">
-                <div class="character">
-                    <div class="character-body">
-                        <div class="character-head"></div>
-                        <div class="character-arm"></div>
-                        <div class="smartphone">
-                            <div class="phone-screen">
-                                <div class="user-icon">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill"></div>
-                                </div>
-                                <div style="font-size: 6px; text-align: center;">
-                                    Join us today<br>for amazing shopping
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="success-bubble">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div class="security-lock">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                </div>
+            <div class="social-auth">
+                <button type="button" class="btn btn-google">
+                    <i class="fab fa-google"></i>
+                    Đăng ký với Google
+                </button>
+                <button type="button" class="btn btn-facebook">
+                    <i class="fab fa-facebook-f"></i>
+                    Đăng ký với Facebook
+                </button>
+            </div>
+
+            <div class="auth-links">
+                <p class="login-link">
+                    Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a>
+                </p>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.querySelector('form');
-            const button = document.querySelector('.register-button');
-            const buttonText = document.querySelector('.button-text');
-            const loading = document.querySelector('.loading');
-
-            if (form) {
-                form.addEventListener('submit', function () {
-                    button.disabled = true;
-                    buttonText.style.display = 'none';
-                    loading.classList.add('show');
-                });
+        // Password strength checker
+        document.getElementById('Password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            let text = '';
+            
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            switch (strength) {
+                case 0:
+                case 1:
+                    text = 'Rất yếu';
+                    strengthFill.style.width = '20%';
+                    strengthFill.style.backgroundColor = '#ff4444';
+                    break;
+                case 2:
+                    text = 'Yếu';
+                    strengthFill.style.width = '40%';
+                    strengthFill.style.backgroundColor = '#ff8800';
+                    break;
+                case 3:
+                    text = 'Trung bình';
+                    strengthFill.style.width = '60%';
+                    strengthFill.style.backgroundColor = '#ffbb33';
+                    break;
+                case 4:
+                    text = 'Mạnh';
+                    strengthFill.style.width = '80%';
+                    strengthFill.style.backgroundColor = '#00C851';
+                    break;
+                case 5:
+                    text = 'Rất mạnh';
+                    strengthFill.style.width = '100%';
+                    strengthFill.style.backgroundColor = '#007E33';
+                    break;
             }
+            
+            strengthText.textContent = text;
         });
     </script>
-</body>
-
-</html>
+}

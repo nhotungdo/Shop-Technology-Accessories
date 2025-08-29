@@ -1,168 +1,86 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShopTechnology.Models;
 using ShopTechnology.Services;
 using ShopTechnology.ViewModels;
-using System.Security.Claims;
 
 namespace ShopTechnology.Controllers
 {
     public class CartController : Controller
     {
-        private readonly ShopTechnologyAccessoriesContext _context;
         private readonly ICartService _cartService;
-        private readonly IOrderFlowService _orderFlowService;
+        private readonly IProductService _productService;
 
-        public CartController(ShopTechnologyAccessoriesContext context, ICartService cartService, IOrderFlowService orderFlowService)
+        public CartController(
+            ICartService cartService,
+            IProductService productService)
         {
-            _context = context;
             _cartService = cartService;
-            _orderFlowService = orderFlowService;
+            _productService = productService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var cart = await _cartService.GetCartAsync(GetUserId());
+            var userId = User.Identity?.IsAuthenticated == true ? User.Identity.Name ?? string.Empty : string.Empty;
+            var cart = await _cartService.GetCartViewModelAsync(userId);
             return View(cart);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
         {
-            if (!User.Identity.IsAuthenticated)
+            var userId = User.Identity?.IsAuthenticated == true ? User.Identity.Name ?? string.Empty : string.Empty;
+            var result = await _cartService.AddToCartAsync(userId, productId, quantity);
+
+            if (result)
             {
-                return Json(new { success = false, message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng." });
+                TempData["Success"] = "Sản phẩm đã được thêm vào giỏ hàng!";
+            }
+            else
+            {
+                TempData["Error"] = "Không thể thêm sản phẩm vào giỏ hàng.";
             }
 
-            var userId = GetUserId();
-            if (!userId.HasValue)
-            {
-                return Json(new { success = false, message = "Không thể xác định người dùng. Vui lòng đăng nhập lại." });
-            }
-
-            try
-            {
-                Console.WriteLine("=== DFD Level 1 - Bước 2: Thêm vào giỏ hàng ===");
-                Console.WriteLine($"Data Flow: Customer → Client Tier → Middle Tier → Cart Data Store");
-                Console.WriteLine($"Parameters: UserId={userId}, ProductId={productId}, Quantity={quantity}");
-
-                // Level 1: Thêm vào giỏ hàng - Data Flow: Customer → Client Tier → Middle Tier → Cart Data Store
-                var result = await _orderFlowService.AddToCartAsync(userId.Value, productId, quantity);
-
-                if (result.Success)
-                {
-                    Console.WriteLine("Data Flow completed successfully");
-                    return Json(new { success = true, message = result.Message });
-                }
-
-                Console.WriteLine($"Data Flow failed: {result.ErrorMessage}");
-                return Json(new { success = false, message = result.ErrorMessage });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in AddToCart: {ex.Message}");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi thêm vào giỏ hàng: " + ex.Message });
-            }
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateQuantity(int cartItemId, int quantity)
         {
-            var userId = GetUserId();
-            var result = await _cartService.UpdateQuantityAsync(userId, cartItemId, quantity);
+            var result = await _cartService.UpdateCartItemAsync(cartItemId, quantity);
 
-            if (result.Success)
-            {
-                var cart = await _cartService.GetCartAsync(userId);
-                return Json(new { 
-                    success = true, 
-                    message = "Số lượng đã được cập nhật.",
-                    cartTotal = cart.TotalAmount,
-                    itemCount = cart.Items.Count
-                });
-            }
-
-            return Json(new { success = false, message = result.Message });
+            return Json(new { success = result });
         }
 
         [HttpPost]
         public async Task<IActionResult> RemoveFromCart(int cartItemId)
         {
-            var userId = GetUserId();
-            var result = await _cartService.RemoveFromCartAsync(userId, cartItemId);
+            var result = await _cartService.RemoveFromCartAsync(cartItemId);
 
-            if (result.Success)
-            {
-                var cart = await _cartService.GetCartAsync(userId);
-                return Json(new { 
-                    success = true, 
-                    message = "Sản phẩm đã được xóa khỏi giỏ hàng.",
-                    cartTotal = cart.TotalAmount,
-                    itemCount = cart.Items.Count
-                });
-            }
-
-            return Json(new { success = false, message = result.Message });
+            return Json(new { success = result });
         }
 
         [HttpPost]
-        public async Task<IActionResult> ClearCart()
+        public async Task<IActionResult> ClearCart(int cartId)
         {
-            var userId = GetUserId();
-            var result = await _cartService.ClearCartAsync(userId);
+            var result = await _cartService.ClearCartAsync(cartId);
 
-            if (result.Success)
-            {
-                return Json(new { success = true, message = "Giỏ hàng đã được làm trống." });
-            }
-
-            return Json(new { success = false, message = result.Message });
+            return Json(new { success = result });
         }
 
         [HttpPost]
-        public async Task<IActionResult> ApplyPromotion(string promotionCode)
+        public async Task<IActionResult> ApplyPromoCode(string promoCode)
         {
-            var userId = GetUserId();
-            var result = await _cartService.ApplyPromotionAsync(userId, promotionCode);
+            var userId = User.Identity?.IsAuthenticated == true ? User.Identity.Name ?? string.Empty : string.Empty;
+            var result = await _cartService.ApplyPromoCodeAsync(userId, promoCode);
 
-            if (result.Success)
-            {
-                var cart = await _cartService.GetCartAsync(userId);
-                return Json(new { 
-                    success = true, 
-                    message = "Mã khuyến mãi đã được áp dụng.",
-                    cartTotal = cart.TotalAmount,
-                    discountAmount = cart.DiscountAmount
-                });
-            }
-
-            return Json(new { success = false, message = result.Message });
+            return Json(new { success = result.Success, message = result.Message });
         }
 
-        [HttpPost]
-        public async Task<IActionResult> RemovePromotion()
+        public async Task<IActionResult> GetCartCount()
         {
-            var userId = GetUserId();
-            var result = await _cartService.RemovePromotionAsync(userId);
+            var userId = User.Identity?.IsAuthenticated == true ? User.Identity.Name ?? string.Empty : string.Empty;
+            var count = await _cartService.GetCartItemCountAsync(userId);
 
-            if (result.Success)
-            {
-                var cart = await _cartService.GetCartAsync(userId);
-                return Json(new { 
-                    success = true, 
-                    message = "Mã khuyến mãi đã được xóa.",
-                    cartTotal = cart.TotalAmount,
-                    discountAmount = cart.DiscountAmount
-                });
-            }
-
-            return Json(new { success = false, message = result.Message });
-        }
-
-        private int? GetUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return userIdClaim != null ? int.Parse(userIdClaim) : null;
+            return Json(new { count });
         }
     }
 }

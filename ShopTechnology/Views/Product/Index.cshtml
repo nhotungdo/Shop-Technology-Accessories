@@ -1,236 +1,295 @@
-@model List<ProductViewModel>
+@model ShopTechnology.ViewModels.PagedResult<ShopTechnology.Models.Product>
+
 @{
     ViewData["Title"] = "Sản phẩm";
+    var categories = ViewBag.Categories as List<ShopTechnology.Models.Category>;
 }
 
-@if (Context.Session.GetString("UserId") == null)
-{
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="fas fa-info-circle"></i>
-        <strong>Thông báo:</strong> Bạn có thể xem tất cả thông tin sản phẩm mà không cần đăng nhập.
-        <a asp-controller="Account" asp-action="Login" class="alert-link">Đăng nhập</a> hoặc
-        <a asp-controller="Account" asp-action="Register" class="alert-link">đăng ký</a> để mua hàng.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="product-list-header">
+    <div class="container">
+        <h1>Danh sách sản phẩm</h1>
+        <p>Khám phá các sản phẩm công nghệ chất lượng cao</p>
     </div>
-}
+</div>
 
-<div class="row">
-    <!-- Sidebar bộ lọc -->
-    <div class="col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-filter"></i> Bộ lọc</h5>
-            </div>
-            <div class="card-body">
-                <form asp-action="Filter" method="post">
-                    <!-- Danh mục -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Danh mục</label>
-                        <select name="categoryId" class="form-select">
-                            <option value="">Tất cả danh mục</option>
-                            @foreach (var category in ViewBag.Categories)
+<div class="product-list-container">
+    <div class="container">
+        <div class="product-list-content">
+            <!-- Filters Sidebar -->
+            <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Danh mục</h3>
+                    <div class="category-filters">
+                        @if (categories != null)
+                        {
+                            @foreach (var category in categories)
                             {
-                                <option value="@category.CategoryId"
-                                    selected="@(ViewBag.SelectedCategoryId == category.CategoryId)">
+                                <label class="filter-checkbox">
+                                    <input type="checkbox" name="category" value="@category.Id" />
+                                    <span class="checkmark"></span>
                                     @category.Name
-                                </option>
+                                </label>
                             }
-                        </select>
+                        }
                     </div>
+                </div>
 
-                    <!-- Khoảng giá -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Khoảng giá</label>
-                        <div class="row">
-                            <div class="col-6">
-                                <input type="number" name="minPrice" class="form-control" placeholder="Từ"
-                                    value="@ViewBag.MinPrice" />
-                            </div>
-                            <div class="col-6">
-                                <input type="number" name="maxPrice" class="form-control" placeholder="Đến"
-                                    value="@ViewBag.MaxPrice" />
-                            </div>
+                <div class="filter-section">
+                    <h3>Giá</h3>
+                    <div class="price-filter">
+                        <div class="price-inputs">
+                            <input type="number" id="minPrice" placeholder="Từ" class="form-control" />
+                            <span>-</span>
+                            <input type="number" id="maxPrice" placeholder="Đến" class="form-control" />
                         </div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="applyPriceFilter()">Áp dụng</button>
                     </div>
+                </div>
 
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Lọc
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+                <div class="filter-section">
+                    <h3>Sắp xếp</h3>
+                    <select id="sortSelect" class="form-control" onchange="applySort()">
+                        <option value="">Mặc định</option>
+                        <option value="price-asc">Giá tăng dần</option>
+                        <option value="price-desc">Giá giảm dần</option>
+                        <option value="name-asc">Tên A-Z</option>
+                        <option value="name-desc">Tên Z-A</option>
+                        <option value="rating-desc">Đánh giá cao nhất</option>
+                        <option value="newest">Mới nhất</option>
+                    </select>
+                </div>
 
-    <!-- Danh sách sản phẩm -->
-    <div class="col-md-9">
-        <!-- Thanh tìm kiếm -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form asp-action="Search" method="post" class="row g-3">
-                    <div class="col-md-8">
-                        <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm sản phẩm..."
-                            value="@ViewBag.SearchTerm" />
+                <div class="filter-section">
+                    <h3>Tình trạng</h3>
+                    <div class="status-filters">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="status" value="new" />
+                            <span class="checkmark"></span>
+                            Sản phẩm mới
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="status" value="hot" />
+                            <span class="checkmark"></span>
+                            Sản phẩm hot
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="status" value="sale" />
+                            <span class="checkmark"></span>
+                            Đang giảm giá
+                        </label>
                     </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search"></i> Tìm kiếm
+                </div>
+
+                <button type="button" class="btn btn-outline-primary btn-block" onclick="clearFilters()">
+                    <i class="fas fa-times"></i>
+                    Xóa bộ lọc
+                </button>
+            </aside>
+
+            <!-- Products Grid -->
+            <main class="products-main">
+                <div class="products-header">
+                    <div class="products-count">
+                        <span>@Model.TotalCount sản phẩm</span>
+                    </div>
+                    <div class="view-options">
+                        <button type="button" class="view-btn active" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button type="button" class="view-btn" data-view="list">
+                            <i class="fas fa-list"></i>
                         </button>
                     </div>
-                </form>
+                </div>
 
-
-            </div>
-        </div>
-
-        <!-- Kết quả tìm kiếm -->
-        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
-        {
-            <div class="alert alert-info">
-                <i class="fas fa-search"></i> Kết quả tìm kiếm cho: <strong>"@ViewBag.SearchTerm"</strong> (@Model.Count sản
-                phẩm)
-            </div>
-        }
-
-        <!-- Danh sách sản phẩm -->
-        @if (Model.Any())
-        {
-            <div class="row">
-                @foreach (var product in Model)
+                @if (Model.Items != null && Model.Items.Any())
                 {
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <img src="@product.MainImageUrl" class="card-img-top" alt="@product.ProductName"
-                                style="height: 200px; object-fit: cover;">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@product.ProductName</h5>
-                                <p class="card-text text-muted">@product.CategoryName</p>
-                                <p class="card-text">@product.Description</p>
-                                <p class="card-text text-primary fw-bold fs-5">@product.Price.ToString("N0") VNĐ</p>
-                                <p class="card-text">
-                                    <small class="text-muted">
-                                        <i class="fas fa-box"></i> Còn lại: @product.StockQuantity
-                                    </small>
-                                </p>
-                                <div class="mt-auto">
-                                    <div class="d-grid gap-2">
-                                        <a asp-action="Details" asp-route-id="@product.ProductId"
-                                            class="btn btn-outline-primary">
-                                            <i class="fas fa-eye"></i> Chi tiết
-                                        </a>
-                                        @if (Context.Session.GetString("UserId") != null)
+                    <div class="products-grid" id="productsGrid">
+                        @foreach (var product in Model.Items)
+                        {
+                            <div class="product-card" data-product-id="@product.Id">
+                                <div class="product-image">
+                                    <img src="@(product.Images?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")" 
+                                         alt="@product.Name" />
+                                    
+                                    <div class="product-badges">
+                                        @if (product.IsNew)
                                         {
-                                            <div class="d-flex gap-1">
-                                                <button class="btn btn-success add-to-cart flex-fill" data-product-id="@product.ProductId">
-                                                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ
-                                                </button>
-                                                @if (product.IsInWishlist)
+                                            <span class="product-badge badge-new">Mới</span>
+                                        }
+                                        @if (product.IsHot)
+                                        {
+                                            <span class="product-badge badge-hot">Hot</span>
+                                        }
+                                        @if (product.IsOnSale)
+                                        {
+                                            <span class="product-badge badge-sale">Sale</span>
+                                        }
+                                    </div>
+
+                                    <div class="product-actions">
+                                        <button type="button" class="action-btn wishlist-btn" onclick="addToWishlist(@product.Id)">
+                                            <i class="far fa-heart"></i>
+                                        </button>
+                                        <button type="button" class="action-btn quick-view-btn" onclick="quickView(@product.Id)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="product-content">
+                                    <div class="product-category">
+                                        @(product.Category?.Name ?? "Không phân loại")
+                                    </div>
+                                    
+                                    <h3 class="product-name">
+                                        <a asp-action="Details" asp-route-id="@product.Id">@product.Name</a>
+                                    </h3>
+
+                                    <div class="product-rating">
+                                        <div class="stars">
+                                            @{
+                                                var avgRating = product.Reviews?.Where(r => r.IsApproved).Average(r => r.Rating) ?? 0;
+                                                var reviewCount = product.Reviews?.Count(r => r.IsApproved) ?? 0;
+                                            }
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= avgRating)
                                                 {
-                                                    <button class="btn btn-danger remove-from-wishlist" data-product-id="@product.ProductId">
-                                                        <i class="fas fa-heart-broken"></i>
-                                                    </button>
+                                                    <i class="fas fa-star"></i>
                                                 }
                                                 else
                                                 {
-                                                    <button class="btn btn-outline-danger add-to-wishlist" data-product-id="@product.ProductId">
-                                                        <i class="fas fa-heart"></i>
-                                                    </button>
+                                                    <i class="far fa-star"></i>
                                                 }
-                                            </div>
-                                        }
-                                        else
+                                            }
+                                        </div>
+                                        <span class="rating-count">(@reviewCount)</span>
+                                    </div>
+
+                                    <div class="product-price">
+                                        <span class="current-price">@product.Price.ToString("N0") ₫</span>
+                                        @if (product.CompareAtPrice.HasValue && product.CompareAtPrice.Value > product.Price)
                                         {
-                                            <a asp-controller="Account" asp-action="Login" class="btn btn-warning">
-                                                <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua
-                                            </a>
+                                            <span class="original-price">@product.CompareAtPrice.Value.ToString("N0") ₫</span>
                                         }
+                                    </div>
+
+                                    <div class="product-actions-bottom">
+                                        <button type="button" class="btn btn-primary btn-add-cart" onclick="addToCart(@product.Id)">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            Thêm vào giỏ
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="pagination-wrapper">
+                            <nav class="pagination">
+                                @if (Model.HasPreviousPage)
+                                {
+                                    <a href="?page=@Model.PreviousPage" class="page-link">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                }
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    if (i == Model.Page)
+                                    {
+                                        <span class="page-link active">@i</span>
+                                    }
+                                    else
+                                    {
+                                        <a href="?page=@i" class="page-link">@i</a>
+                                    }
+                                }
+
+                                @if (Model.HasNextPage)
+                                {
+                                    <a href="?page=@Model.NextPage" class="page-link">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                }
+                            </nav>
                         </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-products">
+                        <div class="empty-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3>Không tìm thấy sản phẩm</h3>
+                        <p>Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác</p>
+                        <button type="button" class="btn btn-primary" onclick="clearFilters()">
+                            Xóa bộ lọc
+                        </button>
                     </div>
                 }
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-5">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">Không tìm thấy sản phẩm</h4>
-                <p class="text-muted">Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc</p>
-                <a asp-action="Index" class="btn btn-primary">
-                    <i class="fas fa-home"></i> Về trang chủ
-                </a>
-            </div>
-        }
+            </main>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            $('.add-to-cart').click(function () {
-                var productId = $(this).data('product-id');
-                var button = $(this);
-
-                $.post('/Cart/AddToCart', { productId: productId, quantity: 1 })
-                    .done(function (response) {
-                        if (response.success) {
-                            button.html('<i class="fas fa-check"></i> Đã thêm');
-                            button.removeClass('btn-success').addClass('btn-secondary');
-                            setTimeout(function () {
-                                button.html('<i class="fas fa-cart-plus"></i> Thêm vào giỏ');
-                                button.removeClass('btn-secondary').addClass('btn-success');
-                            }, 2000);
-                        } else {
-                            alert('Có lỗi xảy ra: ' + response.message);
-                        }
-                    })
-                    .fail(function () {
-                        alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
-                    });
-            });
-
-            $('.add-to-wishlist').click(function () {
-                var productId = $(this).data('product-id');
-                var button = $(this);
-
-                $.post('/Wishlist/AddToWishlist', { productId: productId })
-                    .done(function (response) {
-                        if (response.success) {
-                            button.html('<i class="fas fa-heart-broken"></i>');
-                            button.removeClass('btn-outline-danger').addClass('btn-danger');
-                            button.removeClass('add-to-wishlist').addClass('remove-from-wishlist');
-                        } else {
-                            alert('Có lỗi xảy ra: ' + response.message);
-                        }
-                    })
-                    .fail(function () {
-                        alert('Có lỗi xảy ra khi thêm vào danh sách yêu thích');
-                    });
-            });
-
-            $('.remove-from-wishlist').click(function () {
-                var productId = $(this).data('product-id');
-                var button = $(this);
-
-                $.post('/Wishlist/RemoveFromWishlist', { productId: productId })
-                    .done(function (response) {
-                        if (response.success) {
-                            button.html('<i class="fas fa-heart"></i>');
-                            button.removeClass('btn-danger').addClass('btn-outline-danger');
-                            button.removeClass('remove-from-wishlist').addClass('add-to-wishlist');
-                        } else {
-                            alert('Có lỗi xảy ra: ' + response.message);
-                        }
-                    })
-                    .fail(function () {
-                        alert('Có lỗi xảy ra khi xóa khỏi danh sách yêu thích');
-                    });
+        // View toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const view = this.dataset.view;
+                const grid = document.getElementById('productsGrid');
+                
+                if (view === 'list') {
+                    grid.classList.add('list-view');
+                } else {
+                    grid.classList.remove('list-view');
+                }
             });
         });
 
+        // Filter functions
+        function applyPriceFilter() {
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            
+            const url = new URL(window.location);
+            if (minPrice) url.searchParams.set('minPrice', minPrice);
+            if (maxPrice) url.searchParams.set('maxPrice', maxPrice);
+            
+            window.location.href = url.toString();
+        }
 
+        function applySort() {
+            const sort = document.getElementById('sortSelect').value;
+            
+            const url = new URL(window.location);
+            if (sort) {
+                url.searchParams.set('sortBy', sort);
+            } else {
+                url.searchParams.delete('sortBy');
+            }
+            
+            window.location.href = url.toString();
+        }
 
+        function clearFilters() {
+            window.location.href = window.location.pathname;
+        }
 
+        // Quick view function
+        function quickView(productId) {
+            // TODO: Implement quick view modal
+            alert('Tính năng xem nhanh sẽ được cập nhật sớm!');
+        }
     </script>
 }

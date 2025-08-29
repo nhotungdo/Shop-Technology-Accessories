@@ -2,94 +2,241 @@
     ViewData["Title"] = "Liên hệ";
 }
 
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h1 class="text-center mb-4">
-                        <i class="fas fa-envelope text-primary"></i> Liên hệ với chúng tôi
-                    </h1>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h3>Thông tin liên hệ</h3>
-                            <div class="mb-4">
-                                <h5><i class="fas fa-map-marker-alt text-primary"></i> Địa chỉ</h5>
-                                <p>123 Đường ABC, Quận XYZ, TP.HCM</p>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <h5><i class="fas fa-phone text-primary"></i> Điện thoại</h5>
-                                <p>0931982568</p>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <h5><i class="fas fa-envelope text-primary"></i> Email</h5>
-                                <p>donhotung2004@gmail.com</p>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <h5><i class="fas fa-clock text-primary"></i> Giờ làm việc</h5>
-                                <p>Thứ 2 - Thứ 7: 8:00 - 22:00<br>
-                                Chủ nhật: 9:00 - 21:00</p>
-                            </div>
+<div class="contact-header">
+    <div class="container">
+        <h1>Liên hệ với chúng tôi</h1>
+        <p>Chúng tôi luôn sẵn sàng hỗ trợ và giải đáp mọi thắc mắc của bạn</p>
+    </div>
+</div>
+
+<div class="contact-container">
+    <div class="container">
+        <div class="contact-content">
+            <!-- Contact Information -->
+            <div class="contact-info">
+                <h2>Thông tin liên hệ</h2>
+                
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Địa chỉ</h4>
+                        <p>123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Điện thoại</h4>
+                        <p>1900-1234</p>
+                        <p>+84 28 1234 5678</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Email</h4>
+                        <p>info@shoptechnology.com</p>
+                        <p>support@shoptechnology.com</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Giờ làm việc</h4>
+                        <p>Thứ 2 - Thứ 6: 8:00 - 18:00</p>
+                        <p>Thứ 7: 8:00 - 17:00</p>
+                        <p>Chủ nhật: 9:00 - 16:00</p>
+                    </div>
+                </div>
+
+                <div class="social-links">
+                    <h4>Theo dõi chúng tôi</h4>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon youtube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        <a href="#" class="social-icon twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="contact-form">
+                <h2>Gửi tin nhắn cho chúng tôi</h2>
+                <form id="contactForm" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">Họ *</label>
+                            <input type="text" id="firstName" name="firstName" class="form-control" required />
                         </div>
-                        
-                        <div class="col-md-6">
-                            <h3>Gửi tin nhắn cho chúng tôi</h3>
-                            <form>
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Họ và tên</label>
-                                    <input type="text" class="form-control" id="name" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Số điện thoại</label>
-                                    <input type="tel" class="form-control" id="phone">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="subject" class="form-label">Chủ đề</label>
-                                    <select class="form-select" id="subject" required>
-                                        <option value="">Chọn chủ đề</option>
-                                        <option value="support">Hỗ trợ khách hàng</option>
-                                        <option value="order">Đơn hàng</option>
-                                        <option value="product">Sản phẩm</option>
-                                        <option value="other">Khác</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="message" class="form-label">Nội dung</label>
-                                    <textarea class="form-control" id="message" rows="5" required></textarea>
-                                </div>
-                                
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-paper-plane"></i> Gửi tin nhắn
-                                </button>
-                            </form>
+                        <div class="form-group">
+                            <label for="lastName">Tên *</label>
+                            <input type="text" id="lastName" name="lastName" class="form-control" required />
                         </div>
                     </div>
-                    
-                    <hr class="my-5">
-                    
-                    <div class="row">
-                        <div class="col-12">
-                            <h3 class="text-center mb-4">Bản đồ</h3>
-                            <div class="text-center">
-                                <img src="https://via.placeholder.com/800x400/6c757d/ffffff?text=Google+Maps" 
-                                     class="img-fluid rounded" alt="Bản đồ">
-                            </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Chủ đề *</label>
+                        <select id="subject" name="subject" class="form-control" required>
+                            <option value="">Chọn chủ đề</option>
+                            <option value="general">Thông tin chung</option>
+                            <option value="product">Hỏi đáp sản phẩm</option>
+                            <option value="order">Đơn hàng</option>
+                            <option value="support">Hỗ trợ kỹ thuật</option>
+                            <option value="complaint">Khiếu nại</option>
+                            <option value="suggestion">Đề xuất</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Nội dung tin nhắn *</label>
+                        <textarea id="message" name="message" rows="5" class="form-control" 
+                                  placeholder="Vui lòng mô tả chi tiết vấn đề của bạn..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="agree" name="agree" class="form-check-input" required />
+                            <label for="agree" class="form-check-label">
+                                Tôi đồng ý với <a href="/Home/Privacy">chính sách bảo mật</a> của Shop Technology
+                            </label>
                         </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-paper-plane"></i>
+                        Gửi tin nhắn
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section">
+            <h2>Vị trí của chúng tôi</h2>
+            <div class="map-container">
+                <div class="map-placeholder">
+                    <i class="fas fa-map"></i>
+                    <p>Bản đồ sẽ được hiển thị tại đây</p>
+                    <p>123 Đường ABC, Quận 1, TP.HCM</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2>Câu hỏi thường gặp</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h4>Làm thế nào để đặt hàng?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Bạn có thể đặt hàng trực tuyến thông qua website hoặc ứng dụng di động của chúng tôi. Quy trình đặt hàng rất đơn giản: chọn sản phẩm, thêm vào giỏ hàng, điền thông tin giao hàng và thanh toán.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h4>Thời gian giao hàng là bao lâu?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Thời gian giao hàng phụ thuộc vào địa điểm của bạn. Thông thường từ 1-3 ngày làm việc cho các đơn hàng trong nội thành, và 3-7 ngày cho các tỉnh thành khác.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h4>Chính sách đổi trả như thế nào?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Chúng tôi chấp nhận đổi trả trong vòng 30 ngày kể từ ngày mua hàng với điều kiện sản phẩm còn nguyên vẹn, đầy đủ phụ kiện và hóa đơn mua hàng.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h4>Có những phương thức thanh toán nào?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Chúng tôi hỗ trợ nhiều phương thức thanh toán: tiền mặt khi nhận hàng, chuyển khoản ngân hàng, thẻ tín dụng/ghi nợ, và các ví điện tử phổ biến.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // FAQ Toggle
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            const answer = faqItem.querySelector('.faq-answer');
+            const icon = element.querySelector('i');
+            
+            if (faqItem.classList.contains('active')) {
+                faqItem.classList.remove('active');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                // Close other FAQ items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                    const itemIcon = item.querySelector('i');
+                    itemIcon.classList.remove('fa-chevron-up');
+                    itemIcon.classList.add('fa-chevron-down');
+                });
+                
+                // Open current FAQ item
+                faqItem.classList.add('active');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        }
+
+        // Contact Form Submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // TODO: Implement form submission
+            alert('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.');
+            
+            // Reset form
+            this.reset();
+        });
+    </script>
+}
