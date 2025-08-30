@@ -1,41 +1,43 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
-    public class OrderItem
+    public class OrderDetail
     {
-        public int Id { get; set; }
+        [Key]
+        public int OrderDetailId { get; set; }
 
+        [Required]
         public int OrderId { get; set; }
 
+        [Required]
         public int ProductId { get; set; }
 
         [Required]
         [MaxLength(200)]
         public string ProductName { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(50)]
-        public string SKU { get; set; } = string.Empty;
+        [MaxLength(100)]
+        public string? ProductSKU { get; set; }
 
-        public int Quantity { get; set; }
+        public int Quantity { get; set; } = 1;
 
         public decimal UnitPrice { get; set; }
 
         public decimal TotalPrice { get; set; }
 
-        public decimal? DiscountAmount { get; set; }
-
-        [MaxLength(500)]
+        [MaxLength(255)]
         public string? ProductImage { get; set; }
 
-        [MaxLength(200)]
-        public string? ProductOptions { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [MaxLength(100)]
+        public string? ProductBrand { get; set; }
 
         // Navigation properties
+        [ForeignKey("OrderId")]
         public virtual Order Order { get; set; } = null!;
+
+        [ForeignKey("ProductId")]
         public virtual Product Product { get; set; } = null!;
     }
 }

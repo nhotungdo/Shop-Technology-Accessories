@@ -1,17 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Contact
     {
-        public int Id { get; set; }
+        [Key]
+        public int ContactId { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
-        [EmailAddress]
         [MaxLength(150)]
         public string Email { get; set; } = string.Empty;
 
@@ -23,43 +24,24 @@ namespace ShopTechnology.Models
         public string Subject { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(2000)]
+        [MaxLength(1000)]
         public string Message { get; set; } = string.Empty;
 
-        public ContactStatus Status { get; set; } = ContactStatus.New;
-
-        public ContactType Type { get; set; } = ContactType.General;
-
-        public string? AssignedToUserId { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Status { get; set; } = "New";
 
         [MaxLength(1000)]
-        public string? AdminResponse { get; set; }
+        public string? ReplyMessage { get; set; }
+
+        public int? RepliedByUserId { get; set; }
+
+        public DateTime? RepliedAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime? RespondedAt { get; set; }
-
-        public DateTime? ResolvedAt { get; set; }
-
         // Navigation property
-        public virtual ApplicationUser? AssignedToUser { get; set; }
-    }
-
-    public enum ContactStatus
-    {
-        New,
-        InProgress,
-        Resolved,
-        Closed
-    }
-
-    public enum ContactType
-    {
-        General,
-        Technical,
-        Billing,
-        Shipping,
-        Complaint,
-        Suggestion
+        [ForeignKey("RepliedByUserId")]
+        public virtual User? RepliedByUser { get; set; }
     }
 }

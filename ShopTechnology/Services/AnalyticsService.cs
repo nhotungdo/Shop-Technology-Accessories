@@ -39,7 +39,7 @@ namespace ShopTechnology.Services
                 WeekUsers = await GetTotalCustomersAsync(startOfWeek, today),
                 MonthUsers = await GetTotalCustomersAsync(startOfMonth, today),
 
-                PendingOrders = await _context.Orders.CountAsync(o => o.Status == OrderStatus.Pending),
+                PendingOrders = await _context.Orders.CountAsync(o => o.OrderStatus == "Pending"),
 
                 RecentOrders = await GetRecentOrdersAsync(),
                 LowStockProducts = await GetLowStockProductsAsync(),
@@ -69,14 +69,14 @@ namespace ShopTechnology.Services
 
         public async Task<IEnumerable<TopProductViewModel>> GetTopProductsAsync(int count = 10)
         {
-            return await _context.OrderItems
-                .GroupBy(oi => new { oi.ProductId, oi.ProductName })
+            return await _context.OrderDetails
+                .GroupBy(od => new { od.ProductId, od.ProductName })
                 .Select(g => new TopProductViewModel
                 {
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName,
-                    QuantitySold = g.Sum(oi => oi.Quantity),
-                    TotalRevenue = g.Sum(oi => oi.TotalPrice),
+                    QuantitySold = g.Sum(od => od.Quantity),
+                    TotalRevenue = g.Sum(od => od.TotalPrice),
                     AverageRating = 0, // Would need to join with reviews
                     ReviewCount = 0 // Would need to join with reviews
                 })
@@ -87,17 +87,17 @@ namespace ShopTechnology.Services
 
         public async Task<IEnumerable<TopCategoryViewModel>> GetTopCategoriesAsync(int count = 5)
         {
-            return await _context.OrderItems
-                .Join(_context.Products, oi => oi.ProductId, p => p.Id, (oi, p) => new { oi, p })
-                .Join(_context.Categories, x => x.p.CategoryId, c => c.Id, (x, c) => new { x.oi, x.p, c })
-                .GroupBy(x => new { x.c.Id, x.c.Name })
+            return await _context.OrderDetails
+                .Join(_context.Products, od => od.ProductId, p => p.ProductId, (od, p) => new { od, p })
+                .Join(_context.Categories, x => x.p.CategoryId, c => c.CategoryId, (x, c) => new { x.od, x.p, c })
+                .GroupBy(x => new { x.c.CategoryId, x.c.Name })
                 .Select(g => new TopCategoryViewModel
                 {
-                    CategoryId = g.Key.Id,
+                    CategoryId = g.Key.CategoryId,
                     CategoryName = g.Key.Name,
-                    ProductCount = g.Select(x => x.p.Id).Distinct().Count(),
-                    QuantitySold = g.Sum(x => x.oi.Quantity),
-                    TotalRevenue = g.Sum(x => x.oi.TotalPrice)
+                    ProductCount = g.Select(x => x.p.ProductId).Distinct().Count(),
+                    QuantitySold = g.Sum(x => x.od.Quantity),
+                    TotalRevenue = g.Sum(x => x.od.TotalPrice)
                 })
                 .OrderByDescending(c => c.TotalRevenue)
                 .Take(count)
@@ -111,7 +111,7 @@ namespace ShopTechnology.Services
                 TotalCustomers = await _context.Users.CountAsync(),
                 NewCustomers = await _context.Users.CountAsync(u => u.CreatedAt >= DateTime.UtcNow.AddDays(-30)),
                 ActiveCustomers = await _context.Orders
-                    .Where(o => o.OrderDate >= DateTime.UtcNow.AddDays(-30))
+                    .Where(o => o.CreatedAt >= DateTime.UtcNow.AddDays(-30))
                     .Select(o => o.UserId)
                     .Distinct()
                     .CountAsync(),
@@ -129,16 +129,16 @@ namespace ShopTechnology.Services
         public async Task<decimal> GetTotalRevenueAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
-                .Where(o => o.OrderDate >= startDate && 
-                           o.OrderDate <= endDate && 
-                           o.PaymentStatus == PaymentStatus.Paid)
+                .Where(o => o.CreatedAt >= startDate &&
+                           o.CreatedAt <= endDate &&
+                           o.PaymentStatus == "Paid")
                 .SumAsync(o => o.TotalAmount);
         }
 
         public async Task<int> GetTotalOrdersAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
-                .CountAsync(o => o.OrderDate >= startDate && o.OrderDate <= endDate);
+                .CountAsync(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate);
         }
 
         public async Task<int> GetTotalCustomersAsync(DateTime startDate, DateTime endDate)
@@ -150,7 +150,7 @@ namespace ShopTechnology.Services
         public async Task<decimal> GetAverageOrderValueAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
-                .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
                 .DefaultIfEmpty()
                 .AverageAsync(o => o.TotalAmount);
         }
@@ -158,8 +158,8 @@ namespace ShopTechnology.Services
         public async Task<IEnumerable<DailySalesViewModel>> GetDailySalesAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
-                .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-                .GroupBy(o => o.OrderDate.Date)
+                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+                .GroupBy(o => o.CreatedAt.Date)
                 .Select(g => new DailySalesViewModel
                 {
                     Date = g.Key,
@@ -175,17 +175,17 @@ namespace ShopTechnology.Services
         {
             return await _context.Orders
                 .Include(o => o.User)
-                .OrderByDescending(o => o.OrderDate)
+                .OrderByDescending(o => o.CreatedAt)
                 .Take(10)
                 .Select(o => new RecentOrderViewModel
                 {
-                    OrderId = o.Id,
+                    OrderId = o.OrderId,
                     OrderNumber = o.OrderNumber,
-                    UserFullName = $"{o.User.FirstName} {o.User.LastName}",
+                    UserFullName = o.User.FullName,
                     TotalAmount = o.TotalAmount,
-                    Status = o.Status.ToString(),
-                    StatusDisplay = o.Status.ToString(),
-                    CreatedAt = o.OrderDate
+                    Status = o.OrderStatus,
+                    StatusDisplay = o.OrderStatus,
+                    CreatedAt = o.CreatedAt
                 })
                 .ToListAsync();
         }
@@ -194,14 +194,14 @@ namespace ShopTechnology.Services
         {
             return await _context.Products
                 .Include(p => p.Category)
-                .Where(p => p.StockQuantity <= p.MinStockLevel)
+                .Where(p => p.StockQuantity <= 10) // Default minimum stock level
                 .OrderBy(p => p.StockQuantity)
                 .Take(10)
                 .Select(p => new LowStockProductViewModel
                 {
-                    ProductId = p.Id,
+                    ProductId = p.ProductId,
                     ProductName = p.Name,
-                    CategoryName = p.Category.Name,
+                    CategoryName = p.Category != null ? p.Category.Name : "Unknown",
                     StockQuantity = p.StockQuantity,
                     Price = p.Price
                 })
@@ -210,14 +210,14 @@ namespace ShopTechnology.Services
 
         private async Task<List<TopSellingProductViewModel>> GetTopSellingProductsAsync()
         {
-            return await _context.OrderItems
-                .GroupBy(oi => new { oi.ProductId, oi.ProductName })
+            return await _context.OrderDetails
+                .GroupBy(od => new { od.ProductId, od.ProductName })
                 .Select(g => new TopSellingProductViewModel
                 {
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName,
-                    TotalSold = g.Sum(oi => oi.Quantity),
-                    Price = g.Average(oi => oi.UnitPrice)
+                    TotalSold = g.Sum(od => od.Quantity),
+                    Price = g.Average(od => od.UnitPrice)
                 })
                 .OrderByDescending(p => p.TotalSold)
                 .Take(10)

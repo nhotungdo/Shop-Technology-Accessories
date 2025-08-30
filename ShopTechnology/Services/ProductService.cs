@@ -18,16 +18,16 @@ namespace ShopTechnology.Services
         {
             var query = _context.Products
                 .Include(p => p.Category)
-                .Include(p => p.Images.Where(img => img.IsMain))
+                .Include(p => p.ProductImages.Where(img => img.IsMain))
                 .Include(p => p.Reviews)
                 .Where(p => p.IsActive);
 
             // Apply filters
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
-                query = query.Where(p => p.Name.Contains(filter.SearchTerm) || 
+                query = query.Where(p => p.Name.Contains(filter.SearchTerm) ||
                                         p.Description.Contains(filter.SearchTerm) ||
-                                        p.Brand.Contains(filter.SearchTerm));
+                                        (p.Brand ?? "").Contains(filter.SearchTerm));
             }
 
             if (filter.CategoryId.HasValue)
@@ -47,7 +47,7 @@ namespace ShopTechnology.Services
 
             if (!string.IsNullOrEmpty(filter.Brand))
             {
-                query = query.Where(p => p.Brand == filter.Brand);
+                query = query.Where(p => p.Brand == filter.Brand || (p.Brand == null && filter.Brand == null));
             }
 
             if (filter.IsFeatured.HasValue)
@@ -73,7 +73,7 @@ namespace ShopTechnology.Services
                 "name_asc" => query.OrderBy(p => p.Name),
                 "name_desc" => query.OrderByDescending(p => p.Name),
                 "newest" => query.OrderByDescending(p => p.CreatedAt),
-                "rating" => query.OrderByDescending(p => p.Reviews.Where(r => r.IsApproved).Average(r => r.Rating)),
+                "rating" => query.OrderByDescending(p => p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0),
                 _ => query.OrderByDescending(p => p.CreatedAt)
             };
 
@@ -97,32 +97,30 @@ namespace ShopTechnology.Services
         {
             return await _context.Products
                 .Include(p => p.Category)
-                .Include(p => p.Images.OrderBy(img => img.DisplayOrder))
-                .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
-                .Include(p => p.Reviews.Where(r => r.IsApproved).OrderByDescending(r => r.CreatedAt))
+                .Include(p => p.ProductImages.OrderBy(img => img.DisplayOrder))
+                .Include(p => p.Reviews.OrderByDescending(r => r.CreatedAt))
                 .ThenInclude(r => r.User)
-                .Include(p => p.Reviews.Where(r => r.IsApproved))
-                .ThenInclude(r => r.Images)
-                .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+                .Include(p => p.Reviews)
+                .ThenInclude(r => r.ReviewImages)
+                .FirstOrDefaultAsync(p => p.ProductId == id && p.IsActive);
         }
 
         public async Task<Product?> GetProductBySlugAsync(string slug)
         {
             return await _context.Products
                 .Include(p => p.Category)
-                .Include(p => p.Images.OrderBy(img => img.DisplayOrder))
-                .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
-                .Include(p => p.Reviews.Where(r => r.IsApproved).OrderByDescending(r => r.CreatedAt))
+                .Include(p => p.ProductImages.OrderBy(img => img.DisplayOrder))
+                .Include(p => p.Reviews.OrderByDescending(r => r.CreatedAt))
                 .ThenInclude(r => r.User)
-                .Include(p => p.Reviews.Where(r => r.IsApproved))
-                .ThenInclude(r => r.Images)
+                .Include(p => p.Reviews)
+                .ThenInclude(r => r.ReviewImages)
                 .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
         }
 
         public async Task<IEnumerable<Product>> GetFeaturedProductsAsync(int count = 8)
         {
             return await _context.Products
-                .Include(p => p.Images.Where(img => img.IsMain))
+                .Include(p => p.ProductImages.Where(img => img.IsMain))
                 .Include(p => p.Reviews)
                 .Where(p => p.IsActive && p.IsFeatured)
                 .OrderByDescending(p => p.CreatedAt)
@@ -133,7 +131,7 @@ namespace ShopTechnology.Services
         public async Task<IEnumerable<Product>> GetNewProductsAsync(int count = 8)
         {
             return await _context.Products
-                .Include(p => p.Images.Where(img => img.IsMain))
+                .Include(p => p.ProductImages.Where(img => img.IsMain))
                 .Include(p => p.Reviews)
                 .Where(p => p.IsActive && p.IsNew)
                 .OrderByDescending(p => p.CreatedAt)
@@ -144,7 +142,7 @@ namespace ShopTechnology.Services
         public async Task<IEnumerable<Product>> GetHotProductsAsync(int count = 8)
         {
             return await _context.Products
-                .Include(p => p.Images.Where(img => img.IsMain))
+                .Include(p => p.ProductImages.Where(img => img.IsMain))
                 .Include(p => p.Reviews)
                 .Where(p => p.IsActive && p.IsHot)
                 .OrderByDescending(p => p.CreatedAt)
@@ -158,11 +156,11 @@ namespace ShopTechnology.Services
             if (product == null) return new List<Product>();
 
             return await _context.Products
-                .Include(p => p.Images.Where(img => img.IsMain))
+                .Include(p => p.ProductImages.Where(img => img.IsMain))
                 .Include(p => p.Reviews)
-                .Where(p => p.IsActive && 
-                           p.CategoryId == product.CategoryId && 
-                           p.Id != productId)
+                .Where(p => p.IsActive &&
+                           p.CategoryId == product.CategoryId &&
+                           p.ProductId != productId)
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -171,7 +169,7 @@ namespace ShopTechnology.Services
         public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId, int count = 12)
         {
             return await _context.Products
-                .Include(p => p.Images.Where(img => img.IsMain))
+                .Include(p => p.ProductImages.Where(img => img.IsMain))
                 .Include(p => p.Reviews)
                 .Where(p => p.IsActive && p.CategoryId == categoryId)
                 .OrderByDescending(p => p.CreatedAt)
@@ -285,64 +283,12 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<IEnumerable<ProductSpecification>> GetProductSpecificationsAsync(int productId)
-        {
-            return await _context.ProductSpecifications
-                .Where(spec => spec.ProductId == productId)
-                .OrderBy(spec => spec.DisplayOrder)
-                .ToListAsync();
-        }
 
-        public async Task<bool> AddProductSpecificationAsync(ProductSpecification specification)
-        {
-            try
-            {
-                specification.CreatedAt = DateTime.UtcNow;
-                _context.ProductSpecifications.Add(specification);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateProductSpecificationAsync(ProductSpecification specification)
-        {
-            try
-            {
-                _context.ProductSpecifications.Update(specification);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> RemoveProductSpecificationAsync(int specificationId)
-        {
-            try
-            {
-                var specification = await _context.ProductSpecifications.FindAsync(specificationId);
-                if (specification == null) return false;
-
-                _context.ProductSpecifications.Remove(specification);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         public async Task<decimal> GetAverageRatingAsync(int productId)
         {
             var averageRating = await _context.Reviews
-                .Where(r => r.ProductId == productId && r.IsApproved)
+                .Where(r => r.ProductId == productId)
                 .AverageAsync(r => (decimal)r.Rating);
 
             return Math.Round(averageRating, 1);
@@ -351,7 +297,7 @@ namespace ShopTechnology.Services
         public async Task<int> GetReviewCountAsync(int productId)
         {
             return await _context.Reviews
-                .CountAsync(r => r.ProductId == productId && r.IsApproved);
+                .CountAsync(r => r.ProductId == productId);
         }
 
         public async Task<bool> IncrementViewCountAsync(int productId)

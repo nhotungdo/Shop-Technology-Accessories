@@ -9,83 +9,83 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ShopTechnology
 build_property.RootNamespace = ShopTechnology
-build_property.ProjectDir = f:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\
+build_property.ProjectDir = F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = f:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology
+build_property.MSBuildProjectDirectory = F:\PRN212-REVIEW\ShopTechnology\Shop-Technology-Accessories\ShopTechnology
 build_property._RazorSourceGeneratorDebug = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/ForgotPassword.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/Login.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/Register.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/ResetPassword.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Account/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZXNldFBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Admin/Dashboard.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Cart/Index.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Cart/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FydFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Checkout/Index.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Checkout/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2hlY2tvdXRcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/About.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/About.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBYm91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/Contact.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/Contact.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/Index.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/Privacy.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Order/Index.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Order/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3JkZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Product/Details.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Product/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Product/Index.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Product/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Shared/Error.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Shared/_Layout.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/User/Profile.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/User/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxQcm9maWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[f:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Wishlist/Index.cshtml]
+[F:/PRN212-REVIEW/ShopTechnology/Shop-Technology-Accessories/ShopTechnology/Views/Wishlist/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2lzaGxpc3RcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

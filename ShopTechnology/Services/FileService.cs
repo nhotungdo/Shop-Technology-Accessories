@@ -60,27 +60,27 @@ namespace ShopTechnology.Services
             return await UploadImageAsync(file, "reviews");
         }
 
-        public async Task<bool> ValidateImageAsync(IFormFile file)
+        public Task<bool> ValidateImageAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return false;
+                return Task.FromResult(false);
 
             // Check file size (max 5MB)
             if (file.Length > 5 * 1024 * 1024)
-                return false;
+                return Task.FromResult(false);
 
             // Check file extension
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
-                return false;
+                return Task.FromResult(false);
 
             // Check MIME type
             var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
             if (!allowedMimeTypes.Contains(file.ContentType.ToLowerInvariant()))
-                return false;
+                return Task.FromResult(false);
 
-            return true;
+            return Task.FromResult(true);
         }
 
         public async Task<string> GetImageUrlAsync(string fileName, string folder)

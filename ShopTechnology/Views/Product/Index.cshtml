@@ -1,8 +1,13 @@
 @model ShopTechnology.ViewModels.PagedResult<ShopTechnology.Models.Product>
+@using ShopTechnology.Models
 
 @{
     ViewData["Title"] = "Sản phẩm";
     var categories = ViewBag.Categories as List<ShopTechnology.Models.Category>;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product.css" />
 }
 
 <div class="product-list-header">
@@ -25,7 +30,7 @@
                             @foreach (var category in categories)
                             {
                                 <label class="filter-checkbox">
-                                    <input type="checkbox" name="category" value="@category.Id" />
+                                    <input type="checkbox" name="category" value="@category.CategoryId" />
                                     <span class="checkmark"></span>
                                     @category.Name
                                 </label>
@@ -42,7 +47,8 @@
                             <span>-</span>
                             <input type="number" id="maxPrice" placeholder="Đến" class="form-control" />
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="applyPriceFilter()">Áp dụng</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="applyPriceFilter()">Áp
+                            dụng</button>
                     </div>
                 </div>
 
@@ -107,11 +113,11 @@
                     <div class="products-grid" id="productsGrid">
                         @foreach (var product in Model.Items)
                         {
-                            <div class="product-card" data-product-id="@product.Id">
+                            <div class="product-card" data-product-id="@product.ProductId">
                                 <div class="product-image">
-                                    <img src="@(product.Images?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")" 
-                                         alt="@product.Name" />
-                                    
+                                    <img src="@(product.ProductImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")"
+                                        alt="@product.Name" />
+
                                     <div class="product-badges">
                                         @if (product.IsNew)
                                         {
@@ -121,17 +127,19 @@
                                         {
                                             <span class="product-badge badge-hot">Hot</span>
                                         }
-                                        @if (product.IsOnSale)
+                                        @if (product.Price < 1000000)
                                         {
                                             <span class="product-badge badge-sale">Sale</span>
                                         }
                                     </div>
 
                                     <div class="product-actions">
-                                        <button type="button" class="action-btn wishlist-btn" onclick="addToWishlist(@product.Id)">
+                                        <button type="button" class="action-btn wishlist-btn"
+                                            onclick="addToWishlist(@product.ProductId)">
                                             <i class="far fa-heart"></i>
                                         </button>
-                                        <button type="button" class="action-btn quick-view-btn" onclick="quickView(@product.Id)">
+                                        <button type="button" class="action-btn quick-view-btn"
+                                            onclick="quickView(@product.ProductId)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -141,16 +149,17 @@
                                     <div class="product-category">
                                         @(product.Category?.Name ?? "Không phân loại")
                                     </div>
-                                    
+
                                     <h3 class="product-name">
-                                        <a asp-action="Details" asp-route-id="@product.Id">@product.Name</a>
+                                        <a asp-action="Details" asp-route-id="@product.ProductId">@product.Name</a>
                                     </h3>
 
                                     <div class="product-rating">
                                         <div class="stars">
                                             @{
-                                                var avgRating = product.Reviews?.Where(r => r.IsApproved).Average(r => r.Rating) ?? 0;
-                                                var reviewCount = product.Reviews?.Count(r => r.IsApproved) ?? 0;
+                                                var reviews = product.Reviews?.ToList() ?? new List<Review>();
+                                                var avgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                                                var reviewCount = reviews.Count;
                                             }
                                             @for (int i = 1; i <= 5; i++)
                                             {
@@ -169,14 +178,12 @@
 
                                     <div class="product-price">
                                         <span class="current-price">@product.Price.ToString("N0") ₫</span>
-                                        @if (product.CompareAtPrice.HasValue && product.CompareAtPrice.Value > product.Price)
-                                        {
-                                            <span class="original-price">@product.CompareAtPrice.Value.ToString("N0") ₫</span>
-                                        }
+                                        @* CompareAtPrice not available in new model *@
                                     </div>
 
                                     <div class="product-actions-bottom">
-                                        <button type="button" class="btn btn-primary btn-add-cart" onclick="addToCart(@product.Id)">
+                                        <button type="button" class="btn btn-primary btn-add-cart"
+                                            onclick="addToCart(@product.ProductId)">
                                             <i class="fas fa-shopping-cart"></i>
                                             Thêm vào giỏ
                                         </button>
@@ -242,13 +249,13 @@
     <script>
         // View toggle
         document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                
+
                 const view = this.dataset.view;
                 const grid = document.getElementById('productsGrid');
-                
+
                 if (view === 'list') {
                     grid.classList.add('list-view');
                 } else {
@@ -261,24 +268,24 @@
         function applyPriceFilter() {
             const minPrice = document.getElementById('minPrice').value;
             const maxPrice = document.getElementById('maxPrice').value;
-            
+
             const url = new URL(window.location);
             if (minPrice) url.searchParams.set('minPrice', minPrice);
             if (maxPrice) url.searchParams.set('maxPrice', maxPrice);
-            
+
             window.location.href = url.toString();
         }
 
         function applySort() {
             const sort = document.getElementById('sortSelect').value;
-            
+
             const url = new URL(window.location);
             if (sort) {
                 url.searchParams.set('sortBy', sort);
             } else {
                 url.searchParams.delete('sortBy');
             }
-            
+
             window.location.href = url.toString();
         }
 

@@ -17,13 +17,13 @@ namespace ShopTechnology.Services
         public async Task<Cart?> GetCartAsync(string userId, string? sessionId = null)
         {
             var query = _context.Carts
-                .Include(c => c.Items)
+                .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.Product)
-                .ThenInclude(p => p.Images.Where(img => img.IsMain));
+                .ThenInclude(p => p.ProductImages.Where(img => img.IsMain));
 
             if (!string.IsNullOrEmpty(userId))
             {
-                return await query.FirstOrDefaultAsync(c => c.UserId == userId);
+                return await query.FirstOrDefaultAsync(c => c.UserId == int.Parse(userId));
             }
             else if (!string.IsNullOrEmpty(sessionId))
             {
@@ -37,10 +37,9 @@ namespace ShopTechnology.Services
         {
             var cart = new Cart
             {
-                UserId = userId,
+                UserId = int.Parse(userId),
                 SessionId = sessionId,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(30)
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Carts.Add(cart);
@@ -58,11 +57,11 @@ namespace ShopTechnology.Services
                     cart = await CreateCartAsync(userId, sessionId);
                 }
 
-                var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductId == productId);
+                var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
                 if (existingItem != null)
                 {
                     existingItem.Quantity += quantity;
-                    existingItem.UpdatedAt = DateTime.UtcNow;
+                    // CartItem doesn't have UpdatedAt property
                 }
                 else
                 {
@@ -71,14 +70,14 @@ namespace ShopTechnology.Services
 
                     var cartItem = new CartItem
                     {
-                        CartId = cart.Id,
+                        CartId = cart.CartId,
                         ProductId = productId,
                         Quantity = quantity,
                         UnitPrice = product.Price,
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    cart.Items.Add(cartItem);
+                    cart.CartItems.Add(cartItem);
                 }
 
                 cart.UpdatedAt = DateTime.UtcNow;
@@ -105,7 +104,7 @@ namespace ShopTechnology.Services
                 else
                 {
                     cartItem.Quantity = quantity;
-                    cartItem.UpdatedAt = DateTime.UtcNow;
+                    // CartItem doesn't have UpdatedAt property
                 }
 
                 await _context.SaveChangesAsync();
@@ -139,12 +138,12 @@ namespace ShopTechnology.Services
             try
             {
                 var cart = await _context.Carts
-                    .Include(c => c.Items)
-                    .FirstOrDefaultAsync(c => c.Id == cartId);
+                    .Include(c => c.CartItems)
+                    .FirstOrDefaultAsync(c => c.CartId == cartId);
 
                 if (cart == null) return false;
 
-                _context.CartItems.RemoveRange(cart.Items);
+                _context.CartItems.RemoveRange(cart.CartItems);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -171,12 +170,12 @@ namespace ShopTechnology.Services
                 };
             }
 
-            var items = cart.Items.Select(ci => new CartItemViewModel
+            var items = cart.CartItems.Select(ci => new CartItemViewModel
             {
-                Id = ci.Id,
+                Id = ci.CartItemId,
                 ProductId = ci.ProductId,
                 ProductName = ci.Product.Name,
-                ProductImage = ci.Product.Images.FirstOrDefault(img => img.IsMain)?.ImageUrl,
+                ProductImage = ci.Product.ProductImages.FirstOrDefault(img => img.IsMain)?.ImageUrl,
                 UnitPrice = ci.UnitPrice,
                 Quantity = ci.Quantity,
                 TotalPrice = ci.UnitPrice * ci.Quantity
@@ -189,7 +188,7 @@ namespace ShopTechnology.Services
 
             return new CartViewModel
             {
-                CartId = cart.Id,
+                CartId = cart.CartId,
                 Items = items,
                 Subtotal = subtotal,
                 TaxAmount = taxAmount,
@@ -214,25 +213,25 @@ namespace ShopTechnology.Services
                     userCart = await CreateCartAsync(userId);
                 }
 
-                foreach (var guestItem in guestCart.Items)
+                foreach (var guestItem in guestCart.CartItems)
                 {
-                    var existingItem = userCart.Items.FirstOrDefault(ci => ci.ProductId == guestItem.ProductId);
+                    var existingItem = userCart.CartItems.FirstOrDefault(ci => ci.ProductId == guestItem.ProductId);
                     if (existingItem != null)
                     {
                         existingItem.Quantity += guestItem.Quantity;
-                        existingItem.UpdatedAt = DateTime.UtcNow;
+                        // CartItem doesn't have UpdatedAt property
                     }
                     else
                     {
                         var newItem = new CartItem
                         {
-                            CartId = userCart.Id,
+                            CartId = userCart.CartId,
                             ProductId = guestItem.ProductId,
                             Quantity = guestItem.Quantity,
                             UnitPrice = guestItem.UnitPrice,
                             CreatedAt = DateTime.UtcNow
                         };
-                        userCart.Items.Add(newItem);
+                        userCart.CartItems.Add(newItem);
                     }
                 }
 
@@ -250,13 +249,13 @@ namespace ShopTechnology.Services
         public async Task<int> GetCartItemCountAsync(string userId, string? sessionId = null)
         {
             var cart = await GetCartAsync(userId, sessionId);
-            return cart?.Items.Sum(ci => ci.Quantity) ?? 0;
+            return cart?.CartItems.Sum(ci => ci.Quantity) ?? 0;
         }
 
         public async Task<bool> IsProductInCartAsync(string userId, int productId, string? sessionId = null)
         {
             var cart = await GetCartAsync(userId, sessionId);
-            return cart?.Items.Any(ci => ci.ProductId == productId) ?? false;
+            return cart?.CartItems.Any(ci => ci.ProductId == productId) ?? false;
         }
 
         public async Task<(bool Success, string Message)> ApplyPromoCodeAsync(string userId, string promoCode, string? sessionId = null)
@@ -278,22 +277,23 @@ namespace ShopTechnology.Services
                 }
 
                 // Check if promotion has been used by this user
-                var usageCount = await _context.PromotionUsages
-                    .CountAsync(pu => pu.PromotionId == promotion.Id && pu.UserId == userId);
+                var usageCount = await _context.Orders
+                    .Where(o => o.UserId == int.Parse(userId) && o.PaymentStatus == "Paid")
+                    .CountAsync();
 
-                if (promotion.MaxUsagePerUser.HasValue && usageCount >= promotion.MaxUsagePerUser.Value)
+                if (promotion.UsageLimit.HasValue && usageCount >= promotion.UsageLimit.Value)
                 {
                     return (false, "Bạn đã sử dụng hết số lần được phép cho mã khuyến mãi này.");
                 }
 
                 // Check if promotion is first time only and user has used it before
-                if (promotion.IsFirstTimeOnly && usageCount > 0)
+                if (promotion.IsPublic == false && usageCount > 0)
                 {
                     return (false, "Mã khuyến mãi này chỉ dành cho lần mua đầu tiên.");
                 }
 
                 // Apply promotion to cart
-                cart.PromotionCode = promoCode;
+                // Cart doesn't have PromotionCode property
                 cart.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 

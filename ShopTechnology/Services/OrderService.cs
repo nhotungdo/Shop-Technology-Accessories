@@ -18,36 +18,32 @@ namespace ShopTechnology.Services
         {
             return await _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.ShippingAddress)
-                .Include(o => o.BillingAddress)
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .Include(o => o.StatusHistory.OrderByDescending(sh => sh.ChangedAt))
-                .ThenInclude(sh => sh.ChangedByUser)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.OrderHistories.OrderByDescending(oh => oh.CreatedAt))
+                .ThenInclude(oh => oh.UpdatedByUser)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
         public async Task<Order?> GetOrderByNumberAsync(string orderNumber)
         {
             return await _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.ShippingAddress)
-                .Include(o => o.BillingAddress)
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .Include(o => o.StatusHistory.OrderByDescending(sh => sh.ChangedAt))
-                .ThenInclude(sh => sh.ChangedByUser)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.OrderHistories.OrderByDescending(oh => oh.CreatedAt))
+                .ThenInclude(oh => oh.UpdatedByUser)
                 .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
         }
 
         public async Task<IEnumerable<Order>> GetUserOrdersAsync(string userId)
         {
             return await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .Include(o => o.StatusHistory.OrderByDescending(sh => sh.ChangedAt))
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.OrderDate)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.OrderHistories.OrderByDescending(oh => oh.CreatedAt))
+                .Where(o => o.UserId == int.Parse(userId))
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
 
@@ -55,7 +51,7 @@ namespace ShopTechnology.Services
         {
             var query = _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.OrderItems)
+                .Include(o => o.OrderDetails)
                 .AsQueryable();
 
             // Apply filters
@@ -69,24 +65,24 @@ namespace ShopTechnology.Services
                 query = query.Where(o => o.User.Email.Contains(filter.CustomerEmail));
             }
 
-            if (filter.Status.HasValue)
+            if (!string.IsNullOrEmpty(filter.Status))
             {
-                query = query.Where(o => o.Status == filter.Status.Value);
+                query = query.Where(o => o.OrderStatus == filter.Status);
             }
 
-            if (filter.PaymentStatus.HasValue)
+            if (!string.IsNullOrEmpty(filter.PaymentStatus))
             {
-                query = query.Where(o => o.PaymentStatus == filter.PaymentStatus.Value);
+                query = query.Where(o => o.PaymentStatus == filter.PaymentStatus);
             }
 
             if (filter.StartDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate >= filter.StartDate.Value);
+                query = query.Where(o => o.CreatedAt >= filter.StartDate.Value);
             }
 
             if (filter.EndDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate <= filter.EndDate.Value);
+                query = query.Where(o => o.CreatedAt <= filter.EndDate.Value);
             }
 
             if (filter.MinAmount.HasValue)
@@ -101,7 +97,7 @@ namespace ShopTechnology.Services
 
             var totalCount = await query.CountAsync();
             var orders = await query
-                .OrderByDescending(o => o.OrderDate)
+                .OrderByDescending(o => o.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -121,79 +117,83 @@ namespace ShopTechnology.Services
             var order = new Order
             {
                 OrderNumber = await GenerateOrderNumberAsync(),
-                UserId = model.UserId,
-                ShippingAddressId = model.ShippingAddressId,
-                BillingAddressId = model.BillingAddressId,
-                Notes = model.Notes,
-                OrderDate = DateTime.UtcNow,
-                Status = OrderStatus.Pending,
-                PaymentStatus = PaymentStatus.Pending
+                UserId = int.Parse(model.UserId),
+                CustomerName = model.CustomerName,
+                CustomerEmail = model.CustomerEmail,
+                CustomerPhone = model.CustomerPhone,
+                ShippingAddress = model.ShippingAddress,
+                ShippingCity = model.ShippingCity,
+                ShippingProvince = model.ShippingProvince,
+                ShippingPostalCode = model.ShippingPostalCode,
+                OrderNotes = model.Notes,
+                CreatedAt = DateTime.UtcNow,
+                OrderStatus = "Pending",
+                PaymentStatus = "Pending"
             };
 
             // Calculate totals
             decimal subtotal = 0;
             foreach (var item in model.Items)
             {
-                var orderItem = new OrderItem
+                var orderDetail = new OrderDetail
                 {
                     ProductId = item.ProductId,
                     ProductName = item.ProductName,
-                    SKU = item.SKU,
+                    ProductSKU = item.SKU,
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice,
                     TotalPrice = item.TotalPrice,
-                    ProductImage = item.ProductImage,
-                    CreatedAt = DateTime.UtcNow
+                    ProductImage = item.ProductImage
                 };
 
-                order.OrderItems.Add(orderItem);
+                order.OrderDetails.Add(orderDetail);
                 subtotal += item.TotalPrice;
             }
 
-            order.Subtotal = subtotal;
+            order.SubTotal = subtotal;
             order.TaxAmount = subtotal * 0.1m; // 10% tax
-            order.ShippingAmount = subtotal > 200 ? 0 : 10; // Free shipping over $200
+            order.ShippingFee = subtotal > 200 ? 0 : 10; // Free shipping over $200
             order.DiscountAmount = 0; // Will be calculated if promotion is applied
-            order.TotalAmount = order.Subtotal + order.TaxAmount + order.ShippingAmount - order.DiscountAmount;
+            order.TotalAmount = order.SubTotal + order.TaxAmount + order.ShippingFee - order.DiscountAmount;
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
             // Add initial status history
-            await AddOrderStatusHistoryAsync(order.Id, OrderStatus.Pending, OrderStatus.Pending, "Order created");
+            await AddOrderHistoryAsync(order.OrderId, "Pending", "Order created");
 
             return order;
         }
 
-        public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status, string? notes = null)
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, string status, string? notes = null)
         {
             try
             {
                 var order = await _context.Orders.FindAsync(orderId);
                 if (order == null) return false;
 
-                var oldStatus = order.Status;
-                order.Status = status;
+                var oldStatus = order.OrderStatus;
+                order.OrderStatus = status;
                 // order.UpdatedAt = DateTime.UtcNow;
 
                 // Update specific dates based on status
                 switch (status)
                 {
-                    case OrderStatus.Shipped:
+                    case "Shipped":
                         order.ShippedDate = DateTime.UtcNow;
                         break;
-                    case OrderStatus.Delivered:
+                    case "Delivered":
                         order.DeliveredDate = DateTime.UtcNow;
                         break;
-                    case OrderStatus.Cancelled:
-                        order.CancelledDate = DateTime.UtcNow;
+                    case "Cancelled":
+                        // Handle cancelled status
                         break;
                 }
 
                 await _context.SaveChangesAsync();
 
                 // Add status history
-                await AddOrderStatusHistoryAsync(orderId, oldStatus, status, notes);
+                await AddOrderHistoryAsync(orderId, status, notes);
 
                 return true;
             }
@@ -205,23 +205,23 @@ namespace ShopTechnology.Services
 
         public async Task<bool> CancelOrderAsync(int orderId, string reason)
         {
-            return await UpdateOrderStatusAsync(orderId, OrderStatus.Cancelled, reason);
+            return await UpdateOrderStatusAsync(orderId, "Cancelled", reason);
         }
 
-        public async Task<bool> AddOrderStatusHistoryAsync(int orderId, OrderStatus oldStatus, OrderStatus newStatus, string? notes = null)
+        public async Task<bool> AddOrderHistoryAsync(int orderId, string status, string? notes = null)
         {
             try
             {
-                var history = new OrderStatusHistory
+                var history = new OrderHistory
                 {
                     OrderId = orderId,
-                    OldStatus = oldStatus,
-                    NewStatus = newStatus,
+                    Status = status,
                     Notes = notes,
-                    ChangedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedByUserId = 1 // TODO: Get current user ID
                 };
 
-                _context.OrderStatusHistories.Add(history);
+                _context.OrderHistories.Add(history);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -231,12 +231,12 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<IEnumerable<OrderStatusHistory>> GetOrderStatusHistoryAsync(int orderId)
+        public async Task<IEnumerable<OrderHistory>> GetOrderHistoryAsync(int orderId)
         {
-            return await _context.OrderStatusHistories
-                .Include(sh => sh.ChangedByUser)
-                .Where(sh => sh.OrderId == orderId)
-                .OrderByDescending(sh => sh.ChangedAt)
+            return await _context.OrderHistories
+                .Include(oh => oh.UpdatedByUser)
+                .Where(oh => oh.OrderId == orderId)
+                .OrderByDescending(oh => oh.CreatedAt)
                 .ToListAsync();
         }
 
@@ -259,7 +259,7 @@ namespace ShopTechnology.Services
             return orderNumber;
         }
 
-        public async Task<bool> UpdatePaymentStatusAsync(int orderId, PaymentStatus status)
+        public async Task<bool> UpdatePaymentStatusAsync(int orderId, string status)
         {
             try
             {
@@ -285,72 +285,70 @@ namespace ShopTechnology.Services
 
             return new OrderSummaryViewModel
             {
-                OrderId = order.Id,
+                OrderId = order.OrderId,
                 OrderNumber = order.OrderNumber,
-                OrderDate = order.OrderDate,
-                Status = order.Status,
+                OrderDate = order.CreatedAt,
+                Status = order.OrderStatus,
                 PaymentStatus = order.PaymentStatus,
-                CustomerName = $"{order.User.FirstName} {order.User.LastName}",
+                CustomerName = order.User.FullName,
                 CustomerEmail = order.User.Email,
-                ShippingAddress = FormatAddress(order.ShippingAddress),
-                BillingAddress = FormatAddress(order.BillingAddress),
-                Items = order.OrderItems.Select(oi => new OrderItemViewModel
+                ShippingAddress = order.ShippingAddress,
+                Items = order.OrderDetails.Select(od => new OrderItemViewModel
                 {
-                    ProductId = oi.ProductId,
-                    ProductName = oi.ProductName,
-                    SKU = oi.SKU,
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    TotalPrice = oi.TotalPrice,
-                    ProductImage = oi.ProductImage
+                    ProductId = od.ProductId,
+                    ProductName = od.ProductName,
+                    SKU = od.ProductSKU,
+                    Quantity = od.Quantity,
+                    UnitPrice = od.UnitPrice,
+                    TotalPrice = od.TotalPrice,
+                    ProductImage = od.ProductImage
                 }).ToList(),
-                Subtotal = order.Subtotal,
+                Subtotal = order.SubTotal,
                 TaxAmount = order.TaxAmount,
-                ShippingAmount = order.ShippingAmount,
+                ShippingAmount = order.ShippingFee,
                 DiscountAmount = order.DiscountAmount,
                 TotalAmount = order.TotalAmount,
                 TrackingNumber = order.TrackingNumber,
-                ShippingCarrier = order.ShippingCarrier,
-                Notes = order.Notes,
-                StatusHistory = order.StatusHistory.Select(sh => new OrderStatusHistoryViewModel
+                ShippingCarrier = order.ShippingMethod,
+                Notes = order.OrderNotes,
+                StatusHistory = order.OrderHistories.Select(oh => new OrderHistoryViewModel
                 {
-                    OldStatus = sh.OldStatus,
-                    NewStatus = sh.NewStatus,
-                    Notes = sh.Notes,
-                    ChangedByUser = sh.ChangedByUser?.UserName,
-                    ChangedAt = sh.ChangedAt
+                    Status = oh.Status,
+                    Notes = oh.Notes,
+                    UpdatedByUser = oh.UpdatedByUser != null ? oh.UpdatedByUser.FullName : null,
+                    CreatedAt = oh.CreatedAt
                 }).ToList()
             };
         }
 
-        public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
+        public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(string status)
         {
             return await _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                .Where(o => o.Status == status)
-                .OrderByDescending(o => o.OrderDate)
+                .Include(o => o.OrderDetails)
+                .Where(o => o.OrderStatus == status)
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
 
         public async Task<decimal> GetTotalRevenueAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
-                .Where(o => o.OrderDate >= startDate &&
-                           o.OrderDate <= endDate &&
-                           o.PaymentStatus == PaymentStatus.Paid)
+                .Where(o => o.CreatedAt >= startDate &&
+                           o.CreatedAt <= endDate &&
+                           o.PaymentStatus == "Paid")
                 .SumAsync(o => o.TotalAmount);
         }
 
         public async Task<int> GetOrderCountAsync(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
-                .CountAsync(o => o.OrderDate >= startDate && o.OrderDate <= endDate);
+                .CountAsync(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate);
         }
 
-        private string FormatAddress(Address address)
+        private string FormatAddress(string address)
         {
-            return $"{address.StreetAddress}, {address.City}, {address.State} {address.PostalCode}, {address.Country}";
+            return address;
         }
     }
 }

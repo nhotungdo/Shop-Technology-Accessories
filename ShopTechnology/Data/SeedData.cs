@@ -1,45 +1,46 @@
-using Microsoft.AspNetCore.Identity;
 using ShopTechnology.Models;
 
 namespace ShopTechnology.Data
 {
     public static class SeedData
     {
-        public static async Task InitializeAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public static async Task InitializeAsync(ApplicationDbContext context)
         {
             // Seed roles
-            if (!await roleManager.RoleExistsAsync("Admin"))
+            if (!context.Roles.Any())
             {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
-            }
+                var roles = new List<Role>
+                {
+                    new Role { Name = "Admin", CreatedAt = DateTime.UtcNow },
+                    new Role { Name = "User", CreatedAt = DateTime.UtcNow }
+                };
 
-            if (!await roleManager.RoleExistsAsync("User"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("User"));
+                context.Roles.AddRange(roles);
+                await context.SaveChangesAsync();
             }
 
             // Seed admin user
-            var adminEmail = "admin@shoptechnology.com";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            var adminEmail = "donhotung2004@gmail.com";
+            var adminUser = context.Users.FirstOrDefault(u => u.Email == adminEmail);
 
             if (adminUser == null)
             {
-                adminUser = new ApplicationUser
+                var adminRole = context.Roles.FirstOrDefault(r => r.Name == "Admin");
+                adminUser = new User
                 {
-                    UserName = adminEmail,
+                    RoleId = adminRole?.RoleId ?? 1,
+                    FullName = "Admin",
                     Email = adminEmail,
-                    FirstName = "Admin",
-                    LastName = "User",
-                    EmailConfirmed = true,
-                    PhoneNumberConfirmed = true,
-                    IsActive = true
+                    PhoneNumber = "0931982568",
+                    Password = "Donhotung2004", // In real app, this should be hashed
+                    DateOfBirth = new DateTime(1990, 1, 1),
+                    IsEmailVerified = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await userManager.CreateAsync(adminUser, "Admin123!");
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
-                }
+                context.Users.Add(adminUser);
+                await context.SaveChangesAsync();
             }
 
             // Seed categories
@@ -49,184 +50,136 @@ namespace ShopTechnology.Data
                 {
                     new Category
                     {
-                        Name = "Laptops",
-                        Description = "High-performance laptops for work and gaming",
-                        Slug = "laptops",
+                        Name = "Sạc",
+                        Description = "Sạc điện thoại, laptop, tablet",
+                        Slug = "sac",
                         DisplayOrder = 1,
                         IsActive = true,
-                        MetaTitle = "Laptops - Shop Technology",
-                        MetaDescription = "Find the best laptops for your needs"
+                        IsFeatured = true,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Category
                     {
-                        Name = "Smartphones",
-                        Description = "Latest smartphones with advanced features",
-                        Slug = "smartphones",
+                        Name = "Tai nghe",
+                        Description = "Tai nghe có dây, không dây",
+                        Slug = "tai-nghe",
                         DisplayOrder = 2,
                         IsActive = true,
-                        MetaTitle = "Smartphones - Shop Technology",
-                        MetaDescription = "Discover the latest smartphones"
+                        IsFeatured = true,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Category
                     {
-                        Name = "Accessories",
-                        Description = "Essential tech accessories",
-                        Slug = "accessories",
+                        Name = "Ốp lưng",
+                        Description = "Ốp bảo vệ cho điện thoại, tablet",
+                        Slug = "op-lung",
                         DisplayOrder = 3,
                         IsActive = true,
-                        MetaTitle = "Tech Accessories - Shop Technology",
-                        MetaDescription = "Quality tech accessories for all devices"
+                        IsFeatured = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Category
+                    {
+                        Name = "Bàn phím",
+                        Description = "Bàn phím cơ, bàn phím không dây",
+                        Slug = "ban-phim",
+                        DisplayOrder = 4,
+                        IsActive = true,
+                        IsFeatured = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Category
+                    {
+                        Name = "Chuột",
+                        Description = "Chuột gaming, chuột văn phòng",
+                        Slug = "chuot",
+                        DisplayOrder = 5,
+                        IsActive = true,
+                        IsFeatured = false,
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 
                 context.Categories.AddRange(categories);
-                await context.SaveChangesAsync();
-
-                // Add subcategories
-                var laptopCategory = categories[0];
-                var smartphoneCategory = categories[1];
-
-                var subCategories = new List<Category>
-                {
-                    new Category
-                    {
-                        Name = "Gaming Laptops",
-                        Description = "High-performance gaming laptops",
-                        Slug = "gaming-laptops",
-                        ParentId = laptopCategory.Id,
-                        DisplayOrder = 1,
-                        IsActive = true
-                    },
-                    new Category
-                    {
-                        Name = "Business Laptops",
-                        Description = "Professional business laptops",
-                        Slug = "business-laptops",
-                        ParentId = laptopCategory.Id,
-                        DisplayOrder = 2,
-                        IsActive = true
-                    },
-                    new Category
-                    {
-                        Name = "Android Phones",
-                        Description = "Android smartphones",
-                        Slug = "android-phones",
-                        ParentId = smartphoneCategory.Id,
-                        DisplayOrder = 1,
-                        IsActive = true
-                    },
-                    new Category
-                    {
-                        Name = "iPhone",
-                        Description = "Apple iPhone smartphones",
-                        Slug = "iphone",
-                        ParentId = smartphoneCategory.Id,
-                        DisplayOrder = 2,
-                        IsActive = true
-                    }
-                };
-
-                context.Categories.AddRange(subCategories);
                 await context.SaveChangesAsync();
             }
 
             // Seed products
             if (!context.Products.Any())
             {
-                var gamingLaptopCategory = context.Categories.FirstOrDefault(c => c.Slug == "gaming-laptops");
-                var businessLaptopCategory = context.Categories.FirstOrDefault(c => c.Slug == "business-laptops");
-                var androidCategory = context.Categories.FirstOrDefault(c => c.Slug == "android-phones");
-                var iphoneCategory = context.Categories.FirstOrDefault(c => c.Slug == "iphone");
+                var sacCategory = context.Categories.FirstOrDefault(c => c.Slug == "sac");
+                var taiNgheCategory = context.Categories.FirstOrDefault(c => c.Slug == "tai-nghe");
+                var banPhimCategory = context.Categories.FirstOrDefault(c => c.Slug == "ban-phim");
 
                 var products = new List<Product>
                 {
                     new Product
                     {
-                        Name = "Gaming Laptop Pro X",
-                        Description = "High-performance gaming laptop with RTX 4080",
-                        LongDescription = "Experience ultimate gaming performance with our Gaming Laptop Pro X. Featuring the latest RTX 4080 graphics card, 32GB RAM, and 1TB NVMe SSD.",
-                        SKU = "GLP-X-001",
-                        Price = 2999.99m,
-                        CompareAtPrice = 3499.99m,
-                        StockQuantity = 50,
-                        CategoryId = gamingLaptopCategory?.Id ?? 1,
-                        Brand = "TechPro",
-                        Model = "GLP-X",
-                        Slug = "gaming-laptop-pro-x",
-                        Weight = 2.5m,
-                        Length = 35.5m,
-                        Width = 24.5m,
-                        Height = 2.2m,
+                        Name = "Bộ chuyển đổi USB-C",
+                        Description = "Bộ chuyển đổi USB-C đa cổng với HDMI, USB 3.0 và Ethernet",
+                        Price = 49.99m,
+                        OriginalPrice = 59.99m,
+                        Brand = "UGreen",
+                        Model = "USB-C Hub",
+                        SKU = "UG-USB-C-001",
+                        StockQuantity = 150,
+                        CategoryId = sacCategory?.CategoryId ?? 1,
+                        MainImage = "https://viethansecurity.com/media/product/9507_bo_chuyen_doi_ugreen_40873_cm179.jpg",
                         IsActive = true,
                         IsFeatured = true,
-                        IsNew = true,
-                        IsHot = true,
-                        MetaTitle = "Gaming Laptop Pro X - Shop Technology",
-                        MetaDescription = "High-performance gaming laptop with RTX 4080"
+                        Slug = "bo-chuyen-doi-usb-c",
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Product
                     {
-                        Name = "Business UltraBook",
-                        Description = "Professional business laptop for productivity",
-                        LongDescription = "Perfect for business professionals. Lightweight, powerful, and secure with enterprise-grade security features.",
-                        SKU = "BUL-001",
-                        Price = 1299.99m,
-                        StockQuantity = 75,
-                        CategoryId = businessLaptopCategory?.Id ?? 1,
-                        Brand = "BusinessTech",
-                        Model = "UltraBook",
-                        Slug = "business-ultrabook",
-                        Weight = 1.8m,
-                        Length = 32.0m,
-                        Width = 22.0m,
-                        Height = 1.5m,
+                        Name = "Đế sạc không dây",
+                        Description = "Đế sạc không dây tốc độ cao tương thích với các thiết bị hỗ trợ Qi",
+                        Price = 29.99m,
+                        OriginalPrice = 39.99m,
+                        Brand = "Anker",
+                        Model = "Wireless Charger",
+                        SKU = "ANK-WIRELESS-001",
+                        StockQuantity = 200,
+                        CategoryId = sacCategory?.CategoryId ?? 1,
+                        MainImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoaacgNWVoXN3W-mMdzeDdt7HZ6_QbiiDgqLgLcJYEwzRRipOE5qIyNyvgo5CxgjvqZgI&usqp=CAU",
                         IsActive = true,
                         IsFeatured = true,
-                        MetaTitle = "Business UltraBook - Shop Technology",
-                        MetaDescription = "Professional business laptop for productivity"
+                        Slug = "de-sac-khong-day",
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Product
                     {
-                        Name = "Android Galaxy Pro",
-                        Description = "Latest Android smartphone with advanced camera",
-                        LongDescription = "Capture stunning photos with the 108MP camera system. 5G ready with 256GB storage.",
-                        SKU = "AGP-001",
-                        Price = 899.99m,
+                        Name = "Bàn phím Bluetooth",
+                        Description = "Bàn phím không dây nhỏ gọn với đèn nền",
+                        Price = 59.99m,
+                        OriginalPrice = 69.99m,
+                        Brand = "Logitech",
+                        Model = "BT Keyboard",
+                        SKU = "LOG-BT-KB-001",
                         StockQuantity = 100,
-                        CategoryId = androidCategory?.Id ?? 2,
-                        Brand = "Android",
-                        Model = "Galaxy Pro",
-                        Slug = "android-galaxy-pro",
-                        Weight = 0.2m,
-                        Length = 16.5m,
-                        Width = 7.5m,
-                        Height = 0.8m,
+                        CategoryId = banPhimCategory?.CategoryId ?? 4,
+                        MainImage = "https://cohotech.vn/wp-content/uploads/2025/05/NuPhy-Air75-V2-va-NuPhy-Air96-V2-2.webp",
                         IsActive = true,
-                        IsNew = true,
-                        MetaTitle = "Android Galaxy Pro - Shop Technology",
-                        MetaDescription = "Latest Android smartphone with advanced camera"
+                        IsFeatured = true,
+                        Slug = "ban-phim-bluetooth",
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Product
                     {
-                        Name = "iPhone 15 Pro",
-                        Description = "Apple's latest flagship smartphone",
-                        LongDescription = "Experience the future with iPhone 15 Pro. A17 Pro chip, titanium design, and advanced camera system.",
-                        SKU = "IP15P-001",
-                        Price = 1199.99m,
-                        StockQuantity = 60,
-                        CategoryId = iphoneCategory?.Id ?? 2,
-                        Brand = "Apple",
-                        Model = "iPhone 15 Pro",
-                        Slug = "iphone-15-pro",
-                        Weight = 0.187m,
-                        Length = 14.7m,
-                        Width = 7.1m,
-                        Height = 0.8m,
+                        Name = "Tai nghe khử tiếng ồn",
+                        Description = "Tai nghe không dây với công nghệ khử tiếng ồn chủ động",
+                        Price = 79.99m,
+                        OriginalPrice = 99.99m,
+                        Brand = "Sony",
+                        Model = "NC Headphones",
+                        SKU = "SONY-NC-001",
+                        StockQuantity = 120,
+                        CategoryId = taiNgheCategory?.CategoryId ?? 2,
+                        MainImage = "https://tainghe.com.vn/media/news/697_noisecancellingheadphones_1280_1519236823944_1280w.jpg",
                         IsActive = true,
                         IsFeatured = true,
-                        IsHot = true,
-                        MetaTitle = "iPhone 15 Pro - Shop Technology",
-                        MetaDescription = "Apple's latest flagship smartphone"
+                        Slug = "tai-nghe-khu-tieng-on",
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 
@@ -238,74 +191,47 @@ namespace ShopTechnology.Data
                 {
                     new ProductImage
                     {
-                        ProductId = products[0].Id,
-                        ImageUrl = "/img/products/gaming-laptop-1.jpg",
-                        AltText = "Gaming Laptop Pro X",
+                        ProductId = products[0].ProductId,
+                        ImageUrl = "https://viethansecurity.com/media/product/9507_bo_chuyen_doi_ugreen_40873_cm179.jpg",
+                        IsMain = true,
                         DisplayOrder = 1,
-                        IsMain = true
+                        CreatedAt = DateTime.UtcNow
                     },
                     new ProductImage
                     {
-                        ProductId = products[1].Id,
-                        ImageUrl = "/img/products/business-laptop-1.jpg",
-                        AltText = "Business UltraBook",
-                        DisplayOrder = 1,
-                        IsMain = true
+                        ProductId = products[0].ProductId,
+                        ImageUrl = "https://www.tnc.com.vn/uploads/product/duyen2021/cable-usb-c-ugreen-40873.jpg",
+                        IsMain = false,
+                        DisplayOrder = 2,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new ProductImage
                     {
-                        ProductId = products[2].Id,
-                        ImageUrl = "/img/products/android-phone-1.jpg",
-                        AltText = "Android Galaxy Pro",
+                        ProductId = products[1].ProductId,
+                        ImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoaacgNWVoXN3W-mMdzeDdt7HZ6_QbiiDgqLgLcJYEwzRRipOE5qIyNyvgo5CxgjvqZgI&usqp=CAU",
+                        IsMain = true,
                         DisplayOrder = 1,
-                        IsMain = true
+                        CreatedAt = DateTime.UtcNow
                     },
                     new ProductImage
                     {
-                        ProductId = products[3].Id,
-                        ImageUrl = "/img/products/iphone-15-pro-1.jpg",
-                        AltText = "iPhone 15 Pro",
+                        ProductId = products[2].ProductId,
+                        ImageUrl = "https://cohotech.vn/wp-content/uploads/2025/05/NuPhy-Air75-V2-va-NuPhy-Air96-V2-2.webp",
+                        IsMain = true,
                         DisplayOrder = 1,
-                        IsMain = true
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ProductImage
+                    {
+                        ProductId = products[3].ProductId,
+                        ImageUrl = "https://tainghe.com.vn/media/news/697_noisecancellingheadphones_1280_1519236823944_1280w.jpg",
+                        IsMain = true,
+                        DisplayOrder = 1,
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 
                 context.ProductImages.AddRange(productImages);
-                await context.SaveChangesAsync();
-
-                // Add product specifications
-                var specifications = new List<ProductSpecification>
-                {
-                    // Gaming Laptop specs
-                    new ProductSpecification { ProductId = products[0].Id, Name = "Processor", Value = "Intel Core i9-13900H", DisplayOrder = 1, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[0].Id, Name = "Graphics", Value = "NVIDIA RTX 4080 16GB", DisplayOrder = 2, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[0].Id, Name = "RAM", Value = "32GB DDR5", DisplayOrder = 3 },
-                    new ProductSpecification { ProductId = products[0].Id, Name = "Storage", Value = "1TB NVMe SSD", DisplayOrder = 4 },
-                    new ProductSpecification { ProductId = products[0].Id, Name = "Display", Value = "15.6\" 4K OLED", DisplayOrder = 5 },
-
-                    // Business Laptop specs
-                    new ProductSpecification { ProductId = products[1].Id, Name = "Processor", Value = "Intel Core i7-1370P", DisplayOrder = 1, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[1].Id, Name = "Graphics", Value = "Intel Iris Xe", DisplayOrder = 2 },
-                    new ProductSpecification { ProductId = products[1].Id, Name = "RAM", Value = "16GB LPDDR5", DisplayOrder = 3 },
-                    new ProductSpecification { ProductId = products[1].Id, Name = "Storage", Value = "512GB NVMe SSD", DisplayOrder = 4 },
-                    new ProductSpecification { ProductId = products[1].Id, Name = "Display", Value = "14\" 2K IPS", DisplayOrder = 5 },
-
-                    // Android Phone specs
-                    new ProductSpecification { ProductId = products[2].Id, Name = "Processor", Value = "Snapdragon 8 Gen 2", DisplayOrder = 1, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[2].Id, Name = "Camera", Value = "108MP + 12MP + 10MP", DisplayOrder = 2, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[2].Id, Name = "RAM", Value = "12GB", DisplayOrder = 3 },
-                    new ProductSpecification { ProductId = products[2].Id, Name = "Storage", Value = "256GB", DisplayOrder = 4 },
-                    new ProductSpecification { ProductId = products[2].Id, Name = "Display", Value = "6.7\" AMOLED 120Hz", DisplayOrder = 5 },
-
-                    // iPhone specs
-                    new ProductSpecification { ProductId = products[3].Id, Name = "Processor", Value = "A17 Pro", DisplayOrder = 1, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[3].Id, Name = "Camera", Value = "48MP + 12MP + 12MP", DisplayOrder = 2, IsHighlighted = true },
-                    new ProductSpecification { ProductId = products[3].Id, Name = "RAM", Value = "8GB", DisplayOrder = 3 },
-                    new ProductSpecification { ProductId = products[3].Id, Name = "Storage", Value = "256GB", DisplayOrder = 4 },
-                    new ProductSpecification { ProductId = products[3].Id, Name = "Display", Value = "6.1\" Super Retina XDR", DisplayOrder = 5 }
-                };
-
-                context.ProductSpecifications.AddRange(specifications);
                 await context.SaveChangesAsync();
             }
 
@@ -316,23 +242,23 @@ namespace ShopTechnology.Data
                 {
                     new Banner
                     {
-                        Title = "New Gaming Laptops",
-                        Description = "Discover the latest gaming laptops with RTX 4080",
-                        ImageUrl = "/img/banners/gaming-banner.jpg",
-                        LinkUrl = "/products?category=gaming-laptops",
-                        ButtonText = "Shop Now",
+                        Title = "Khuyến mãi mùa hè",
+                        ImageUrl = "https://img.freepik.com/free-vector/special-offer-modern-sale-banner_1017-20667.jpg",
+                        LinkUrl = "/promotions",
+                        Position = "Home",
                         DisplayOrder = 1,
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Banner
                     {
-                        Title = "iPhone 15 Pro",
-                        Description = "Experience the future with iPhone 15 Pro",
-                        ImageUrl = "/img/banners/iphone-banner.jpg",
-                        LinkUrl = "/products?category=iphone",
-                        ButtonText = "Learn More",
+                        Title = "Sản phẩm mới",
+                        ImageUrl = "https://img.freepik.com/free-vector/gradient-sale-background_23-2148934475.jpg",
+                        LinkUrl = "/products/new",
+                        Position = "Home",
                         DisplayOrder = 2,
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 
@@ -347,27 +273,30 @@ namespace ShopTechnology.Data
                 {
                     new FAQ
                     {
-                        Question = "How do I track my order?",
-                        Answer = "You can track your order by logging into your account and visiting the 'My Orders' section. You'll receive tracking updates via email as well.",
-                        Category = "Shipping",
+                        Question = "Làm thế nào để đặt hàng?",
+                        Answer = "Bạn có thể đặt hàng bằng cách thêm sản phẩm vào giỏ hàng và tiến hành thanh toán.",
+                        Category = "Đặt hàng",
                         DisplayOrder = 1,
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new FAQ
                     {
-                        Question = "What payment methods do you accept?",
-                        Answer = "We accept credit cards, debit cards, bank transfers, and various e-wallets including VNPay, Momo, and ZaloPay.",
-                        Category = "Payment",
+                        Question = "Thời gian giao hàng là bao lâu?",
+                        Answer = "Thời gian giao hàng từ 1-3 ngày làm việc tùy thuộc vào địa chỉ giao hàng.",
+                        Category = "Giao hàng",
                         DisplayOrder = 2,
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new FAQ
                     {
-                        Question = "Do you offer warranty on products?",
-                        Answer = "Yes, all our products come with manufacturer warranty. The warranty period varies by product and brand.",
-                        Category = "Warranty",
+                        Question = "Có thể đổi trả sản phẩm không?",
+                        Answer = "Có, bạn có thể đổi trả sản phẩm trong vòng 30 ngày kể từ ngày nhận hàng.",
+                        Category = "Đổi trả",
                         DisplayOrder = 3,
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 
@@ -382,30 +311,35 @@ namespace ShopTechnology.Data
                 {
                     new Promotion
                     {
-                        Name = "Welcome Discount",
-                        Description = "Get 10% off your first order",
+                        Name = "Chào mừng khách hàng mới",
+                        Description = "Giảm 10% cho đơn hàng đầu tiên",
                         Code = "WELCOME10",
-                        Type = PromotionType.Percentage,
-                        Value = 10,
-                        MinimumOrderAmount = 100,
-                        MaximumDiscountAmount = 50,
+                        DiscountType = "Percentage",
+                        DiscountValue = 10.00m,
+                        MinimumOrderAmount = 100000m,
+                        MaximumDiscountAmount = 50000m,
                         UsageLimit = 1,
                         StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddYears(1),
+                        EndDate = DateTime.UtcNow.AddMonths(6),
                         IsActive = true,
-                        IsFirstTimeOnly = true
+                        IsPublic = true,
+                        CreatedAt = DateTime.UtcNow
                     },
                     new Promotion
                     {
-                        Name = "Free Shipping",
-                        Description = "Free shipping on orders over $200",
+                        Name = "Miễn phí vận chuyển",
+                        Description = "Miễn phí vận chuyển cho đơn hàng từ 300k",
                         Code = "FREESHIP",
-                        Type = PromotionType.FreeShipping,
-                        Value = 0,
-                        MinimumOrderAmount = 200,
+                        DiscountType = "FixedAmount",
+                        DiscountValue = 50000m,
+                        MinimumOrderAmount = 300000m,
+                        MaximumDiscountAmount = 50000m,
+                        UsageLimit = 50,
                         StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddYears(1),
-                        IsActive = true
+                        EndDate = DateTime.UtcNow.AddMonths(2),
+                        IsActive = true,
+                        IsPublic = true,
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 

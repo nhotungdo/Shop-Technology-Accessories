@@ -17,13 +17,8 @@ namespace ShopTechnology.Services
         {
             var query = _context.Reviews
                 .Include(r => r.User)
-                .Include(r => r.Images)
+                .Include(r => r.ReviewImages)
                 .Where(r => r.ProductId == productId);
-
-            if (approvedOnly)
-            {
-                query = query.Where(r => r.IsApproved);
-            }
 
             return await query
                 .OrderByDescending(r => r.CreatedAt)
@@ -34,8 +29,8 @@ namespace ShopTechnology.Services
         {
             return await _context.Reviews
                 .Include(r => r.User)
-                .Include(r => r.Images)
-                .FirstOrDefaultAsync(r => r.Id == reviewId);
+                .Include(r => r.ReviewImages)
+                .FirstOrDefaultAsync(r => r.ReviewId == reviewId);
         }
 
         public async Task<bool> CreateReviewAsync(Review review)
@@ -43,7 +38,6 @@ namespace ShopTechnology.Services
             try
             {
                 review.CreatedAt = DateTime.UtcNow;
-                review.IsApproved = false; // Default to pending approval
                 _context.Reviews.Add(review);
                 await _context.SaveChangesAsync();
                 return true;
@@ -93,7 +87,6 @@ namespace ShopTechnology.Services
                 var review = await _context.Reviews.FindAsync(reviewId);
                 if (review == null) return false;
 
-                review.IsApproved = true;
                 review.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return true;
@@ -111,7 +104,6 @@ namespace ShopTechnology.Services
                 var review = await _context.Reviews.FindAsync(reviewId);
                 if (review == null) return false;
 
-                review.IsApproved = false;
                 review.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return true;
@@ -125,7 +117,7 @@ namespace ShopTechnology.Services
         public async Task<decimal> GetAverageRatingAsync(int productId)
         {
             var average = await _context.Reviews
-                .Where(r => r.ProductId == productId && r.IsApproved)
+                .Where(r => r.ProductId == productId)
                 .AverageAsync(r => r.Rating);
             return Math.Round((decimal)average, 1);
         }
@@ -133,14 +125,14 @@ namespace ShopTechnology.Services
         public async Task<int> GetReviewCountAsync(int productId)
         {
             return await _context.Reviews
-                .CountAsync(r => r.ProductId == productId && r.IsApproved);
+                .CountAsync(r => r.ProductId == productId);
         }
 
         public async Task<IEnumerable<Review>> GetUserReviewsAsync(string userId)
         {
             return await _context.Reviews
-                .Include(r => r.Images)
-                .Where(r => r.UserId == userId)
+                .Include(r => r.ReviewImages)
+                .Where(r => r.UserId == int.Parse(userId))
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
         }
@@ -152,7 +144,6 @@ namespace ShopTechnology.Services
                 var review = await _context.Reviews.FindAsync(reviewId);
                 if (review == null) return false;
 
-                review.HelpfulCount++;
                 review.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return true;
@@ -165,10 +156,10 @@ namespace ShopTechnology.Services
 
         public async Task<bool> IsUserVerifiedPurchaseAsync(string userId, int productId)
         {
-            return await _context.OrderItems
-                .AnyAsync(oi => oi.Order.UserId == userId && 
-                               oi.ProductId == productId && 
-                               oi.Order.Status == OrderStatus.Delivered);
+            return await _context.OrderDetails
+                .AnyAsync(od => od.Order.UserId == int.Parse(userId) &&
+                               od.ProductId == productId &&
+                               od.Order.OrderStatus == "Delivered");
         }
 
         public async Task<IEnumerable<Review>> GetPendingReviewsAsync()
@@ -176,7 +167,6 @@ namespace ShopTechnology.Services
             return await _context.Reviews
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                .Where(r => !r.IsApproved)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
         }

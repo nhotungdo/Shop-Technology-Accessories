@@ -20,10 +20,7 @@ namespace ShopTechnology.Services
         Task<IEnumerable<ProductImage>> GetProductImagesAsync(int productId);
         Task<bool> AddProductImageAsync(ProductImage image);
         Task<bool> RemoveProductImageAsync(int imageId);
-        Task<IEnumerable<ProductSpecification>> GetProductSpecificationsAsync(int productId);
-        Task<bool> AddProductSpecificationAsync(ProductSpecification specification);
-        Task<bool> UpdateProductSpecificationAsync(ProductSpecification specification);
-        Task<bool> RemoveProductSpecificationAsync(int specificationId);
+
         Task<decimal> GetAverageRatingAsync(int productId);
         Task<int> GetReviewCountAsync(int productId);
         Task<bool> IncrementViewCountAsync(int productId);

@@ -1,30 +1,28 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class ProductImage
     {
-        public int Id { get; set; }
+        [Key]
+        public int ProductImageId { get; set; }
 
+        [Required]
         public int ProductId { get; set; }
 
         [Required]
-        [MaxLength(500)]
+        [MaxLength(255)]
         public string ImageUrl { get; set; } = string.Empty;
 
-        [MaxLength(200)]
-        public string? AltText { get; set; }
-
-        [MaxLength(200)]
-        public string? Title { get; set; }
+        public bool IsMain { get; set; } = false;
 
         public int DisplayOrder { get; set; } = 0;
-
-        public bool IsMain { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation property
+        [ForeignKey("ProductId")]
         public virtual Product Product { get; set; } = null!;
     }
 }

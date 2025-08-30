@@ -1,25 +1,24 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class ReviewImage
     {
-        public int Id { get; set; }
+        [Key]
+        public int ReviewImageId { get; set; }
 
+        [Required]
         public int ReviewId { get; set; }
 
         [Required]
-        [MaxLength(500)]
+        [MaxLength(255)]
         public string ImageUrl { get; set; } = string.Empty;
-
-        [MaxLength(200)]
-        public string? AltText { get; set; }
-
-        public int DisplayOrder { get; set; } = 0;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation property
+        [ForeignKey("ReviewId")]
         public virtual Review Review { get; set; } = null!;
     }
 }

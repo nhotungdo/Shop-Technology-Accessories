@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Promotion
     {
-        public int Id { get; set; }
+        [Key]
+        public int PromotionId { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -13,13 +15,14 @@ namespace ShopTechnology.Models
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        [Required]
         [MaxLength(50)]
-        public string Code { get; set; } = string.Empty;
+        public string? Code { get; set; }
 
-        public PromotionType Type { get; set; }
+        [Required]
+        [MaxLength(20)]
+        public string DiscountType { get; set; } = "Percentage";
 
-        public decimal Value { get; set; } // Percentage or fixed amount
+        public decimal DiscountValue { get; set; }
 
         public decimal? MinimumOrderAmount { get; set; }
 
@@ -29,15 +32,16 @@ namespace ShopTechnology.Models
 
         public int UsedCount { get; set; } = 0;
 
-        public int? MaxUsagePerUser { get; set; }
-
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
 
         public bool IsActive { get; set; } = true;
 
-        public bool IsFirstTimeOnly { get; set; } = false;
+        public bool IsPublic { get; set; } = true;
+
+        [MaxLength(255)]
+        public string? ImageUrl { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -45,13 +49,5 @@ namespace ShopTechnology.Models
 
         // Navigation properties
         public virtual ICollection<ProductPromotion> ProductPromotions { get; set; } = new List<ProductPromotion>();
-        public virtual ICollection<PromotionUsage> Usages { get; set; } = new List<PromotionUsage>();
-    }
-
-    public enum PromotionType
-    {
-        Percentage,
-        FixedAmount,
-        FreeShipping
     }
 }

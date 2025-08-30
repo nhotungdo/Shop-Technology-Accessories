@@ -1,82 +1,90 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Order
     {
-        public int Id { get; set; }
+        [Key]
+        public int OrderId { get; set; }
 
         [Required]
         [MaxLength(50)]
         public string OrderNumber { get; set; } = string.Empty;
 
-        public string UserId { get; set; } = string.Empty;
+        [Required]
+        public int UserId { get; set; }
 
-        public int ShippingAddressId { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public string CustomerName { get; set; } = string.Empty;
 
-        public int BillingAddressId { get; set; }
+        [Required]
+        [MaxLength(150)]
+        public string CustomerEmail { get; set; } = string.Empty;
 
-        public decimal Subtotal { get; set; }
+        [Required]
+        [MaxLength(20)]
+        public string CustomerPhone { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(255)]
+        public string ShippingAddress { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string? ShippingCity { get; set; }
+
+        [MaxLength(100)]
+        public string? ShippingProvince { get; set; }
+
+        [MaxLength(20)]
+        public string? ShippingPostalCode { get; set; }
+
+        [MaxLength(500)]
+        public string? OrderNotes { get; set; }
+
+        public decimal SubTotal { get; set; }
 
         public decimal TaxAmount { get; set; }
 
-        public decimal ShippingAmount { get; set; }
+        public decimal ShippingFee { get; set; }
 
         public decimal DiscountAmount { get; set; }
 
         public decimal TotalAmount { get; set; }
 
-        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        [Required]
+        [MaxLength(50)]
+        public string OrderStatus { get; set; } = "Pending";
 
-        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+        [Required]
+        [MaxLength(50)]
+        public string PaymentStatus { get; set; } = "Pending";
 
         [MaxLength(50)]
         public string? PaymentMethod { get; set; }
 
         [MaxLength(100)]
-        public string? TransactionId { get; set; }
+        public string? TrackingNumber { get; set; }
 
-        [MaxLength(500)]
-        public string? Notes { get; set; }
+        [MaxLength(100)]
+        public string? ShippingMethod { get; set; }
 
-        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+        public DateTime? EstimatedDeliveryDate { get; set; }
 
         public DateTime? ShippedDate { get; set; }
 
         public DateTime? DeliveredDate { get; set; }
 
-        public DateTime? CancelledDate { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [MaxLength(100)]
-        public string? TrackingNumber { get; set; }
-
-        [MaxLength(200)]
-        public string? ShippingCarrier { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual ApplicationUser User { get; set; } = null!;
-        public virtual Address ShippingAddress { get; set; } = null!;
-        public virtual Address BillingAddress { get; set; } = null!;
-        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-        public virtual ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();
-    }
-
-    public enum OrderStatus
-    {
-        Pending,
-        Processing,
-        Shipped,
-        Delivered,
-        Cancelled,
-        Refunded
-    }
-
-    public enum PaymentStatus
-    {
-        Pending,
-        Paid,
-        Failed,
-        Refunded,
-        PartiallyRefunded
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; } = null!;
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public virtual ICollection<OrderHistory> OrderHistories { get; set; } = new List<OrderHistory>();
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }

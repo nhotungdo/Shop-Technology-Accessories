@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopTechnology.Services;
-using ShopTechnology.ViewModels;
+using ShopTechnology.Models;
+using System.Linq;
 
 namespace ShopTechnology.Controllers
 {
@@ -22,90 +23,38 @@ namespace ShopTechnology.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var featuredProducts = await _productService.GetFeaturedProductsAsync();
-            var newProducts = await _productService.GetNewProductsAsync();
-            var hotProducts = await _productService.GetHotProductsAsync();
+            // Lấy dữ liệu từ database sử dụng Models
+            var featuredProducts = await _productService.GetFeaturedProductsAsync(8);
+            var newProducts = await _productService.GetNewProductsAsync(8);
+            var hotProducts = await _productService.GetHotProductsAsync(8);
             var categories = await _categoryService.GetActiveCategoriesAsync();
             var banners = await _bannerService.GetActiveBannersAsync();
 
+            // Tạo HomeViewModel sử dụng Models
             var viewModel = new HomeViewModel
             {
-                FeaturedProducts = featuredProducts.Select(p => new FeaturedProductViewModel
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    CompareAtPrice = p.CompareAtPrice,
-                    ImageUrl = p.Images.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? string.Empty,
-                    Slug = p.Slug,
-                    AverageRating = (decimal)p.Reviews.Where(r => r.IsApproved).Average(r => r.Rating),
-                    ReviewCount = p.Reviews.Count(r => r.IsApproved),
-                    CategoryName = p.Category?.Name ?? string.Empty,
-                    IsNew = p.IsNew,
-                    IsHot = p.IsHot,
-                    IsOnSale = p.IsOnSale
-                }).ToList(),
-                NewProducts = newProducts.Select(p => new NewProductViewModel
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    CompareAtPrice = p.CompareAtPrice,
-                    ImageUrl = p.Images.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? string.Empty,
-                    Slug = p.Slug,
-                    AverageRating = (decimal)p.Reviews.Where(r => r.IsApproved).Average(r => r.Rating),
-                    ReviewCount = p.Reviews.Count(r => r.IsApproved),
-                    CategoryName = p.Category?.Name ?? string.Empty,
-                    IsNew = p.IsNew,
-                    IsHot = p.IsHot,
-                    IsOnSale = p.IsOnSale
-                }).ToList(),
-                HotProducts = hotProducts.Select(p => new HotProductViewModel
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    CompareAtPrice = p.CompareAtPrice,
-                    ImageUrl = p.Images.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? string.Empty,
-                    Slug = p.Slug,
-                    AverageRating = (decimal)p.Reviews.Where(r => r.IsApproved).Average(r => r.Rating),
-                    ReviewCount = p.Reviews.Count(r => r.IsApproved),
-                    CategoryName = p.Category?.Name ?? string.Empty,
-                    IsNew = p.IsNew,
-                    IsHot = p.IsHot,
-                    IsOnSale = p.IsOnSale
-                }).ToList(),
-                Categories = categories.Select(c => new CategoryViewModel
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    ImageUrl = c.ImageUrl,
-                    Slug = c.Slug,
-                    ProductCount = c.Products?.Count ?? 0,
-                    Children = c.Children?.Select(child => new CategoryViewModel
-                    {
-                        Id = child.Id,
-                        Name = child.Name,
-                        Description = child.Description,
-                        ImageUrl = child.ImageUrl,
-                        Slug = child.Slug,
-                        ProductCount = child.Products?.Count ?? 0
-                    }).ToList() ?? new List<CategoryViewModel>()
-                }).ToList(),
-                Banners = banners.Select(b => new BannerViewModel
-                {
-                    Id = b.Id,
-                    Title = b.Title,
-                    Description = b.Description,
-                    ImageUrl = b.ImageUrl,
-                    LinkUrl = b.LinkUrl,
-                    ButtonText = b.ButtonText,
-                    DisplayOrder = b.DisplayOrder
-                }).ToList()
+                // Sản phẩm nổi bật
+                FeaturedProducts = featuredProducts.ToList(),
+
+                // Sản phẩm mới
+                NewProducts = newProducts.ToList(),
+
+                // Sản phẩm hot
+                HotProducts = hotProducts.ToList(),
+
+                // Danh mục sản phẩm
+                Categories = categories.ToList(),
+
+                // Banners
+                Banners = banners.ToList(),
+
+                // Legacy properties cho backward compatibility
+                HeroProducts = featuredProducts.Take(4).ToList(),
+                BestSellers = hotProducts.Take(4).ToList(),
+                NewArrivals = newProducts.Take(4).ToList(),
+                PromotionalProducts = featuredProducts.Where(p => p.Price < 1000000).Take(4).ToList(),
+                RecommendedProducts = featuredProducts.Take(4).ToList(),
+                LatestProducts = newProducts.ToList()
             };
 
             return View(viewModel);

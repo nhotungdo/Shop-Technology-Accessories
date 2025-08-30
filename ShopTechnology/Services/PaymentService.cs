@@ -22,8 +22,7 @@ namespace ShopTechnology.Services
                 TransactionId = transactionId,
                 PaymentMethod = paymentMethod,
                 Amount = amount,
-                Status = PaymentStatus.Pending,
-                Currency = "VND",
+                Status = "Pending",
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -33,7 +32,7 @@ namespace ShopTechnology.Services
             return payment;
         }
 
-        public async Task<bool> ProcessPaymentAsync(string transactionId, PaymentStatus status, string? gatewayResponse = null)
+        public async Task<bool> ProcessPaymentAsync(string transactionId, string status, string? gatewayResponse = null)
         {
             try
             {
@@ -41,15 +40,15 @@ namespace ShopTechnology.Services
                 if (payment == null) return false;
 
                 payment.Status = status;
-                payment.GatewayResponse = gatewayResponse;
+                payment.UpdatedAt = DateTime.UtcNow;
 
-                if (status == PaymentStatus.Paid)
+                if (status == "Paid")
                 {
-                    payment.ProcessedAt = DateTime.UtcNow;
+                    // Payment processed successfully
                 }
-                else if (status == PaymentStatus.Failed)
+                else if (status == "Failed")
                 {
-                    payment.FailedAt = DateTime.UtcNow;
+                    payment.ErrorMessage = gatewayResponse;
                 }
 
                 await _context.SaveChangesAsync();
@@ -91,7 +90,7 @@ namespace ShopTechnology.Services
             try
             {
                 var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
-                if (payment == null || payment.Status != PaymentStatus.Paid) return false;
+                if (payment == null || payment.Status != "Paid") return false;
 
                 var refund = new Payment
                 {
@@ -99,11 +98,9 @@ namespace ShopTechnology.Services
                     TransactionId = GenerateTransactionId(),
                     PaymentMethod = payment.PaymentMethod,
                     Amount = -amount, // Negative amount for refund
-                    Status = PaymentStatus.Refunded,
-                    Currency = payment.Currency,
+                    Status = "Refunded",
                     Description = $"Refund: {reason}",
-                    CreatedAt = DateTime.UtcNow,
-                    ProcessedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Payments.Add(refund);
@@ -135,10 +132,10 @@ namespace ShopTechnology.Services
             return payment != null;
         }
 
-        public async Task<PaymentStatus> GetPaymentStatusAsync(string transactionId)
+        public async Task<string> GetPaymentStatusAsync(string transactionId)
         {
             var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
-            return payment?.Status ?? PaymentStatus.Pending;
+            return payment?.Status ?? "Pending";
         }
 
         private string GenerateTransactionId()

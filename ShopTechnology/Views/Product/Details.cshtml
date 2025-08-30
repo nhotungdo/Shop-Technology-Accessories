@@ -1,8 +1,13 @@
 @model ShopTechnology.Models.Product
+@using ShopTechnology.Models
 
 @{
     ViewData["Title"] = Model.Name;
     var relatedProducts = ViewBag.RelatedProducts as List<ShopTechnology.Models.Product>;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product.css" />
 }
 
 <div class="product-detail-container">
@@ -19,7 +24,8 @@
                 @if (Model.Category != null)
                 {
                     <li class="breadcrumb-item">
-                        <a asp-controller="Product" asp-action="Category" asp-route-id="@Model.Category.Id">@Model.Category.Name</a>
+                        <a asp-controller="Product" asp-action="Category"
+                            asp-route-id="@Model.Category.CategoryId">@Model.Category.Name</a>
                     </li>
                 }
                 <li class="breadcrumb-item active">@Model.Name</li>
@@ -30,14 +36,15 @@
             <!-- Product Gallery -->
             <div class="product-gallery">
                 <div class="main-image">
-                    <img id="mainImage" src="@(Model.Images?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")" 
-                         alt="@Model.Name" />
+                    <img id="mainImage"
+                        src="@(Model.ProductImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")"
+                        alt="@Model.Name" />
                 </div>
-                
-                @if (Model.Images != null && Model.Images.Any())
+
+                @if (Model.ProductImages != null && Model.ProductImages.Any())
                 {
                     <div class="thumbnail-images">
-                        @foreach (var image in Model.Images.OrderBy(img => img.DisplayOrder))
+                        @foreach (var image in Model.ProductImages.OrderBy(img => img.DisplayOrder))
                         {
                             <div class="thumbnail @(image.IsMain ? "active" : "")" onclick="changeMainImage('@image.ImageUrl')">
                                 <img src="@image.ImageUrl" alt="@Model.Name" />
@@ -51,7 +58,7 @@
             <div class="product-info">
                 <div class="product-header">
                     <h1 class="product-title">@Model.Name</h1>
-                    
+
                     <div class="product-badges">
                         @if (Model.IsNew)
                         {
@@ -61,7 +68,7 @@
                         {
                             <span class="product-badge badge-hot">Hot</span>
                         }
-                        @if (Model.IsOnSale)
+                        @if (Model.Price < 1000000)
                         {
                             <span class="product-badge badge-sale">Sale</span>
                         }
@@ -71,8 +78,9 @@
                 <div class="product-rating">
                     <div class="stars">
                         @{
-                            var avgRating = Model.Reviews?.Where(r => r.IsApproved).Average(r => r.Rating) ?? 0;
-                            var reviewCount = Model.Reviews?.Count(r => r.IsApproved) ?? 0;
+                            var reviews = Model.Reviews?.ToList() ?? new List<Review>();
+                            var avgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                            var reviewCount = reviews.Count;
                         }
                         @for (int i = 1; i <= 5; i++)
                         {
@@ -92,11 +100,7 @@
 
                 <div class="product-price">
                     <span class="current-price">@Model.Price.ToString("N0") ₫</span>
-                    @if (Model.CompareAtPrice.HasValue && Model.CompareAtPrice.Value > Model.Price)
-                    {
-                        <span class="original-price">@Model.CompareAtPrice.Value.ToString("N0") ₫</span>
-                        <span class="discount-badge">-@(((Model.CompareAtPrice.Value - Model.Price) / Model.CompareAtPrice.Value * 100).ToString("F0"))%</span>
-                    }
+                    @* CompareAtPrice not available in new model *@
                 </div>
 
                 <div class="product-description">
@@ -108,18 +112,21 @@
                         <label>Số lượng:</label>
                         <div class="quantity-controls">
                             <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
-                            <input type="number" id="quantity" value="1" min="1" max="@Model.StockQuantity" class="quantity-input" />
+                            <input type="number" id="quantity" value="1" min="1" max="@Model.StockQuantity"
+                                class="quantity-input" />
                             <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
                         </div>
                         <span class="stock-info">Còn @Model.StockQuantity sản phẩm</span>
                     </div>
 
                     <div class="product-actions">
-                        <button type="button" class="btn btn-primary btn-lg btn-add-cart" onclick="addToCart(@Model.Id)">
+                        <button type="button" class="btn btn-primary btn-lg btn-add-cart"
+                            onclick="addToCart(@Model.ProductId)">
                             <i class="fas fa-shopping-cart"></i>
                             Thêm vào giỏ hàng
                         </button>
-                        <button type="button" class="btn btn-outline-primary btn-lg" onclick="addToWishlist(@Model.Id)">
+                        <button type="button" class="btn btn-outline-primary btn-lg"
+                            onclick="addToWishlist(@Model.ProductId)">
                             <i class="far fa-heart"></i>
                             Yêu thích
                         </button>
@@ -157,29 +164,14 @@
                 <!-- Description Tab -->
                 <div class="tab-pane active" id="description">
                     <div class="description-content">
-                        @Html.Raw(Model.LongDescription ?? Model.Description)
+                        @Html.Raw(Model.Description)
                     </div>
                 </div>
 
                 <!-- Specifications Tab -->
                 <div class="tab-pane" id="specifications">
                     <div class="specifications-content">
-                        @if (Model.Specifications != null && Model.Specifications.Any())
-                        {
-                            <div class="specs-table">
-                                @foreach (var spec in Model.Specifications.OrderBy(s => s.DisplayOrder))
-                                {
-                                    <div class="spec-row">
-                                        <div class="spec-label">@spec.Name</div>
-                                        <div class="spec-value">@spec.Value</div>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <p>Chưa có thông số kỹ thuật cho sản phẩm này.</p>
-                        }
+                        <p>Chưa có thông số kỹ thuật cho sản phẩm này.</p>
                     </div>
                 </div>
 
@@ -194,15 +186,15 @@
                             </button>
                         </div>
 
-                        @if (Model.Reviews != null && Model.Reviews.Any(r => r.IsApproved))
+                        @if (Model.Reviews != null && Model.Reviews.Any())
                         {
                             <div class="reviews-list">
-                                @foreach (var review in Model.Reviews.Where(r => r.IsApproved).OrderByDescending(r => r.CreatedAt))
+                                @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
                                 {
                                     <div class="review-item">
                                         <div class="review-header">
                                             <div class="reviewer-info">
-                                                <span class="reviewer-name">@review.User?.FirstName @review.User?.LastName</span>
+                                                <span class="reviewer-name">@review.User?.FullName</span>
                                                 <div class="review-rating">
                                                     @for (int i = 1; i <= 5; i++)
                                                     {
@@ -219,10 +211,10 @@
                                             </div>
                                             <span class="review-date">@review.CreatedAt.ToString("dd/MM/yyyy")</span>
                                         </div>
-                                        
+
                                         <div class="review-content">
                                             <h4 class="review-title">@review.Title</h4>
-                                            <p class="review-text">@review.Content</p>
+                                            <p class="review-text">@review.Comment</p>
                                         </div>
                                     </div>
                                 }
@@ -250,12 +242,12 @@
                     {
                         <div class="related-product-card">
                             <div class="product-image">
-                                <img src="@(product.Images?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")" 
-                                     alt="@product.Name" />
+                                <img src="@(product.ProductImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/img/placeholder.jpg")"
+                                    alt="@product.Name" />
                             </div>
                             <div class="product-content">
                                 <h4 class="product-name">
-                                    <a asp-action="Details" asp-route-id="@product.Id">@product.Name</a>
+                                    <a asp-action="Details" asp-route-id="@product.ProductId">@product.Name</a>
                                 </h4>
                                 <div class="product-price">
                                     <span class="current-price">@product.Price.ToString("N0") ₫</span>
@@ -273,13 +265,13 @@
     <script>
         // Tab functionality
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const tabId = this.dataset.tab;
-                
+
                 // Remove active class from all tabs and panes
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                
+
                 // Add active class to current tab and pane
                 this.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
@@ -289,7 +281,7 @@
         // Image gallery
         function changeMainImage(imageUrl) {
             document.getElementById('mainImage').src = imageUrl;
-            
+
             // Update active thumbnail
             document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
             event.target.closest('.thumbnail').classList.add('active');

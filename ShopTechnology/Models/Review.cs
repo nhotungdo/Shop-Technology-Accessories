@@ -1,40 +1,39 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Review
     {
-        public int Id { get; set; }
+        [Key]
+        public int ReviewId { get; set; }
 
+        [Required]
+        public int UserId { get; set; }
+
+        [Required]
         public int ProductId { get; set; }
-
-        public string UserId { get; set; } = string.Empty;
 
         public int Rating { get; set; } // 1-5 stars
 
-        [Required]
+        [MaxLength(255)]
+        public string? Title { get; set; }
+
         [MaxLength(1000)]
-        public string Title { get; set; } = string.Empty;
+        public string? Comment { get; set; }
 
-        [Required]
-        [MaxLength(2000)]
-        public string Content { get; set; } = string.Empty;
-
-        public bool IsVerified { get; set; } = false; // Verified purchase
-
-        public bool IsApproved { get; set; } = false;
-
-        public bool IsHelpful { get; set; } = false;
-
-        public int HelpfulCount { get; set; } = 0;
+        public bool IsVerified { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; } = null!;
+
+        [ForeignKey("ProductId")]
         public virtual Product Product { get; set; } = null!;
-        public virtual ApplicationUser User { get; set; } = null!;
-        public virtual ICollection<ReviewImage> Images { get; set; } = new List<ReviewImage>();
+        public virtual ICollection<ReviewImage> ReviewImages { get; set; } = new List<ReviewImage>();
     }
 }

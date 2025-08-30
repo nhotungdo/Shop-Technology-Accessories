@@ -4,6 +4,10 @@
     ViewData["Title"] = "Giỏ hàng";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/cart.css" />
+}
+
 <div class="cart-header">
     <div class="container">
         <h1>Giỏ hàng của bạn</h1>
@@ -48,8 +52,8 @@
                                     <div class="quantity-selector">
                                         <button type="button" class="quantity-btn" onclick="updateQuantity(@item.Id, -1)">-</button>
                                         <input type="number" class="quantity-input" value="@item.Quantity" min="1" 
-                                               onchange="updateQuantity(@item.Id, this.value)" />
-                                        <button type="button" class="quantity-btn" onclick="updateQuantity(@item.Id, 1)">+</button>
+                                                                                                onchange="updateQuantity(@item.Id, this.value)" />
+                                                                                  <button type="button" class="quantity-btn" onclick="updateQuantity(@item.Id, 1)">+</button>
                                     </div>
                                 </div>
 

@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Models;
 
 namespace ShopTechnology.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -12,16 +11,16 @@ namespace ShopTechnology.Data
         }
 
         // Core entities
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
-        public DbSet<ProductSpecification> ProductSpecifications { get; set; }
 
         // Order management
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
-        public DbSet<Address> Addresses { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<OrderHistory> OrderHistories { get; set; }
 
         // Cart and checkout
         public DbSet<Cart> Carts { get; set; }
@@ -34,7 +33,6 @@ namespace ShopTechnology.Data
         // Promotions and discounts
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<ProductPromotion> ProductPromotions { get; set; }
-        public DbSet<PromotionUsage> PromotionUsages { get; set; }
 
         // Wishlist
         public DbSet<Wishlist> Wishlists { get; set; }
@@ -44,9 +42,8 @@ namespace ShopTechnology.Data
         public DbSet<FAQ> FAQs { get; set; }
         public DbSet<Contact> Contacts { get; set; }
 
-        // Payment and notifications
+        // Payment
         public DbSet<Payment> Payments { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -54,11 +51,18 @@ namespace ShopTechnology.Data
 
             // Configure relationships and constraints
 
+            // User and Role relationships
+            builder.Entity<User>()
+                .HasOne(u => u.Role)
+                .WithMany(r => r.Users)
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Category self-referencing relationship
             builder.Entity<Category>()
-                .HasOne(c => c.Parent)
-                .WithMany(c => c.Children)
-                .HasForeignKey(c => c.ParentId)
+                .HasOne(c => c.ParentCategory)
+                .WithMany(c => c.ChildCategories)
+                .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Product relationships
@@ -70,14 +74,8 @@ namespace ShopTechnology.Data
 
             builder.Entity<ProductImage>()
                 .HasOne(pi => pi.Product)
-                .WithMany(p => p.Images)
+                .WithMany(p => p.ProductImages)
                 .HasForeignKey(pi => pi.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<ProductSpecification>()
-                .HasOne(ps => ps.Product)
-                .WithMany(p => p.Specifications)
-                .HasForeignKey(ps => ps.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Order relationships
@@ -87,42 +85,29 @@ namespace ShopTechnology.Data
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Order>()
-                .HasOne(o => o.ShippingAddress)
+            builder.Entity<OrderDetail>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDetails)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<OrderDetail>()
+                .HasOne(od => od.Product)
+                .WithMany(p => p.OrderDetails)
+                .HasForeignKey(od => od.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<OrderHistory>()
+                .HasOne(oh => oh.Order)
+                .WithMany(o => o.OrderHistories)
+                .HasForeignKey(oh => oh.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<OrderHistory>()
+                .HasOne(oh => oh.UpdatedByUser)
                 .WithMany()
-                .HasForeignKey(o => o.ShippingAddressId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Order>()
-                .HasOne(o => o.BillingAddress)
-                .WithMany()
-                .HasForeignKey(o => o.BillingAddressId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<OrderItem>()
-                .HasOne(oi => oi.Order)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(oi => oi.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<OrderItem>()
-                .HasOne(oi => oi.Product)
-                .WithMany(p => p.OrderItems)
-                .HasForeignKey(oi => oi.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<OrderStatusHistory>()
-                .HasOne(osh => osh.Order)
-                .WithMany(o => o.StatusHistory)
-                .HasForeignKey(osh => osh.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Address relationship
-            builder.Entity<Address>()
-                .HasOne(a => a.User)
-                .WithMany(u => u.Addresses)
-                .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(oh => oh.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Cart relationships
             builder.Entity<Cart>()
@@ -133,7 +118,7 @@ namespace ShopTechnology.Data
 
             builder.Entity<CartItem>()
                 .HasOne(ci => ci.Cart)
-                .WithMany(c => c.Items)
+                .WithMany(c => c.CartItems)
                 .HasForeignKey(ci => ci.CartId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -158,7 +143,7 @@ namespace ShopTechnology.Data
 
             builder.Entity<ReviewImage>()
                 .HasOne(ri => ri.Review)
-                .WithMany(r => r.Images)
+                .WithMany(r => r.ReviewImages)
                 .HasForeignKey(ri => ri.ReviewId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -174,24 +159,6 @@ namespace ShopTechnology.Data
                 .WithMany(p => p.ProductPromotions)
                 .HasForeignKey(pp => pp.PromotionId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<PromotionUsage>()
-                .HasOne(pu => pu.Promotion)
-                .WithMany(p => p.Usages)
-                .HasForeignKey(pu => pu.PromotionId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<PromotionUsage>()
-                .HasOne(pu => pu.User)
-                .WithMany()
-                .HasForeignKey(pu => pu.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<PromotionUsage>()
-                .HasOne(pu => pu.Order)
-                .WithMany()
-                .HasForeignKey(pu => pu.OrderId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Wishlist relationship
             builder.Entity<Wishlist>()
@@ -209,25 +176,25 @@ namespace ShopTechnology.Data
             // Payment relationship
             builder.Entity<Payment>()
                 .HasOne(p => p.Order)
-                .WithMany()
+                .WithMany(o => o.Payments)
                 .HasForeignKey(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Notification relationship
-            builder.Entity<Notification>()
-                .HasOne(n => n.User)
-                .WithMany()
-                .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Contact relationship
             builder.Entity<Contact>()
-                .HasOne(c => c.AssignedToUser)
+                .HasOne(c => c.RepliedByUser)
                 .WithMany()
-                .HasForeignKey(c => c.AssignedToUserId)
+                .HasForeignKey(c => c.RepliedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure indexes
+            builder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            builder.Entity<User>()
+                .HasIndex(u => u.PhoneNumber);
+
             builder.Entity<Product>()
                 .HasIndex(p => p.SKU)
                 .IsUnique();
@@ -246,8 +213,8 @@ namespace ShopTechnology.Data
                 .HasIndex(o => o.OrderNumber)
                 .IsUnique();
 
-            builder.Entity<Payment>()
-                .HasIndex(p => p.TransactionId)
+            builder.Entity<Cart>()
+                .HasIndex(c => c.SessionId)
                 .IsUnique();
 
             // Configure decimal precision
@@ -256,15 +223,15 @@ namespace ShopTechnology.Data
                 .HasPrecision(18, 2);
 
             builder.Entity<Product>()
-                .Property(p => p.CompareAtPrice)
+                .Property(p => p.OriginalPrice)
                 .HasPrecision(18, 2);
 
             builder.Entity<Product>()
-                .Property(p => p.CostPrice)
-                .HasPrecision(18, 2);
+                .Property(p => p.AverageRating)
+                .HasPrecision(3, 2);
 
             builder.Entity<Order>()
-                .Property(o => o.Subtotal)
+                .Property(o => o.SubTotal)
                 .HasPrecision(18, 2);
 
             builder.Entity<Order>()
@@ -272,7 +239,7 @@ namespace ShopTechnology.Data
                 .HasPrecision(18, 2);
 
             builder.Entity<Order>()
-                .Property(o => o.ShippingAmount)
+                .Property(o => o.ShippingFee)
                 .HasPrecision(18, 2);
 
             builder.Entity<Order>()
@@ -283,24 +250,24 @@ namespace ShopTechnology.Data
                 .Property(o => o.TotalAmount)
                 .HasPrecision(18, 2);
 
-            builder.Entity<OrderItem>()
-                .Property(oi => oi.UnitPrice)
+            builder.Entity<OrderDetail>()
+                .Property(od => od.UnitPrice)
                 .HasPrecision(18, 2);
 
-            builder.Entity<OrderItem>()
-                .Property(oi => oi.TotalPrice)
-                .HasPrecision(18, 2);
-
-            builder.Entity<OrderItem>()
-                .Property(oi => oi.DiscountAmount)
+            builder.Entity<OrderDetail>()
+                .Property(od => od.TotalPrice)
                 .HasPrecision(18, 2);
 
             builder.Entity<CartItem>()
                 .Property(ci => ci.UnitPrice)
                 .HasPrecision(18, 2);
 
+            builder.Entity<CartItem>()
+                .Property(ci => ci.TotalPrice)
+                .HasPrecision(18, 2);
+
             builder.Entity<Promotion>()
-                .Property(p => p.Value)
+                .Property(p => p.DiscountValue)
                 .HasPrecision(18, 2);
 
             builder.Entity<Promotion>()
@@ -309,10 +276,6 @@ namespace ShopTechnology.Data
 
             builder.Entity<Promotion>()
                 .Property(p => p.MaximumDiscountAmount)
-                .HasPrecision(18, 2);
-
-            builder.Entity<PromotionUsage>()
-                .Property(pu => pu.DiscountAmount)
                 .HasPrecision(18, 2);
 
             builder.Entity<Payment>()

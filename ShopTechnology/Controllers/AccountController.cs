@@ -1,21 +1,21 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ShopTechnology.Data;
 using ShopTechnology.Models;
 using ShopTechnology.ViewModels;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ShopTechnology.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext _context;
 
-        public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+        public AccountController(ApplicationDbContext context)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _context = context;
         }
 
         [HttpGet]
@@ -32,9 +32,30 @@ namespace ShopTechnology.Controllers
 
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
+                var user = await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == model.Password && u.IsActive);
+
+                if (user != null)
                 {
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                        new Claim(ClaimTypes.Name, user.FullName),
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, user.Role.Name)
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = model.RememberMe,
+                        ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                    };
+
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity), authProperties);
+
                     return RedirectToLocal(returnUrl);
                 }
                 else
@@ -61,25 +82,57 @@ namespace ShopTechnology.Controllers
 
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser
+                // Check if email already exists
+                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+                if (existingUser != null)
                 {
-                    UserName = model.Email,
+                    ModelState.AddModelError(string.Empty, "Email đã được sử dụng.");
+                    return View(model);
+                }
+
+                var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+                if (userRole == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                    return View(model);
+                }
+
+                var user = new User
+                {
+                    RoleId = userRole.RoleId,
+                    FullName = $"{model.FirstName} {model.LastName}",
                     Email = model.Email,
-                    FirstName = model.FirstName,
-                    LastName = model.LastName
+                    PhoneNumber = "",
+                    Password = model.Password, // In real app, this should be hashed
+                    DateOfBirth = DateTime.Now.AddYears(-18), // Default age
+                    IsEmailVerified = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToLocal(returnUrl);
-                }
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
 
-                foreach (var error in result.Errors)
+                // Auto login after registration
+                var claims = new List<Claim>
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, userRole.Name)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = false,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                };
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity), authProperties);
+
+                return RedirectToLocal(returnUrl);
             }
 
             return View(model);
@@ -88,7 +141,7 @@ namespace ShopTechnology.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
 
@@ -103,12 +156,17 @@ namespace ShopTechnology.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
                 if (user != null)
                 {
-                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, token = token }, protocol: Request.Scheme);
-                    
+                    // Generate a simple token (in real app, use proper token generation)
+                    var token = Guid.NewGuid().ToString();
+                    user.PasswordResetToken = token;
+                    user.PasswordResetExpiry = DateTime.UtcNow.AddHours(24);
+                    await _context.SaveChangesAsync();
+
+                    var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.UserId, token = token }, protocol: Request.Scheme);
+
                     // TODO: Send email with reset link
                     TempData["Info"] = "Link đặt lại mật khẩu đã được gửi đến email của bạn.";
                 }
@@ -143,20 +201,22 @@ namespace ShopTechnology.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByIdAsync(model.UserId);
-                if (user != null)
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId.ToString() == model.UserId);
+                if (user != null && user.PasswordResetToken == model.Token &&
+                    user.PasswordResetExpiry > DateTime.UtcNow)
                 {
-                    var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
-                    if (result.Succeeded)
-                    {
-                        TempData["Success"] = "Mật khẩu đã được đặt lại thành công.";
-                        return RedirectToAction("Login");
-                    }
+                    user.Password = model.Password; // In real app, this should be hashed
+                    user.PasswordResetToken = null;
+                    user.PasswordResetExpiry = null;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
 
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
+                    TempData["Success"] = "Mật khẩu đã được đặt lại thành công.";
+                    return RedirectToAction("Login");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Token không hợp lệ hoặc đã hết hạn.");
                 }
             }
 

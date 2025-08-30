@@ -30,6 +30,6 @@ namespace ShopTechnology.Models
         public virtual Product Product { get; set; } = null!;
 
         [ForeignKey("UserId")]
-        public virtual ApplicationUser? User { get; set; }
+        public virtual User? User { get; set; }
     }
 }

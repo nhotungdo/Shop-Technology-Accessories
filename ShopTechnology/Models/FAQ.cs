@@ -4,7 +4,8 @@ namespace ShopTechnology.Models
 {
     public class FAQ
     {
-        public int Id { get; set; }
+        [Key]
+        public int FAQId { get; set; }
 
         [Required]
         [MaxLength(200)]
@@ -14,7 +15,7 @@ namespace ShopTechnology.Models
         [MaxLength(2000)]
         public string Answer { get; set; } = string.Empty;
 
-        [MaxLength(100)]
+        [MaxLength(50)]
         public string? Category { get; set; }
 
         public int DisplayOrder { get; set; } = 0;

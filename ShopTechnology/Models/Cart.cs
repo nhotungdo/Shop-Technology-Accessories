@@ -1,12 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Cart
     {
-        public int Id { get; set; }
+        [Key]
+        public int CartId { get; set; }
 
-        public string? UserId { get; set; }
+        [Required]
+        public int UserId { get; set; }
 
         [MaxLength(100)]
         public string? SessionId { get; set; }
@@ -15,13 +18,9 @@ namespace ShopTechnology.Models
 
         public DateTime? UpdatedAt { get; set; }
 
-        public DateTime? ExpiresAt { get; set; }
-
-        [MaxLength(50)]
-        public string? PromotionCode { get; set; }
-
         // Navigation properties
-        public virtual ApplicationUser? User { get; set; }
-        public virtual ICollection<CartItem> Items { get; set; } = new List<CartItem>();
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; } = null!;
+        public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }

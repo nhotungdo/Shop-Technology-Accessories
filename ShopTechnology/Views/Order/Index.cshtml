@@ -2,6 +2,10 @@
     ViewData["Title"] = "Đơn hàng của tôi";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/order.css" />
+}
+
 <div class="order-header">
     <div class="container">
         <h1>Đơn hàng của tôi</h1>
@@ -23,17 +27,17 @@
                     <option value="cancelled">Đã hủy</option>
                 </select>
             </div>
-            
+
             <div class="filter-group">
                 <label>Từ ngày:</label>
                 <input type="date" class="form-control" />
             </div>
-            
+
             <div class="filter-group">
                 <label>Đến ngày:</label>
                 <input type="date" class="form-control" />
             </div>
-            
+
             <button type="button" class="btn btn-primary">Lọc</button>
         </div>
 
@@ -48,7 +52,7 @@
                         <span>Chờ xử lý</span>
                     </div>
                 </div>
-                
+
                 <div class="order-products">
                     <div class="product-item">
                         <img src="/img/placeholder.jpg" alt="Sản phẩm" />
@@ -59,7 +63,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="order-footer">
                     <div class="order-total">
                         <span>Tổng cộng: 25,000,000 ₫</span>
@@ -81,7 +85,7 @@
                         <span>Đã nhận hàng</span>
                     </div>
                 </div>
-                
+
                 <div class="order-products">
                     <div class="product-item">
                         <img src="/img/placeholder.jpg" alt="Sản phẩm" />
@@ -92,7 +96,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="order-footer">
                     <div class="order-total">
                         <span>Tổng cộng: 45,000,000 ₫</span>

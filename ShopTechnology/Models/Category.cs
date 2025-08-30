@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopTechnology.Models
 {
     public class Category
     {
-        public int Id { get; set; }
+        [Key]
+        public int CategoryId { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -13,35 +15,34 @@ namespace ShopTechnology.Models
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        [MaxLength(200)]
+        [MaxLength(255)]
         public string? ImageUrl { get; set; }
 
-        [MaxLength(100)]
-        public string? Slug { get; set; }
-
-        public int? ParentId { get; set; }
+        public int? ParentCategoryId { get; set; }
 
         public int DisplayOrder { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsFeatured { get; set; } = false;
 
-        public DateTime? UpdatedAt { get; set; }
+        [MaxLength(100)]
+        public string? Slug { get; set; }
 
-        // SEO properties
-        [MaxLength(200)]
+        [MaxLength(255)]
         public string? MetaTitle { get; set; }
 
         [MaxLength(500)]
         public string? MetaDescription { get; set; }
 
-        [MaxLength(200)]
-        public string? MetaKeywords { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual Category? Parent { get; set; }
-        public virtual ICollection<Category> Children { get; set; } = new List<Category>();
+        [ForeignKey("ParentCategoryId")]
+        public virtual Category? ParentCategory { get; set; }
+        public virtual ICollection<Category> ChildCategories { get; set; } = new List<Category>();
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

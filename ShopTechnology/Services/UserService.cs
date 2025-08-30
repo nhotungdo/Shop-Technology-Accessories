@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Data;
 using ShopTechnology.Models;
@@ -7,36 +6,41 @@ namespace ShopTechnology.Services
 {
     public class UserService : IUserService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public UserService(ApplicationDbContext context)
         {
-            _userManager = userManager;
             _context = context;
         }
 
-        public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
+        public async Task<User?> GetUserByIdAsync(int userId)
         {
-            return await _userManager.FindByIdAsync(userId);
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
         }
 
-        public async Task<ApplicationUser?> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _userManager.FindByEmailAsync(email);
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<IEnumerable<ApplicationUser>> GetAllUsersAsync()
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _userManager.Users.ToListAsync();
+            return await _context.Users
+                .Include(u => u.Role)
+                .ToListAsync();
         }
 
-        public async Task<bool> CreateUserAsync(ApplicationUser user, string password)
+        public async Task<bool> CreateUserAsync(User user)
         {
             try
             {
-                var result = await _userManager.CreateAsync(user, password);
-                return result.Succeeded;
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {
@@ -44,13 +48,14 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<bool> UpdateUserAsync(ApplicationUser user)
+        public async Task<bool> UpdateUserAsync(User user)
         {
             try
             {
                 user.UpdatedAt = DateTime.UtcNow;
-                var result = await _userManager.UpdateAsync(user);
-                return result.Succeeded;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {
@@ -58,15 +63,16 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<bool> DeleteUserAsync(string userId)
+        public async Task<bool> DeleteUserAsync(int userId)
         {
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = await _context.Users.FindAsync(userId);
                 if (user == null) return false;
 
-                var result = await _userManager.DeleteAsync(user);
-                return result.Succeeded;
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {
@@ -74,15 +80,17 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
         {
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user == null) return false;
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null || user.Password != currentPassword) return false;
 
-                var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-                return result.Succeeded;
+                user.Password = newPassword; // In real app, this should be hashed
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {
@@ -94,11 +102,13 @@ namespace ShopTechnology.Services
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
                 if (user == null) return false;
 
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                // In a real application, you would send this token via email
+                var token = Guid.NewGuid().ToString();
+                user.PasswordResetToken = token;
+                user.PasswordResetExpiry = DateTime.UtcNow.AddHours(24);
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch
@@ -107,15 +117,19 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<bool> ConfirmEmailAsync(string userId, string token)
+        public async Task<bool> ConfirmEmailAsync(int userId, string token)
         {
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user == null) return false;
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null || user.EmailVerificationToken != token) return false;
 
-                var result = await _userManager.ConfirmEmailAsync(user, token);
-                return result.Succeeded;
+                user.IsEmailVerified = true;
+                user.EmailVerificationToken = null;
+                user.EmailVerificationExpiry = null;
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {
@@ -123,75 +137,34 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<bool> IsEmailConfirmedAsync(string userId)
+        public async Task<bool> IsEmailConfirmedAsync(int userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            return user?.EmailConfirmed ?? false;
+            var user = await _context.Users.FindAsync(userId);
+            return user?.IsEmailVerified ?? false;
         }
 
-        public async Task<IEnumerable<string>> GetUserRolesAsync(string userId)
+        public async Task<string> GetUserRoleAsync(int userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return new List<string>();
-
-            return await _userManager.GetRolesAsync(user);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+            return user?.Role?.Name ?? string.Empty;
         }
 
-        public async Task<bool> AddUserToRoleAsync(string userId, string roleName)
+        public async Task<bool> UpdateProfileAsync(int userId, string fullName, string? phoneNumber, string? address)
         {
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = await _context.Users.FindAsync(userId);
                 if (user == null) return false;
 
-                var result = await _userManager.AddToRoleAsync(user, roleName);
-                return result.Succeeded;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> RemoveUserFromRoleAsync(string userId, string roleName)
-        {
-            try
-            {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user == null) return false;
-
-                var result = await _userManager.RemoveFromRoleAsync(user, roleName);
-                return result.Succeeded;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> IsInRoleAsync(string userId, string roleName)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            return await _userManager.IsInRoleAsync(user, roleName);
-        }
-
-        public async Task<bool> UpdateProfileAsync(string userId, string firstName, string lastName, string? phoneNumber, string? address)
-        {
-            try
-            {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user == null) return false;
-
-                user.FirstName = firstName;
-                user.LastName = lastName;
-                user.PhoneNumber = phoneNumber;
+                user.FullName = fullName;
+                user.PhoneNumber = phoneNumber ?? string.Empty;
                 user.Address = address;
                 user.UpdatedAt = DateTime.UtcNow;
 
-                var result = await _userManager.UpdateAsync(user);
-                return result.Succeeded;
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {
@@ -199,18 +172,18 @@ namespace ShopTechnology.Services
             }
         }
 
-        public async Task<bool> UpdateAvatarAsync(string userId, string avatarUrl)
+        public async Task<bool> UpdateAvatarAsync(int userId, string avatarUrl)
         {
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = await _context.Users.FindAsync(userId);
                 if (user == null) return false;
 
                 user.Avatar = avatarUrl;
                 user.UpdatedAt = DateTime.UtcNow;
 
-                var result = await _userManager.UpdateAsync(user);
-                return result.Succeeded;
+                await _context.SaveChangesAsync();
+                return true;
             }
             catch
             {

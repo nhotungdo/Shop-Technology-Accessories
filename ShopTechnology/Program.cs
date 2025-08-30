@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShopTechnology.Data;
 using ShopTechnology.Models;
@@ -6,8 +5,7 @@ using ShopTechnology.Services;
 using Serilog;
 using Hangfire;
 using Hangfire.SqlServer;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -38,20 +36,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 errorNumbersToAdd: null);
         }));
 
-// Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+// Authentication
+builder.Services.AddAuthentication(options =>
 {
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-
-    options.User.RequireUniqueEmail = true;
-    options.SignIn.RequireConfirmedEmail = true;
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+.AddCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
+});
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -78,18 +77,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Social Login
-builder.Services.AddAuthentication()
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["SocialLogin:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["SocialLogin:Google:ClientSecret"]!;
-    })
-    .AddFacebook(options =>
-    {
-        options.AppId = builder.Configuration["SocialLogin:Facebook:AppId"]!;
-        options.AppSecret = builder.Configuration["SocialLogin:Facebook:AppSecret"]!;
-    });
+
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
@@ -125,7 +113,6 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IBannerService, BannerService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
@@ -192,8 +179,6 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
         try
         {
@@ -217,7 +202,7 @@ using (var scope = app.Services.CreateScope())
         }
 
         // Seed data
-        await SeedData.InitializeAsync(context, userManager, roleManager);
+        await SeedData.InitializeAsync(context);
 
         Log.Information("Database created and seeded successfully.");
     }

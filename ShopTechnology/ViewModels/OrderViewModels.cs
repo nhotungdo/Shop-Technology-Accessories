@@ -6,8 +6,8 @@ namespace ShopTechnology.ViewModels
     {
         public string? OrderNumber { get; set; }
         public string? CustomerEmail { get; set; }
-        public OrderStatus? Status { get; set; }
-        public PaymentStatus? PaymentStatus { get; set; }
+        public string? Status { get; set; }
+        public string? PaymentStatus { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public decimal? MinAmount { get; set; }
@@ -17,8 +17,13 @@ namespace ShopTechnology.ViewModels
     public class CreateOrderViewModel
     {
         public string UserId { get; set; } = string.Empty;
-        public int ShippingAddressId { get; set; }
-        public int BillingAddressId { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+        public string ShippingAddress { get; set; } = string.Empty;
+        public string ShippingCity { get; set; } = string.Empty;
+        public string ShippingProvince { get; set; } = string.Empty;
+        public string ShippingPostalCode { get; set; } = string.Empty;
         public List<OrderItemViewModel> Items { get; set; } = new List<OrderItemViewModel>();
         public string? Notes { get; set; }
         public string? PromotionCode { get; set; }
@@ -40,12 +45,11 @@ namespace ShopTechnology.ViewModels
         public int OrderId { get; set; }
         public string OrderNumber { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; }
-        public OrderStatus Status { get; set; }
-        public PaymentStatus PaymentStatus { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public string CustomerEmail { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
-        public string BillingAddress { get; set; } = string.Empty;
         public List<OrderItemViewModel> Items { get; set; } = new List<OrderItemViewModel>();
         public decimal Subtotal { get; set; }
         public decimal TaxAmount { get; set; }
@@ -55,15 +59,14 @@ namespace ShopTechnology.ViewModels
         public string? TrackingNumber { get; set; }
         public string? ShippingCarrier { get; set; }
         public string? Notes { get; set; }
-        public List<OrderStatusHistoryViewModel> StatusHistory { get; set; } = new List<OrderStatusHistoryViewModel>();
+        public List<OrderHistoryViewModel> StatusHistory { get; set; } = new List<OrderHistoryViewModel>();
     }
 
-    public class OrderStatusHistoryViewModel
+    public class OrderHistoryViewModel
     {
-        public OrderStatus OldStatus { get; set; }
-        public OrderStatus NewStatus { get; set; }
+        public string Status { get; set; } = string.Empty;
         public string? Notes { get; set; }
-        public string? ChangedByUser { get; set; }
-        public DateTime ChangedAt { get; set; }
+        public string? UpdatedByUser { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

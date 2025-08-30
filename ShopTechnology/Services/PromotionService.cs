@@ -16,10 +16,10 @@ namespace ShopTechnology.Services
         public async Task<IEnumerable<Promotion>> GetActivePromotionsAsync()
         {
             return await _context.Promotions
-                .Where(p => p.IsActive && 
-                           p.StartDate <= DateTime.UtcNow && 
+                .Where(p => p.IsActive &&
+                           p.StartDate <= DateTime.UtcNow &&
                            p.EndDate >= DateTime.UtcNow)
-                .OrderBy(p => p.Id)
+                .OrderBy(p => p.PromotionId)
                 .ToListAsync();
         }
 
@@ -34,7 +34,7 @@ namespace ShopTechnology.Services
         {
             return await _context.Promotions
                 .Include(p => p.ProductPromotions)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.PromotionId == id);
         }
 
         public async Task<bool> CreatePromotionAsync(Promotion promotion)
@@ -90,26 +90,27 @@ namespace ShopTechnology.Services
             if (promotion == null) return false;
 
             // Check if promotion is active and within date range
-            if (!promotion.IsActive || 
-                promotion.StartDate > DateTime.UtcNow || 
+            if (!promotion.IsActive ||
+                promotion.StartDate > DateTime.UtcNow ||
                 promotion.EndDate < DateTime.UtcNow)
                 return false;
 
             // Check minimum order amount
-            if (promotion.MinimumOrderAmount.HasValue && 
+            if (promotion.MinimumOrderAmount.HasValue &&
                 orderAmount < promotion.MinimumOrderAmount.Value)
                 return false;
 
             // Check usage limit
-            if (promotion.UsageLimit.HasValue && 
+            if (promotion.UsageLimit.HasValue &&
                 promotion.UsedCount >= promotion.UsageLimit.Value)
                 return false;
 
             // Check if user has already used this promotion (for first-time only)
-            if (promotion.IsFirstTimeOnly)
+            if (promotion.IsPublic == false)
             {
-                var hasUsed = await _context.PromotionUsages
-                    .AnyAsync(pu => pu.PromotionId == promotion.Id && pu.UserId == userId);
+                var hasUsed = await _context.Orders
+                    .Where(o => o.UserId == int.Parse(userId) && o.PaymentStatus == "Paid")
+                    .AnyAsync();
                 if (hasUsed) return false;
             }
 
@@ -123,21 +124,21 @@ namespace ShopTechnology.Services
 
             decimal discount = 0;
 
-            switch (promotion.Type)
+            switch (promotion.DiscountType)
             {
-                case PromotionType.Percentage:
-                    discount = orderAmount * (promotion.Value / 100);
+                case "Percentage":
+                    discount = orderAmount * (promotion.DiscountValue / 100);
                     break;
-                case PromotionType.FixedAmount:
-                    discount = promotion.Value;
+                case "FixedAmount":
+                    discount = promotion.DiscountValue;
                     break;
-                case PromotionType.FreeShipping:
+                case "FreeShipping":
                     discount = 10; // Assuming shipping cost is $10
                     break;
             }
 
             // Apply maximum discount limit
-            if (promotion.MaximumDiscountAmount.HasValue && 
+            if (promotion.MaximumDiscountAmount.HasValue &&
                 discount > promotion.MaximumDiscountAmount.Value)
             {
                 discount = promotion.MaximumDiscountAmount.Value;
@@ -153,11 +154,11 @@ namespace ShopTechnology.Services
                 var order = await _context.Orders.FindAsync(orderId);
                 if (order == null) return false;
 
-                var discount = await CalculateDiscountAsync(code, order.Subtotal);
+                var discount = await CalculateDiscountAsync(code, order.SubTotal);
                 if (discount <= 0) return false;
 
                 order.DiscountAmount = discount;
-                order.TotalAmount = order.Subtotal + order.TaxAmount + order.ShippingAmount - discount;
+                order.TotalAmount = order.SubTotal + order.TaxAmount + order.ShippingFee - discount;
                 // order.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
@@ -191,8 +192,8 @@ namespace ShopTechnology.Services
         {
             return await _context.Promotions
                 .Include(p => p.ProductPromotions)
-                .Where(p => p.IsActive && 
-                           p.StartDate <= DateTime.UtcNow && 
+                .Where(p => p.IsActive &&
+                           p.StartDate <= DateTime.UtcNow &&
                            p.EndDate >= DateTime.UtcNow &&
                            p.ProductPromotions.Any(pp => pp.ProductId == productId))
                 .ToListAsync();
@@ -204,7 +205,7 @@ namespace ShopTechnology.Services
             {
                 var existing = await _context.ProductPromotions
                     .FirstOrDefaultAsync(pp => pp.PromotionId == promotionId && pp.ProductId == productId);
-                
+
                 if (existing != null) return true; // Already exists
 
                 var productPromotion = new ProductPromotion
@@ -230,7 +231,7 @@ namespace ShopTechnology.Services
             {
                 var productPromotion = await _context.ProductPromotions
                     .FirstOrDefaultAsync(pp => pp.PromotionId == promotionId && pp.ProductId == productId);
-                
+
                 if (productPromotion == null) return false;
 
                 _context.ProductPromotions.Remove(productPromotion);
