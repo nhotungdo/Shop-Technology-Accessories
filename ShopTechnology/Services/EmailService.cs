@@ -46,6 +46,20 @@ namespace ShopTechnology.Services
             return await SendEmailAsync(to, subject, body, true);
         }
 
+        public async Task<bool> SendEmailVerificationAsync(string to, string userName, string token)
+        {
+            var subject = "Verify your email address";
+            var callbackUrl = $"https://localhost:5001/Account/VerifyEmail?email={Uri.EscapeDataString(to)}&token={Uri.EscapeDataString(token)}";
+            var body = $@"
+                <h2>Welcome to Shop Technology, {userName}!</h2>
+                <p>Please verify your email address by clicking the link below:</p>
+                <p><a href='{callbackUrl}'>Verify Email Address</a></p>
+                <p>If you didn't create an account, you can safely ignore this email.</p>
+                <p>This verification link will expire in 24 hours.</p>";
+
+            return await SendEmailAsync(to, subject, body, true);
+        }
+
         public async Task<bool> SendPasswordResetAsync(string to, string callbackUrl)
         {
             var subject = "Reset your password";
@@ -55,6 +69,21 @@ namespace ShopTechnology.Services
                 <p><a href='{callbackUrl}'>Reset Password</a></p>
                 <p>If you didn't request this, you can safely ignore this email.</p>
                 <p>This link will expire in 1 hour.</p>";
+
+            return await SendEmailAsync(to, subject, body, true);
+        }
+
+        public async Task<bool> SendPasswordResetAsync(string to, string userName, string token)
+        {
+            var subject = "Reset your password";
+            var callbackUrl = $"https://localhost:5001/Account/ResetPassword?email={Uri.EscapeDataString(to)}&token={Uri.EscapeDataString(token)}";
+            var body = $@"
+                <h2>Password Reset Request</h2>
+                <p>Hello {userName},</p>
+                <p>You requested to reset your password. Click the link below to set a new password:</p>
+                <p><a href='{callbackUrl}'>Reset Password</a></p>
+                <p>If you didn't request this, you can safely ignore this email.</p>
+                <p>This link will expire in 24 hours.</p>";
 
             return await SendEmailAsync(to, subject, body, true);
         }

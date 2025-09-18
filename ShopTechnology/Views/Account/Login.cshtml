@@ -1,4 +1,4 @@
-@model ShopTechnology.Controllers.LoginViewModel
+@model ShopTechnology.ViewModels.LoginViewModel
 
 @{
     ViewData["Title"] = "Đăng nhập";
@@ -18,16 +18,18 @@
         <div class="auth-body">
             <form asp-action="Login" method="post" class="auth-form">
                 <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
-                
+
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" type="email" class="form-control" placeholder="Nhập email của bạn" required />
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Nhập email của bạn"
+                        required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Mật khẩu</label>
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" required />
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu"
+                        required />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
@@ -48,14 +50,14 @@
             </div>
 
             <div class="social-auth">
-                <button type="button" class="btn btn-google">
+                <a asp-action="GoogleLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="btn btn-google">
                     <i class="fab fa-google"></i>
                     Đăng nhập với Google
-                </button>
-                <button type="button" class="btn btn-facebook">
+                </a>
+                <a asp-action="FacebookLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="btn btn-facebook">
                     <i class="fab fa-facebook-f"></i>
                     Đăng nhập với Facebook
-                </button>
+                </a>
             </div>
 
             <div class="auth-links">
@@ -69,5 +71,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

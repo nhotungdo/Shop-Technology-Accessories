@@ -1,4 +1,4 @@
-@model ShopTechnology.Controllers.RegisterViewModel
+@model ShopTechnology.ViewModels.RegisterViewModel
 
 @{
     ViewData["Title"] = "Đăng ký";
@@ -18,7 +18,7 @@
         <div class="auth-body">
             <form asp-action="Register" method="post" class="auth-form">
                 <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label asp-for="FirstName" class="form-label">Họ</label>
@@ -35,13 +35,15 @@
 
                 <div class="form-group">
                     <label asp-for="Email" class="form-label">Email</label>
-                    <input asp-for="Email" type="email" class="form-control" placeholder="Nhập email của bạn" required />
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Nhập email của bạn"
+                        required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Mật khẩu</label>
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Tạo mật khẩu" required />
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Tạo mật khẩu"
+                        required />
                     <div class="password-strength">
                         <div class="strength-bar">
                             <div class="strength-fill" id="strengthFill"></div>
@@ -53,7 +55,8 @@
 
                 <div class="form-group">
                     <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
-                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                    <input asp-for="ConfirmPassword" type="password" class="form-control"
+                        placeholder="Nhập lại mật khẩu" required />
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
@@ -87,24 +90,26 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
     <script>
         // Password strength checker
-        document.getElementById('Password').addEventListener('input', function() {
+        document.getElementById('Password').addEventListener('input', function () {
             const password = this.value;
             const strengthFill = document.getElementById('strengthFill');
             const strengthText = document.getElementById('strengthText');
-            
+
             let strength = 0;
             let text = '';
-            
+
             if (password.length >= 8) strength++;
             if (password.match(/[a-z]/)) strength++;
             if (password.match(/[A-Z]/)) strength++;
             if (password.match(/[0-9]/)) strength++;
             if (password.match(/[^a-zA-Z0-9]/)) strength++;
-            
+
             switch (strength) {
                 case 0:
                 case 1:
@@ -133,7 +138,7 @@
                     strengthFill.style.backgroundColor = '#007E33';
                     break;
             }
-            
+
             strengthText.textContent = text;
         });
     </script>

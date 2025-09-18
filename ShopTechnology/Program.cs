@@ -50,6 +50,18 @@ builder.Services.AddAuthentication(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromHours(24);
     options.SlidingExpiration = true;
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["SocialLogin:Google:ClientId"] ?? "";
+    options.ClientSecret = builder.Configuration["SocialLogin:Google:ClientSecret"] ?? "";
+    options.CallbackPath = "/Account/GoogleCallback";
+})
+.AddFacebook(options =>
+{
+    options.AppId = builder.Configuration["SocialLogin:Facebook:AppId"] ?? "";
+    options.AppSecret = builder.Configuration["SocialLogin:Facebook:AppSecret"] ?? "";
+    options.CallbackPath = "/Account/FacebookCallback";
 });
 
 // JWT Authentication
@@ -109,6 +121,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
